@@ -8,16 +8,22 @@
 #ifndef __CONFIG_H_
 #define __CONFIG_H_
 
+#include "__CONFIG_SECRETS.h"
+
 // ************ General config *********************
 #define DEVICE_NAME "Display_v1"
 #define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi, then switch to Access Point
 
-// #define GMT_OFFSET  1
-// #define DST_OFFSET  0
+#define DISPLAY_LCD_ST7735                                    // 128x160 TFT SPI
+//#define DISPLAY_OLED_SSD1306                                    // 128x64 OLED I2C
+
+#define TIME_SERVER "pool.ntp.org"
+#define GMT_OFFSET  1
+#define DST_OFFSET  0
 
 // ************ WiFi config *********************
-#define WIFI_SSID  "HA2"
-#define WIFI_PASSWD "4"
+//#define WIFI_SSID  "..." -> enter into the file __CONFIG_SECRETS.h
+//#define WIFI_PASSWD "..."
 #define WIFI_RETRY_CONNECTION_SEC  90
 
 
@@ -27,9 +33,6 @@
 
 // ARSO:
 #define ARSO_SERVER_XML "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
-
-#define DISPLAY_LCD_ST7735                                    // 128x160 TFT SPI
-//#define DISPLAY_OLED_SSD1306                                    // 128x64 OLED I2C
-
+// also validate: include\Arso_https_certificate.h
 
 #endif /* __CONFIG_H_ */

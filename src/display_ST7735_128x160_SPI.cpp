@@ -1,5 +1,3 @@
-//#include <Arduino.h>
-//#include <stdint.h>
 #include "__CONFIG.h"
 
 #ifdef DISPLAY_LCD_ST7735
@@ -67,11 +65,12 @@ void DisplayText(const char Text[]) {
   }
 
 void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Show) {
+  tft.setTextWrap(false);
+  tft.setTextSize(1);  // scaling 1:1
   switch (FontSize)
   {
   case 1:
     tft.setFont(&Font1Name);
-    tft.setTextSize(1);  // scaling 1:1
     /*
     int16_t x0, y0;
     uint16_t w, h; 
@@ -83,7 +82,6 @@ void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint
   
   case 2:
     tft.setFont(&Font2Name);
-    tft.setTextSize(1);  // scaling 1:1
     /*
     int16_t x0, y0;
     uint16_t w, h; 
@@ -95,7 +93,6 @@ void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint
   
   default:
     tft.setFont(NULL);       // default built in 6x8 font
-    tft.setTextSize(1);      // scaling 1:1
     tft.setCursor(X, Y);
     break;
   }
