@@ -166,6 +166,16 @@ bool GetARSOdata(void) {
     {
         ArsoWeather[i].Temperature = utf8ascii(xmlFindParam(XMLdata, "t_degreesC", ParamPos).c_str());
     }
+    ParamPos = 0;
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        ArsoWeather[i].WeatherIcon = utf8ascii(xmlFindParam(XMLdata, "nn_icon-wwsyn_icon", ParamPos).c_str());
+    }
+    ParamPos = 0;
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        ArsoWeather[i].WindIcon = utf8ascii(xmlFindParam(XMLdata, "ddff_icon", ParamPos).c_str());
+    }
     result = true;
     LastTimeArsoRefreshed = millis();
     XMLdata = "";  // free memory
@@ -177,6 +187,9 @@ bool GetARSOdata(void) {
       Serial.println(ArsoWeather[i].Sky);
       Serial.println(ArsoWeather[i].Rain);
       Serial.println(ArsoWeather[i].Temperature);
+      Serial.println(ArsoWeather[i].WeatherIcon);
+      Serial.println(ArsoWeather[i].WindIcon);
+      Serial.println("------------");
     }
 
     DisplayText("Finished\n");

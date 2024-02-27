@@ -10,6 +10,8 @@ struct ArsoWeather_t
     String Sky;
     String Rain;
     String Temperature;
+    String WeatherIcon;
+    String WindIcon;
 };
 
 
