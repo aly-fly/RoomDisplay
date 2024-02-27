@@ -1,70 +1,114 @@
-#include <Arduino.h>
-#include <stdint.h>
+//#include <Arduino.h>
+//#include <stdint.h>
 #include "__CONFIG.h"
-#include "display.h"
 
 #ifdef DISPLAY_LCD_ST7735
 
+#include <SPI.h>
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
-#include <SPI.h>
+#include <Fonts/FreeSans9pt7b.h>
+#define Font1Name FreeSans9pt7b
+#define Font1YcursorShift 12  // for details see: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts   search "baseline"
 
+#include <Fonts/FreeSansBold24pt7b.h>
+#define Font2Name FreeSansBold24pt7b
+#define Font2YcursorShift 30  // for details see: https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts   search "baseline"
+
+
+#include "display.h"
+
+
+  #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin
+  #define TFT_DC         4 // GPIO04 
   #define TFT_CS         5 // VSPI CS0 (GPIO05)
-  #define TFT_RST       -1 // Or set to -1 and connect to Arduino RESET pin
-  #define TFT_DC        25
   #define TFT_SCK       18 // VSPI SCK (GPIO18)
   #define TFT_MISO      19 // VSPI Q   (GPIO19)
   #define TFT_MOSI      23 // VSPI D   (GPIO23)
+//#define TFT_BL        25 // GPIO25  Backlight EN - TODO
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 
-  void DisplayClearCanvas(void) {
-    DisplayClear();
+
+
+
+void DisplayInit(void) {
+  Serial.println("Starting LCD...");
+  // Use this initializer if using a 1.8" TFT screen:
+  tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
+
+  // OR use this initializer if using a 1.8" TFT screen with offset such as WaveShare:
+  // tft.initR(INITR_GREENTAB);      // Init ST7735S chip, green tab
+
+  // SPI speed defaults to SPI_DEFAULT_FREQ defined in the library, you can override it here
+  // Note that speed allowable depends on chip and quality of wiring, if you go too fast, you
+  // may end up with a black screen some times, or all the time.
+  //tft.setSPISpeed(40000000);
+
+  tft.setRotation(3); // landscape format
+  DisplayClear();
+}
+
+void DisplayClearCanvas(void) {
+  DisplayClear();
+}
+
+void DisplayClear(void) {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setCursor(0, 0);
+  tft.setTextColor(ST7735_WHITE);
+  tft.setTextWrap(true);
+}
+
+void DisplayText(const char Text[]) {
+  tft.setFont(NULL);       // default built in 6x8 font
+  tft.print(Text);
   }
 
-  void DisplayClear(void) {
-    tft.fillScreen(ST77XX_BLACK);
-    tft.setCursor(0, 0);
-    tft.setTextColor(ST7735_WHITE);
-    tft.setTextWrap(true);
-  }
-
-  void DisplayText(const char Text[]) {
-    tft.print(Text);
-    }
-
-  void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, bool Show) {
+void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Show) {
+  switch (FontSize)
+  {
+  case 1:
+    tft.setFont(&Font1Name);
+    tft.setTextSize(1);  // scaling 1:1
     /*
-    switch (FontSize)
-    {
-    case 2:
-      display.setFont(&FreeSansBold24pt7b); 
-      int16_t x0, y0;
-      uint16_t w, h; 
-      display.getTextBounds(Text, 0, 0, &x0, &y0, &w, &h); // "BIG" -> 4, -34, 77, 36
-      display.setCursor(X-x0, Y-y0); // big font has reference point on BOTTOM left corner
-      break;
-    
-    default:
-      display.setFont();           // default built in 6x8 font
-      display.setTextSize(1);
-      display.setCursor(X, Y); // small font has reference point on TOP left corner
-      break;
-    }
+    int16_t x0, y0;
+    uint16_t w, h; 
+    tft.getTextBounds(Text, 0, 0, &x0, &y0, &w, &h); // "BIG" -> 4, -34, 77, 36
+    tft.setCursor(X-x0, Y-y0); // big font has reference point on BOTTOM left corner
     */
-    tft.print(Text);
-    if (Show) {
-      DisplayUpdate();
-    }
+    tft.setCursor(X, Y + Font1YcursorShift);
+    break;
+  
+  case 2:
+    tft.setFont(&Font2Name);
+    tft.setTextSize(1);  // scaling 1:1
+    /*
+    int16_t x0, y0;
+    uint16_t w, h; 
+    tft.getTextBounds(Text, 0, 0, &x0, &y0, &w, &h); // "BIG" -> 4, -34, 77, 36
+    tft.setCursor(X-x0, Y-y0); // big font has reference point on BOTTOM left corner
+    */
+    tft.setCursor(X, Y + Font2YcursorShift);
+    break;
+  
+  default:
+    tft.setFont(NULL);       // default built in 6x8 font
+    tft.setTextSize(1);      // scaling 1:1
+    tft.setCursor(X, Y);
+    break;
+  }
+  tft.setTextColor(Color);
+  tft.print(Text);
+  if (Show) {
+    DisplayUpdate();
+  }
+}
 
-    }
 
-
-  void DisplayUpdate(void) 
-  {}
-
-
+void DisplayUpdate(void) 
+{}
 
 
 
@@ -127,11 +171,11 @@ void testlines(uint16_t color) {
   }
 }
 
-void testdrawtext(char *text, uint16_t color) {
+void testdrawtext() {
   tft.setCursor(0, 0);
-  tft.setTextColor(color);
+  tft.setTextColor(ST77XX_WHITE);
   tft.setTextWrap(true);
-  tft.print(text);
+  tft.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ");
 }
 
 void testfastlines(uint16_t color1, uint16_t color2) {
@@ -276,21 +320,6 @@ void mediabuttons() {
 
 
 
-void DisplayInit(void) {
-  Serial.println("Starting LCD...");
-  // Use this initializer if using a 1.8" TFT screen:
-  tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
-
-  // OR use this initializer if using a 1.8" TFT screen with offset such as WaveShare:
-  // tft.initR(INITR_GREENTAB);      // Init ST7735S chip, green tab
-
-  // SPI speed defaults to SPI_DEFAULT_FREQ defined in the library, you can override it here
-  // Note that speed allowable depends on chip and quality of wiring, if you go too fast, you
-  // may end up with a black screen some times, or all the time.
-  //tft.setSPISpeed(40000000);
-
-  DisplayTest();
-}
 
 void DisplayTest(void) {
   uint16_t time = millis();
@@ -302,7 +331,7 @@ void DisplayTest(void) {
 
   // large block of text
   tft.fillScreen(ST77XX_BLACK);
-  testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
+  testdrawtext();
   delay(1000);
 
   // tft print function!
