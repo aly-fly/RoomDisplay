@@ -1,3 +1,6 @@
 .pio
 .vscode*
 *backup*
+*SECRETS*
+include\__CONFIG_SECRETS.h
+__CONFIG_SECRETS.h
