@@ -14,7 +14,7 @@
 #include "Arso_https_certificate.h"
 #include "display.h"
 
-unsigned long LastTimeArsoRefreshed = 0;
+unsigned long LastTimeArsoRefreshed = 0; // data is not valid
 
 
 // reference: "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\BasicHttpsClient\BasicHttpsClient.ino"
@@ -124,7 +124,7 @@ ArsoWeather_t ArsoWeather[3];
 bool GetARSOdata(void) {
     bool result = false;
 
-    if (millis() < (LastTimeArsoRefreshed * 60*1000)) {  // check server every hour
+    if ((millis() < (LastTimeArsoRefreshed + 60*60*1000)) && (LastTimeArsoRefreshed != 0)) {  // check server every hour
       Serial.println("ARSO data is valid.");
       return true;  // data is already valid
     }

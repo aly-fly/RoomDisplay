@@ -1,14 +1,35 @@
 #ifndef __DISPLAY_H_
 #define __DISPLAY_H_
 
-#include <Adafruit_ST77xx.h>
+#include "__CONFIG.h"
+
+#ifdef DISPLAY_LCD_ST7735_Adafruit
+  #include <Adafruit_ST77xx.h>
+  #define CLWHITE   ST7735_WHITE
+  #define CLORANGE  ST77XX_ORANGE
+  #define CLBLUE    ST77XX_BLUE
+  #define CLYELLOW  ST77XX_YELLOW
+  #define CLCYAN    ST77XX_CYAN
+  #define CLGREEN   ST77XX_GREEN
+  #define CLBLACK   ST77XX_BLACK
+#endif  
+#ifdef DISPLAY_LCD_ST7735_Bodmer
+  #include <TFT_eSPI.h>
+  #define CLWHITE   TFT_WHITE
+  #define CLORANGE  TFT_ORANGE
+  #define CLBLUE    TFT_BLUE
+  #define CLYELLOW  TFT_YELLOW
+  #define CLCYAN    TFT_CYAN
+  #define CLGREEN   TFT_GREEN
+  #define CLBLACK   TFT_BLACK
+#endif
 
   void DisplayInit(void);
   void DisplayClearCanvas(void);
   void DisplayClear(void);
   void DisplayText(const char Text[]);
 //void DisplayText(const String &Text, uint8_t FontSize, int16_t X, int16_t Y);  
-  void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = ST77XX_WHITE, bool Show=true);
+  void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = 0xFFFF, bool Show=true);
   void DisplayUpdate(void);
 
 

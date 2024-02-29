@@ -1,6 +1,6 @@
 #include "__CONFIG.h"
 
-#ifdef DISPLAY_LCD_ST7735
+#ifdef DISPLAY_LCD_ST7735_Adafruit
 
 #include <SPI.h>
 #include <Adafruit_GFX.h>    // Core graphics library
@@ -15,15 +15,6 @@
 
 
 #include "display.h"
-
-
-  #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin
-  #define TFT_DC         4 // GPIO04 
-  #define TFT_CS         5 // VSPI CS0 (GPIO05)
-  #define TFT_SCK       18 // VSPI SCK (GPIO18)
-  #define TFT_MISO      19 // VSPI Q   (GPIO19)
-  #define TFT_MOSI      23 // VSPI D   (GPIO23)
-//#define TFT_BL        25 // GPIO25  Backlight EN - TODO
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
@@ -64,6 +55,11 @@ void DisplayText(const char Text[]) {
   tft.print(Text);
   }
 
+  /*
+  Font size 0 = 6x8
+  Font size 1 = 9
+  Font size 2 = 24
+  */
 void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Show) {
   tft.setTextWrap(false);
   tft.setTextSize(1);  // scaling 1:1

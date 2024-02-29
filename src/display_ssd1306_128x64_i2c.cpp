@@ -37,14 +37,8 @@ static const unsigned char PROGMEM logo_bmp[] =
   0b00000000, 0b00110000 };
 
 void DisplayInit(void) {
-/*
-// črna plata
-  // Start I2C Communication SDA = 5 and SCL = 4 on Wemos Lolin32 ESP32 with built-in SSD1306 OLED
-  Wire.begin(5, 4);
-*/  
-// bela plata
-  // Start I2C Communication SDA = 4 and SCL = 15
-  Wire.begin(4, 15);
+
+  Wire.begin(OLED_SDA, OLED_SCL);
   Wire.setClock(800000);  // 800 kHz https://github.com/espressif/arduino-esp32/issues/4505
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
