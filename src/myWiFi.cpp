@@ -56,7 +56,7 @@ void WifiInit(void)  {
     Serial.print(".");
     if ((millis() - StartTime) > (WIFI_CONNECT_TIMEOUT_SEC * 1000)) {
       Serial.println("\r\nWiFi connection timeout!");
-      DisplayText("\nTIMEOUT!");
+      DisplayText("\nTIMEOUT!", CLRED);
       WifiState = disconnected;
       return; // exit loop, exit procedure, continue startup
     }
@@ -64,10 +64,10 @@ void WifiInit(void)  {
   
   WifiState = connected;
 
-  DisplayText("\n Connected to");
-  DisplayText(WiFi.SSID().c_str());
-  DisplayText("\n IP: ");
-  DisplayText(WiFi.localIP().toString().c_str());
+  DisplayText("\n Connected to: ", CLBLUE);
+  DisplayText(WiFi.SSID().c_str(), CLCYAN);
+  DisplayText("\n IP: ", CLORANGE);
+  DisplayText(WiFi.localIP().toString().c_str(), CLYELLOW);
   DisplayText("\n");
   
   Serial.println();
@@ -81,6 +81,8 @@ void WifiInit(void)  {
 void WifiReconnectIfNeeded(void) {
   if ((WifiState == disconnected) && ((millis() - TimeOfWifiReconnectAttempt) > WIFI_RETRY_CONNECTION_SEC * 1000)) {
     Serial.println("Attempting WiFi reconnection...");
+    DisplayClear();
+    DisplayText("WiFi reconnect...", CLCYAN);
     WiFi.reconnect();
     TimeOfWifiReconnectAttempt = millis();
   }    

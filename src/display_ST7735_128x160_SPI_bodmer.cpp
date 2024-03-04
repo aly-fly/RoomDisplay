@@ -7,28 +7,55 @@
 #include "display.h"
 
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
+ 
+  // PWM backlight
+  const int freq = 1234;  // 1 kHz
+  const int ledChannel = 0;
+  const int resolution = 8; 
 
 
+void DisplaySetBrightness(uint8_t Brightness) {
+  // changing the LED brightness with PWM
+  ledcWrite(ledChannel, Brightness);
+}
 
 void DisplayInit(void) {
   Serial.println("Starting LCD...");
   tft.init();
   tft.setRotation(3);
+  DisplayClear();
+
+  // configure LED PWM functionalitites
+  ledcSetup(ledChannel, freq, resolution);
+  // attach the channel to the GPIO to be controlled
+  ledcAttachPin(TFT_BL, ledChannel);
+  // full power
+  DisplaySetBrightness();
 }
+
 
 void DisplayClearCanvas(void) {
     DisplayClear();
 }
 
 void DisplayClear(void) {
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextFont(2);
   tft.setCursor(0, 0);
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextFont(1);
+  tft.setCursor(0, 0);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
 }
 
 void DisplayText(const char Text[]) {
-  tft.println(Text);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(Text);
+//  tft.drawString(Text, tft.getCursorX(), tft.getCursorY());
+}
+
+void DisplayText(const char Text[], uint16_t color) {
+  tft.setTextColor(color, TFT_BLACK);
+  tft.print(Text);
+//  tft.drawString(Text, tft.getCursorX(), tft.getCursorY());
 }
 
 void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Show) {

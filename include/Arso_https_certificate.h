@@ -6,7 +6,7 @@
 // download:  25.2.2024
 // valid by: 6/4/35, 1:04:38 PM GMT+2
 
-const char* rootCACertificate = \
+const char* rootCACertificate_Arso = \
 "-----BEGIN CERTIFICATE-----\r\n" \
 "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\r\n" \
 "TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\r\n" \

@@ -2,7 +2,7 @@
 #define MYWIFI_H
 
 #include "__CONFIG.h"
-#include "__CONFIG_SECRETS.h"
+#include "___CONFIG_SECRETS.h"
 
 
 enum WifiState_t {disconnected, connected};

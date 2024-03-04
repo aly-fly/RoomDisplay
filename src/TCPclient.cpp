@@ -12,11 +12,12 @@ WiFiClient client;
 String TCPresponse;
 
 bool TCPclientConnect(void) {
+    bool result = false;
     if (WifiState != connected) {
         return false;
     }
     
-    DisplayText("Client ");
+    DisplayText("TCP socket: ");
     DisplayText(CLIENT1_HOST);
     DisplayText("\n");
 
@@ -26,21 +27,27 @@ bool TCPclientConnect(void) {
     if (client.connect(CLIENT1_HOST, CLIENT1_PORT)) {
         Serial.println("Connected.");
         if (!client.connected()) {
+            DisplayText("CONN. DROPPED!\n", CLRED);
             Serial.println("... and connection dropped.");
+            delay (1500);
+            DisplayClear();
             return false;
         }
-        DisplayText("OK\n");
+        DisplayText("OK\n", CLGREEN);
         // check if server sent any welcome messages
         delay(200);
         String line = client.readString();
         Serial.print("TCP server connect message: ");
         Serial.println(line);
-        return true;
+        result = true;
     } else {
-        DisplayText("FAIL!\n");
+        DisplayText("FAIL!\n", CLRED);
         Serial.println("Connection failed.");
-        return false;
+        result = false;
     }
+    delay (1500);
+    DisplayClear();
+    return result;
 }
 
 bool TCPclientRequest(const char Text[]) {

@@ -30,8 +30,11 @@
 #define CLIENT1_HOST "10.38.44.221" // toplotna
 #define CLIENT1_PORT  21212
 
+// Shelly
+#define SHELLY_3EM_HOST "10.38.22.111" // Poraba TC
+
 // ARSO:
-#define ARSO_SERVER_XML "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
+#define ARSO_SERVER_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
 // also validate: include\Arso_https_certificate.h
 
 
@@ -54,7 +57,7 @@
   #define TFT_SCK       18 // VSPI SCK (GPIO18)
   #define TFT_MISO      19 // VSPI Q   (GPIO19)
   #define TFT_MOSI      23 // VSPI D   (GPIO23)
-//#define TFT_BL        25 // GPIO25  Backlight EN - TODO
+  #define TFT_BL        25 // GPIO25  Backlight EN
 
 // ************ BODMER LIBRARY CONFIG *********************
 

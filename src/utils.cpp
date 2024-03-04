@@ -2,6 +2,50 @@
 #include "Arduino.h"
 #include "utils.h"
 
+void TrimNumDot (String& Str) {
+  Str.trim();
+  for (uint16_t i = 0; i < Str.length(); i++)
+  {
+    char c = Str.charAt(i);
+    if (((c < '0') || (c > '9')) && (c != '.')) {Str.remove(i, 1);}
+  }  
+}
+
+
+String FindJsonParam(String& inStr, String needParam, int& Position)
+{
+    int indexStart = inStr.indexOf(needParam, Position);
+    Position = -1; // status "not found" until found
+    if (indexStart > 0) {
+        int indexStop = inStr.indexOf(",", indexStart);
+        Position = indexStop;
+        if (indexStop <= indexStart) {
+          Position = -1; // status "not found"
+          return "/";
+        }
+        int CountChar = needParam.length();
+        return inStr.substring(indexStart+CountChar+2, indexStop);
+    }
+    return "/";
+}
+
+
+String FindXMLParam(String& inStr, String needParam, int& Position)
+{
+    int indexStart = inStr.indexOf("<"+needParam+">", Position);
+    Position = -1; // status "not found" until found
+    if (indexStart > 0) {
+        int indexStop = inStr.indexOf("</"+needParam+">", indexStart);  
+        Position = indexStop;
+        if (indexStop <= indexStart) {
+          Position = -1; // status "not found"
+          return "/";
+        }
+        int CountChar = needParam.length();
+        return inStr.substring(indexStart+CountChar+2, indexStop);
+    }
+    return "/";
+}
 
 //**************************************************************************************************
 //                                      U T F 8 A S C I I                                          *
