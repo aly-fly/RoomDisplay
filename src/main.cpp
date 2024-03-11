@@ -14,6 +14,8 @@
 uint16_t ScreenNumber = 0;
 int Hour;
 bool NightMode;
+uint16_t ArsoBgColor = CLWHITE;
+String TempOutdoor;
 
 void setup() {
   Serial.begin(115200);
@@ -35,6 +37,7 @@ void setup() {
   delay(1800);
 */
 //  DisplayTest();
+//  DisplayFontTest();
 
   DisplayClear();
   DisplayText("Init...\n", CLYELLOW);
@@ -46,7 +49,7 @@ void setup() {
 
   TCPclientConnect();
 
-  DisplayText("Init finished.", CLYELLOW)    ;
+  DisplayText("Init finished.", CLGREEN)    ;
   delay(2000);
   DisplayClear();
   Serial.println("INIT FINISHED.");
@@ -63,39 +66,50 @@ void loop() {
   }
   
   //  HEAT PUMP DATA
-  if (ScreenNumber == 0) {
-    DisplayClearCanvas();
+  if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
+    TempOutdoor = "- - -";
     if (TCPclientRequest("Outdoor")) {
       TCPresponse.replace(",", ".");
-      DisplayText(TCPresponse.c_str(), 2, 6, 5, CLORANGE, false);
+      // remove trailing "0"
+      TCPresponse.remove(TCPresponse.indexOf(".")+2);
+      TCPresponse.concat(" C");
+      TempOutdoor = TCPresponse;
     }
+    String Temp2 = "- - -";
     if (TCPclientRequest("Outdoor HP")) {
       TCPresponse.replace(",", ".");
-      DisplayText(TCPresponse.c_str(), 1, 6, 70, CLBLUE, false);
+      // remove trailing "0"
+      TCPresponse.remove(TCPresponse.indexOf(".")+2);
+      TCPresponse.concat(" C");
+      Temp2 = TCPresponse;
     }
+    char ShellyTxt[10];
     if (ShellyGetData()) {
-//      DisplayText(sTotalPower.c_str(), 1, 60, 100, CLRED, false);
-      char Txt[10];
-      sprintf(Txt, "%.2f kW", TotalPower/1000);
-      DisplayText(Txt, 1, 60, 107, CLRED, false);
+      //DisplayText(sTotalPower.c_str(), 1, 60, 107, CLRED, false);
+      sprintf(ShellyTxt, "%.2f kW", TotalPower/1000);
+    } else {
+      printf(ShellyTxt, "---");
     }
 
-    DisplayUpdate();
+    DisplayClear(CLBLACK);
+    DisplayShowImage("/bg_grass.bmp",   0, 0);
+    DisplayText("Temperatura pred hiso", 0, 10,   2, CLWHITE);
+    DisplayText(TempOutdoor.c_str(),     2, 32,  22, CLBLACK); // shadow
+    DisplayText(TempOutdoor.c_str(),     2, 30,  20, CLORANGE);
+    DisplayText(Temp2.c_str(),           1, 42,  72, CLBLACK); // shadow
+    DisplayText(Temp2.c_str(),           1, 40,  70, CLCYAN);
+    DisplayText(ShellyTxt,               1, 62, 107, CLBLACK); // shadow
+    DisplayText(ShellyTxt,               1, 60, 105, CLRED);
   }
-  // COIN CAP DATA PLOT
-  else if (ScreenNumber == 4) {
-    GetCoinCapData();
-    PlotCoinCapData();
-    delay(5000); // additional delay
-}
+
 // WEATHER FORECAST  
-  else { // 1..3
+  if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------
     GetARSOdata();
 
-    DisplayClearCanvas();
     String Line;
     
     #ifdef DISPLAY_OLED_SSD1306
+    DisplayClearCanvas();
     Line = ArsoWeather[ScreenNumber-1].Day + " " + ArsoWeather[ScreenNumber-1].PartOfDay; 
     DisplayText(Line.c_str());
     DisplayText("\nNebo: ");
@@ -105,7 +119,9 @@ void loop() {
     DisplayText("\nTemperatura:");
     DisplayText(ArsoWeather[ScreenNumber-1].Temperature.c_str());
     DisplayText("\n");
+    DisplayUpdate();
     #else
+    /*
     Line = ArsoWeather[ScreenNumber-1].Day + " " + ArsoWeather[ScreenNumber-1].PartOfDay; 
     DisplayText(Line.c_str(), 1, 1, 00, CLYELLOW);
     
@@ -119,19 +135,76 @@ void loop() {
 
     Line = "Temp: " + ArsoWeather[ScreenNumber-1].Temperature + " C";
     DisplayText(Line.c_str(), 1, 1, 90, CLORANGE);
+    */
+
+
+    // grafika
+    DisplayClear(ArsoBgColor);
+
+    // zgoraj - dnevi
+    Line = ArsoWeather[0].Day;
+    DisplayText(Line.c_str(), 0, 6, 3, CLDARKBLUE);
+
+//    Line = ArsoWeather[1].Day + ArsoWeather[1].PartOfDay; 
+//    DisplayText(Line.c_str(), 0, 56, 1, CLDARKBLUE);
+
+    Line = ArsoWeather[2].Day; // + ArsoWeather[2].PartOfDay; 
+    DisplayText(Line.c_str(), 0, 93, 3, CLDARKBLUE);
+
+
+    // sredina slike
+    String FN;
+    FN = "/w/" + ArsoWeather[0].WeatherIcon + ".bmp";
+    DisplayShowImage(FN.c_str(),   21, 12);
+
+    FN = "/w/" + ArsoWeather[1].WeatherIcon + ".bmp";
+    DisplayShowImage(FN.c_str(),  88, 12);
+
+    FN = "/w/" + ArsoWeather[2].WeatherIcon + ".bmp";
+    DisplayShowImage(FN.c_str(), 124, 12);
+
+    // spodaj temperatura
+    // remove trailing ".x C"
+    int p = TempOutdoor.indexOf(".");
+    if (p > -1) { TempOutdoor.remove(p); }
+
+    DisplayText(TempOutdoor.c_str(),                2,  12, 93, CLGREY); // shadow
+    DisplayText(TempOutdoor.c_str(),                2,  10, 91, CLBLUE);
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  12, 52, CLGREY); // shadow
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  10, 50, CLRED);
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  99, 93, CLGREY); // shadow
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  97, 91, CLBLUE);
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  99, 52, CLGREY); // shadow
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  97, 50, CLRED);
+/*
+    // na tleh ikonca
+    DisplayText(ArsoWeather[0].WeatherIcon.c_str(), 0,   0, 119, CLGREY);
+    DisplayText(ArsoWeather[1].WeatherIcon.c_str(), 0,  50, 110, CLGREY);
+    DisplayText(ArsoWeather[2].WeatherIcon.c_str(), 0,  90, 119, CLGREY);
+*/
     #endif    
+    delay(4000); // additional delay
+  }
+  // COIN CAP DATA PLOT
+  if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
+    GetCoinCapData();
+    PlotCoinCapData();
+    delay(4000); // additional delay
   }
 
+
+  ScreenNumber++;
+  if (ScreenNumber >= 3) ScreenNumber = 0;
+
   if (!NightMode) {
-    ScreenNumber++;
-    if (ScreenNumber >= 5) ScreenNumber = 0;
+    ArsoBgColor = CLWHITE;
     DisplaySetBrightness(); // full power
   } else { // fix temperature only with lower brightness at night
-    ScreenNumber = 0;
+    ArsoBgColor = CLBLACK;
     DisplaySetBrightness(30);
   }
 
-  delay(5000);
+  delay(6000);
 
 
 

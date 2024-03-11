@@ -65,9 +65,6 @@
 #define USER_SETUP_ID 2
 
 #define ST7735_DRIVER
-// size in portrait configuration
-#define TFT_WIDTH  128
-#define TFT_HEIGHT 160
 
 // For ST7735, ST7789 and ILI9341 ONLY, define the colour order IF the blue and red are swapped on your display
 // Try ONE option at a time to find the correct colour order for your display
@@ -83,13 +80,11 @@
 //#define LOAD_FONT8N // Font 8. Alternative to Font 8 above, slightly narrower, so 3 digits fit a 160 pixel TFT
 //#define LOAD_GFXFF  // FreeFonts. Include access to the 48 Adafruit_GFX free fonts FF1 to FF48 and custom fonts
 
-//#define SMOOTH_FONT
+#define SMOOTH_FONT
+//  FONT_FS_AVAILABLE    // while examining the library, looks like this should be enabled because fonts are in the file system, but it crashes with this enabled..
 
-// #define SPI_FREQUENCY  20000000
-#define SPI_FREQUENCY  27000000
+#define SPI_FREQUENCY  30000000
 // #define SPI_FREQUENCY  40000000
-
-//#define SUPPORT_TRANSACTIONS
 
 //  #define CGRAM_OFFSET      // Library will add offsets required
 //  #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin

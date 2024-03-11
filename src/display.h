@@ -15,30 +15,37 @@
 #endif  
 #ifdef DISPLAY_LCD_ST7735_Bodmer
   #include <TFT_eSPI.h>
-  #define CLWHITE   TFT_WHITE
-  #define CLORANGE  TFT_ORANGE
-  #define CLRED     TFT_RED
-  #define CLGREEN   TFT_GREEN
-  #define CLBLUE    TFT_BLUE
-  #define CLYELLOW  TFT_YELLOW
-  #define CLCYAN    TFT_CYAN
-  #define CLBLACK   TFT_BLACK
+  #define CLWHITE    TFT_WHITE
+  #define CLORANGE   TFT_ORANGE
+  #define CLRED      TFT_RED
+  #define CLGREEN    TFT_GREEN
+  #define CLBLUE     TFT_BLUE
+  #define CLYELLOW   TFT_YELLOW
+  #define CLCYAN     TFT_CYAN
+  #define CLGREY     TFT_DARKGREY
+  #define CLBLACK    TFT_BLACK
+  #define CLDARKBLUE 0x000F         // 0x001F -> 0F
 
   extern TFT_eSPI tft; // for graphical plot
 #endif
 
+  extern signed int DspH;
+  extern signed int DspW;
+
   void DisplayInit(void);
   void DisplaySetBrightness(uint8_t Brightness = 255);
   void DisplayClearCanvas(void);
-  void DisplayClear(void);
-//  void DisplaySetTextColor(uint16_t color);
+  void DisplayClear(uint16_t Color = TFT_BLACK);
   void DisplayText(const char Text[]);
   void DisplayText(const char Text[], uint16_t color);
   void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = 0xFFFF, bool Show=true);
   void DisplayUpdate(void);
 
+  void DisplayShowImage(const char *filename, int16_t x, int16_t y);
+
 
   void DisplayTest(void);
+  void DisplayFontTest(void);
 
 
 

@@ -26,16 +26,16 @@ bool TCPclientConnect(void) {
 
     if (client.connect(CLIENT1_HOST, CLIENT1_PORT)) {
         Serial.println("Connected.");
+        delay(300);
         if (!client.connected()) {
             DisplayText("CONN. DROPPED!\n", CLRED);
             Serial.println("... and connection dropped.");
             delay (1500);
-            DisplayClear();
             return false;
         }
         DisplayText("OK\n", CLGREEN);
         // check if server sent any welcome messages
-        delay(200);
+        delay(300);
         String line = client.readString();
         Serial.print("TCP server connect message: ");
         Serial.println(line);
@@ -45,8 +45,7 @@ bool TCPclientConnect(void) {
         Serial.println("Connection failed.");
         result = false;
     }
-    delay (1500);
-    DisplayClear();
+    delay (1000);
     return result;
 }
 

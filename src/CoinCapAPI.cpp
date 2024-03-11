@@ -188,7 +188,7 @@ bool GetCoinCapData(void) {
 
     Serial.println("Requesting data from CoinCap server...");
     DisplayClear();
-    DisplayText("Contacting COINCAP server...\n", CLYELLOW);
+    DisplayText("Contacting COINCAP server\n", CLYELLOW);
     if (!GetDataFromCoinCapServer()) {
         DisplayText("FAILED!\n", CLRED);
         return false;
@@ -198,7 +198,7 @@ bool GetCoinCapData(void) {
 
     Serial.println("Number of data points: " + String(CoinCapDataLength));
     char Txt[20];
-    sprintf(Txt, "Data points: %d\n");
+    sprintf(Txt, "Data points: %d\n", CoinCapDataLength);
     DisplayText(Txt);
 /*
     Serial.println("------------");
@@ -226,25 +226,22 @@ bool GetCoinCapData(void) {
 #ifdef DISPLAY_LCD_ST7735_Bodmer
   #include <TFT_eSPI.h>
 
-// display 128 x 160
-// TFT_HEIGHT TFT_WIDTH -> vertical orientation!
-#define DspH  TFT_WIDTH
-#define DspW  TFT_HEIGHT
-
-
-
-
 void PlotCoinCapData(void) {
   DisplayClear();
-  tft.setTextColor(TFT_BLUE, TFT_BLACK);
-  tft.drawString("BTC", 5, (DspH/2 - 5), 2);
 
   if (CoinCapDataLength < DspW) {
-    Serial.println("Not enough data to plot!");
+    Serial.println("BTC: Not enough data to plot!");
     tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.drawString("NOT ENOuGH DATA", 10, 20, 2);
+    tft.drawString("BTC: NOT ENOUGH DATA", 10, 20, 2);
     return;
   }
+
+//  tft.setTextColor(TFT_BLUE, TFT_BLACK);
+//  tft.drawString("BTC", 5, (DspH/2 - 5), 2);
+//  DisplayText("BTC", 2, 50, (DspH/2 - 15), CLDARKBLUE);
+//  DisplayText(" "); // reset to small font
+
+  DisplayShowImage("/bg_btc.bmp",   0, 0);
 
   float_t Minn, Maxx;
   Minn =  999999999;
@@ -268,7 +265,7 @@ void PlotCoinCapData(void) {
   uint16_t X, iY, oldY, Y, h;
   float_t Scaling, fY;
   Scaling = (float(DspH) / (MaxxD - MinnD));
-  Serial.printf("Scaling: %f.5\r\n", Scaling);
+  Serial.printf("Scaling: %f\r\n", Scaling);
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   for (X = 0; X < DspW; X++) {

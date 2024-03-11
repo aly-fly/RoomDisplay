@@ -81,8 +81,8 @@ bool GetXmlDataFromServer(void) {
 
 void TrimLogWords(String& Txt) {
   // trim long words
-  if (Txt.length() > 4) {
-    Txt.remove(5);
+  if (Txt.length() > 3) {
+    Txt.remove(3);   // 3 chars remaining
     Txt.concat('.');          
   }
 }
@@ -116,7 +116,8 @@ bool GetARSOdata(void) {
         ArsoWeather[i].Day = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
         // remove text after space
         ArsoWeather[i].Day.remove(ArsoWeather[i].Day.indexOf(" "));
-        TrimLogWords(ArsoWeather[i].Day);
+//        TrimLogWords(ArsoWeather[i].Day);
+        ArsoWeather[i].Day.toUpperCase();
     }
     ParamPos = 0;
     for (uint8_t i = 0; i < 3; i++)
