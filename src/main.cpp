@@ -1,6 +1,7 @@
 
 #include <Arduino.h>
 #include <stdint.h>
+#include <SPIFFS.h>
 #include "__CONFIG.h"
 #include "display.h"
 #include "myWiFi.h"
@@ -10,12 +11,14 @@
 #include "ShellyHttpClient.h"
 #include "CaptivePortalLogin.h"
 #include "CoinCapAPI.h"
+#include "myPing.h"
+
 
 uint16_t ScreenNumber = 0;
 int Hour;
 bool NightMode;
 uint16_t ArsoBgColor = CLWHITE;
-String TempOutdoor;
+String TempOutdoor1, TempOutdoor2;
 
 void setup() {
   Serial.begin(115200);
@@ -26,28 +29,51 @@ void setup() {
     delay(100);
   }
   Serial.println();
-  DisplayInit();
-
-/*
-  DisplayText("SMALL TEXT", 0, 0, 0);
-  delay(1800);
-  DisplayText("MEDIUM TEXT", 1, 0, 0);
-  delay(1800);
-  DisplayText("1234", 2, 0, 0);
-  delay(1800);
-*/
-//  DisplayTest();
-//  DisplayFontTest();
-
+//  DisplayInit();
+//      DisplayTest();
+//      DisplayFontTest();
   DisplayClear();
   DisplayText("Init...\n", CLYELLOW);
+
+  DisplayText("SPIFFS start...");
+  if (!SPIFFS.begin()) {
+    Serial.println("SPIFFS initialisation failed!");
+    DisplayText("FAILED!\n");
+    while (1) yield(); // Stay here twiddling thumbs waiting
+  }
+  Serial.println("\r\nSPIFFS available!");
+
   WifiInit();
 
-//  HandleCaptivePortalLogin();
+  if (!inHomeLAN) {
+   bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
+   if (!connOk){
+      Serial.println("=== HALT ===");   
+      while (1) {}
+   }
+  }
+
+
+  //uint32_t pingIP = (216 << 24) | (58 << 16) | (205 << 8) | (46 << 0);  // google.com [216.58.205.46]
+  String sPingIP;
+  IPAddress pingIP;
+/*
+  sPingIP = "216.58.205.46"; // google.com
+  pingIP.fromString(sPingIP);
+  Serial.println(sPingIP);
+  ppiinngg(pingIP);
+*/
+  sPingIP = TIME_SERVER;
+  pingIP.fromString(sPingIP);
+  Serial.println(sPingIP);
+  ppiinngg(pingIP);
+
 
   setClock(); 
 
-  TCPclientConnect();
+  if (inHomeLAN) {
+    TCPclientConnect();
+  }
 
   DisplayText("Init finished.", CLGREEN)    ;
   delay(2000);
@@ -67,37 +93,39 @@ void loop() {
   
   //  HEAT PUMP DATA
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
-    TempOutdoor = "- - -";
-    if (TCPclientRequest("Outdoor")) {
-      TCPresponse.replace(",", ".");
-      // remove trailing "0"
-      TCPresponse.remove(TCPresponse.indexOf(".")+2);
-      TCPresponse.concat(" C");
-      TempOutdoor = TCPresponse;
-    }
-    String Temp2 = "- - -";
-    if (TCPclientRequest("Outdoor HP")) {
-      TCPresponse.replace(",", ".");
-      // remove trailing "0"
-      TCPresponse.remove(TCPresponse.indexOf(".")+2);
-      TCPresponse.concat(" C");
-      Temp2 = TCPresponse;
-    }
+    TempOutdoor1 = "- - -";
+    TempOutdoor2 = "- - -";
     char ShellyTxt[10];
-    if (ShellyGetData()) {
-      //DisplayText(sTotalPower.c_str(), 1, 60, 107, CLRED, false);
-      sprintf(ShellyTxt, "%.2f kW", TotalPower/1000);
-    } else {
-      printf(ShellyTxt, "---");
-    }
+    printf(ShellyTxt, "---");
+
+    if (inHomeLAN) {
+      if (TCPclientRequest("Outdoor")) {
+        TCPresponse.replace(",", ".");
+        // remove trailing "0"
+        TCPresponse.remove(TCPresponse.indexOf(".")+2);
+        TCPresponse.concat(" C");
+        TempOutdoor1 = TCPresponse;
+      }
+      if (TCPclientRequest("Outdoor HP")) {
+        TCPresponse.replace(",", ".");
+        // remove trailing "0"
+        TCPresponse.remove(TCPresponse.indexOf(".")+2);
+        TCPresponse.concat(" C");
+        TempOutdoor2 = TCPresponse;
+      }
+      if (ShellyGetData()) {
+        //DisplayText(sTotalPower.c_str(), 1, 60, 107, CLRED, false);
+        sprintf(ShellyTxt, "%.2f kW", TotalPower/1000);
+      }
+    } // inHomeLAN
 
     DisplayClear(CLBLACK);
-    DisplayShowImage("/bg_grass.bmp",   0, 0);
+    DisplayShowImage("/bg_grass.bmp",    0, 0);
     DisplayText("Temperatura pred hiso", 0, 10,   2, CLWHITE);
-    DisplayText(TempOutdoor.c_str(),     2, 32,  22, CLBLACK); // shadow
-    DisplayText(TempOutdoor.c_str(),     2, 30,  20, CLORANGE);
-    DisplayText(Temp2.c_str(),           1, 42,  72, CLBLACK); // shadow
-    DisplayText(Temp2.c_str(),           1, 40,  70, CLCYAN);
+    DisplayText(TempOutdoor1.c_str(),    2, 32,  22, CLBLACK); // shadow
+    DisplayText(TempOutdoor1.c_str(),    2, 30,  20, CLORANGE);
+    DisplayText(TempOutdoor2.c_str(),    1, 42,  72, CLBLACK); // shadow
+    DisplayText(TempOutdoor2.c_str(),    1, 40,  70, CLCYAN);
     DisplayText(ShellyTxt,               1, 62, 107, CLBLACK); // shadow
     DisplayText(ShellyTxt,               1, 60, 105, CLRED);
   }
@@ -165,11 +193,11 @@ void loop() {
 
     // spodaj temperatura
     // remove trailing ".x C"
-    int p = TempOutdoor.indexOf(".");
-    if (p > -1) { TempOutdoor.remove(p); }
+    int p = TempOutdoor1.indexOf(".");
+    if (p > -1) { TempOutdoor1.remove(p); }
 
-    DisplayText(TempOutdoor.c_str(),                2,  12, 93, CLGREY); // shadow
-    DisplayText(TempOutdoor.c_str(),                2,  10, 91, CLBLUE);
+    DisplayText(TempOutdoor1.c_str(),                2,  12, 93, CLGREY); // shadow
+    DisplayText(TempOutdoor1.c_str(),                2,  10, 91, CLBLUE);
     DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  12, 52, CLGREY); // shadow
     DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  10, 50, CLRED);
     DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  99, 93, CLGREY); // shadow

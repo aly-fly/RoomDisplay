@@ -2,6 +2,7 @@
 #define UTILS_H
 
 void TrimNumDot (String& Str);
+void TrimAlfaNum (String& Str);
 
 String FindJsonParam(String& inStr, String needParam, int& Position);
 

@@ -3,11 +3,30 @@
 #include "utils.h"
 
 void TrimNumDot (String& Str) {
+  bool validChar;
   Str.trim();
   for (uint16_t i = 0; i < Str.length(); i++)
   {
     char c = Str.charAt(i);
-    if (((c < '0') || (c > '9')) && (c != '.')) {Str.remove(i, 1);}
+    validChar = ((c >= '0') && (c <= '9')) ||
+                ((c = '.'));
+    if (!validChar) {Str.remove(i, 1);}
+  }  
+}
+
+void TrimAlfaNum (String& Str) {
+  bool validChar;
+  Str.trim();
+  for (uint16_t i = 0; i < Str.length(); i++)
+  {
+    char c = Str.charAt(i);
+    validChar = ((c >= '0') && (c <= '9')) ||
+                ((c >= 'A') && (c <= 'Z')) ||
+                ((c >= 'a') && (c <= 'z'));
+    if (!validChar) {
+      Str.remove(i, 1);
+      i--;
+      }
   }  
 }
 

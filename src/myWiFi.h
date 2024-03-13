@@ -10,6 +10,6 @@ void WifiInit(void);
 void WifiReconnectIfNeeded(void);
 
 extern WifiState_t WifiState;
-
+extern bool inHomeLAN;
 
 #endif // MYWIFI_H
