@@ -13,7 +13,7 @@
   #define CLGREEN   ST77XX_GREEN
   #define CLBLACK   ST77XX_BLACK
 #endif  
-#ifdef DISPLAY_LCD_ST7735_Bodmer
+#ifdef DISPLAY_LCD_SPI_Bodmer
   #include <TFT_eSPI.h>
   #define CLWHITE    TFT_WHITE
   #define CLORANGE   TFT_ORANGE

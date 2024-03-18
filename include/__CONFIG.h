@@ -9,14 +9,16 @@
 #define __CONFIG_H_
 
 // ************ General config *********************
-#define DEVICE_NAME "Display_v1"
-#define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi, then switch to Access Point
+#define DEBUG_OUTPUT
 
-#define DISPLAY_LCD_ST7735_Bodmer                             // 128x160 TFT SPI
+#define DEVICE_NAME "Display_v1"
+//#define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi
+
+#define DISPLAY_LCD_SPI_Bodmer                                //  TFT SPI
 //#define DISPLAY_LCD_ST7735_Adafruit                         // 128x160 TFT SPI
 //#define DISPLAY_OLED_SSD1306                                // 128x64 OLED I2C
 
-#define TIME_SERVER "pool.ntp.org"
+#define TIME_SERVER  "si.pool.ntp.org"  // "pool.ntp.org"
 #define GMT_OFFSET  1
 #define DST_OFFSET  0
 
@@ -61,49 +63,32 @@
 
 // ************ BODMER LIBRARY CONFIG *********************
 
-// See SetupX_Template.h for all options available
-#define USER_SETUP_ID 2
 
-#define ST7735_DRIVER
+//#define ST7796_DRIVER  // 4 inch LCD
+#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240
+//#define ILI9341_DRIVER  // 2.8 inch LCD
 
-// For ST7735, ST7789 and ILI9341 ONLY, define the colour order IF the blue and red are swapped on your display
-// Try ONE option at a time to find the correct colour order for your display
-//  #define TFT_RGB_ORDER TFT_RGB  // Colour order Red-Green-Blue
-//  #define TFT_RGB_ORDER TFT_BGR  // Colour order Blue-Green-Red
+
+#ifdef ST7789_DRIVER
+  #define TFT_INVERSION_OFF
+  #define TFT_RGB_ORDER TFT_BGR  // Colour order Blue-Green-Red
+#endif
+
+
 
 #define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
-#define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
-#define LOAD_FONT4  // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters
-#define LOAD_FONT6  // Font 6. Large 48 pixel font, needs ~2666 bytes in FLASH, only characters 1234567890:-.apm
-#define LOAD_FONT7  // Font 7. 7 segment 48 pixel font, needs ~2438 bytes in FLASH, only characters 1234567890:.
-#define LOAD_FONT8  // Font 8. Large 75 pixel font needs ~3256 bytes in FLASH, only characters 1234567890:-.
+//#define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
+//#define LOAD_FONT4  // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters
+//#define LOAD_FONT6  // Font 6. Large 48 pixel font, needs ~2666 bytes in FLASH, only characters 1234567890:-.apm
+//#define LOAD_FONT7  // Font 7. 7 segment 48 pixel font, needs ~2438 bytes in FLASH, only characters 1234567890:.
+//#define LOAD_FONT8  // Font 8. Large 75 pixel font needs ~3256 bytes in FLASH, only characters 1234567890:-.
 //#define LOAD_FONT8N // Font 8. Alternative to Font 8 above, slightly narrower, so 3 digits fit a 160 pixel TFT
 //#define LOAD_GFXFF  // FreeFonts. Include access to the 48 Adafruit_GFX free fonts FF1 to FF48 and custom fonts
 
 #define SMOOTH_FONT
 //  FONT_FS_AVAILABLE    // while examining the library, looks like this should be enabled because fonts are in the file system, but it crashes with this enabled..
 
-#define SPI_FREQUENCY  30000000
-// #define SPI_FREQUENCY  40000000
-
-//  #define CGRAM_OFFSET      // Library will add offsets required
-//  #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
-
-
-// For ST7735 ONLY, define the type of display, originally this was based on the
-// colour of the tab on the screen protector film but this is not always true, so try
-// out the different options below if the screen does not display graphics correctly,
-// e.g. colours wrong, mirror images, or stray pixels at the edges.
-// Comment out ALL BUT ONE of these options for a ST7735 display driver, save this
-// this User_Setup file, then rebuild and upload the sketch to the board again:
-
-// #define ST7735_INITB
-// #define ST7735_GREENTAB
-// #define ST7735_GREENTAB2
-// #define ST7735_GREENTAB3
-// #define ST7735_ROBOTLCD       // For some RobotLCD Arduino shields (128x160, BGR, https://docs.arduino.cc/retired/getting-started-guides/TFT)
-// #define ST7735_REDTAB
- #define ST7735_BLACKTAB
+#define SPI_FREQUENCY  40000000
 
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #define USER_SETUP_LOADED

@@ -14,13 +14,16 @@
 #include "CoinCap_https_certificate.h"
 #include "display.h"
 
-#define MAX_DATA_POINTS (31*24 + 10)
+#define MAX_DATA_POINTS_1H (31*24 + 10)
+#define MAX_DATA_POINTS_5M 1440 + 10
 
-//uint32_t CoinCapData[MAX_DATA_POINTS];  // data for 1 month = 3 kB (plus headroom for safety)
-float_t CoinCapData[MAX_DATA_POINTS];  // data for 1 month = 3 kB
-unsigned int CoinCapDataLength = 0;
+float_t CoinCapData_1H[MAX_DATA_POINTS_1H];  // data for 1 month = 3 kB (4B / point)
+float_t CoinCapData_5M[MAX_DATA_POINTS_5M];  // data = 5,8 kB
+unsigned int CoinCapDataLength_1H = 0;
+unsigned int CoinCapDataLength_5M = 0;
 
-unsigned long LastTimeCoinCapRefreshed = 0; // data is not valid
+unsigned long LastTimeCoinCapRefreshed_1H = 0; // data is not valid
+unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
 
 // reference: "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\BasicHttpsClient\BasicHttpsClient.ino"
 //            "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\StreamHttpClient\StreamHttpClient.ino"
@@ -29,15 +32,29 @@ unsigned long LastTimeCoinCapRefreshed = 0; // data is not valid
 // value every hour:  https://api.coincap.io/v2/assets/bitcoin/history?interval=h1
 // average every day: https://api.coincap.io/v2/assets/bitcoin/history?interval=d1
 
-#define COINCAP_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=h1"
+#define COINCAP_1H_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=h1"
+#define COINCAP_5M_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=m5"
 
-bool GetDataFromCoinCapServer(void) {
+
+// create static buffer for reading stream from the server
+uint8_t buff[4000] = { 0 }; // 4 kB
+
+
+bool GetDataFromCoinCapServer(bool Refresh_5M) {
   bool result = false;
   unsigned long StartTime = millis();
   bool Timeout = false;
   unsigned int NoMoreData = 0;
   unsigned int JsonDataSize = 0;
-  CoinCapDataLength = 0;
+  String COINCAP_URL;
+
+  if (Refresh_5M) {
+    CoinCapDataLength_5M = 0;
+    COINCAP_URL = COINCAP_5M_URL;
+  } else {
+    CoinCapDataLength_1H = 0;
+    COINCAP_URL = COINCAP_1H_URL;
+  }
   
   if (WifiState != connected) {
       return false;
@@ -54,9 +71,11 @@ bool GetDataFromCoinCapServer(void) {
       HTTPClient https;
   
       Serial.print("[HTTPS] begin...\r\n");
+      DisplayText("HTTPS begin\n");
       if (https.begin(*client, COINCAP_URL)) {  // HTTPS
         yield(); // watchdog reset
         Serial.print("[HTTPS] GET...\r\n");
+        DisplayText("HTTPS get request: ");
         // start connection and send HTTP header
         int httpCode = https.GET();
         yield(); // watchdog reset
@@ -65,21 +84,19 @@ bool GetDataFromCoinCapServer(void) {
         if (httpCode > 0) {
           // HTTP header has been send and Server response header has been handled
           Serial.printf("[HTTPS] GET... code: %d\r\n", httpCode);
+          DisplayText(String(httpCode).c_str());
+          DisplayText("\n");
   
           // file found at server
           if (httpCode == HTTP_CODE_OK) {
-                Serial.println("[HTTPS] Streaming data from server in 2k byte chunks.");
+                Serial.println("[HTTPS] Streaming data from server in 4k byte chunks.");
                 DisplayText("Reading data");
 
 // stream data in chunks
                 // get length of document (is -1 when Server sends no Content-Length header)
                 int DocumentLength = https.getSize();
                 Serial.printf("[COINCAP] Document size: %d \r\n", DocumentLength);
-
-                // create buffer for read
-                uint8_t buff[2000] = { 0 };
                 bool firstBuffer = true;
-
                 // get tcp stream
                 WiFiClient * stream = https.getStreamPtr();
 
@@ -91,13 +108,14 @@ bool GetDataFromCoinCapServer(void) {
                     size_t BytesRead;
 
                     if (StreamAvailable) {
-                        // read up to 2000 bytes
+                        // read up to 4000 bytes
                         BytesRead = stream->readBytes(buff, ((StreamAvailable > sizeof(buff)) ? sizeof(buff) : StreamAvailable));
                         JsonDataSize += BytesRead;
-
+                        #ifdef DEBUG_OUTPUT
                         // write it to Serial
                         if (firstBuffer) { Serial.write(buff, BytesRead);  Serial.println(); }
                           else { Serial.print("/"); }
+                        #endif
                         firstBuffer = false;
                         DisplayText(".");
 
@@ -120,13 +138,31 @@ bool GetDataFromCoinCapServer(void) {
                             if (pos >= 0) {
                               //Serial.println(pos);
                               TrimNumDot(sVal);  // delete everything except numbers and "."
-                              //Serial.println(sVal);
-                              CoinCapData[CoinCapDataLength] = sVal.toFloat();
-                              CoinCapDataLength++;
-                              if (CoinCapDataLength > MAX_DATA_POINTS) {
-                                Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                                NoMoreData = 1000;
-                                break;
+                              #ifdef DEBUG_OUTPUT
+                              if (Refresh_5M) {
+                                if(CoinCapDataLength_5M < 5) { Serial.println(sVal); }
+                              } else {
+                                if(CoinCapDataLength_1H < 5) { Serial.println(sVal); }
+                              }
+                              #endif
+                              if (Refresh_5M) {
+                                CoinCapData_5M[CoinCapDataLength_5M] = sVal.toFloat();
+                                CoinCapDataLength_5M++;
+                                if (CoinCapDataLength_5M > MAX_DATA_POINTS_5M) {
+                                  Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
+                                  DisplayText("Max number of data points reached!\n");
+                                  NoMoreData = 1000;
+                                  break;
+                                }
+                              } else {
+                                CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
+                                CoinCapDataLength_1H++;
+                                if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
+                                  Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
+                                  DisplayText("Max number of data points reached!\n");
+                                  NoMoreData = 1000;
+                                  break;
+                                }
                               }
                             } // if data found
                           } // while data found
@@ -134,7 +170,10 @@ bool GetDataFromCoinCapServer(void) {
                     } // data available in stream
                     delay(10);
                     // No more data being received? 10 retries..
-                    if (StreamAvailable == 0) NoMoreData++;
+                    if (StreamAvailable == 0) {
+                      NoMoreData++;
+                      delay(50);
+                    }
                     if (NoMoreData > 10) { break; }
                     // timeout
                     Timeout = (millis() > (StartTime + 20 * 1000));  // 20 seconds
@@ -143,6 +182,7 @@ bool GetDataFromCoinCapServer(void) {
                 Serial.println();
                 if (Timeout) {
                   Serial.println("[HTTPS] Timeout.");
+                  DisplayText("Timeout.\n");
                 } else {
                   Serial.println("[HTTPS] Connection closed or file end.");
                 }
@@ -152,11 +192,15 @@ bool GetDataFromCoinCapServer(void) {
           } // HTTP code ok
         } else {
           Serial.printf("[HTTPS] GET... failed, error: %s\r\n", https.errorToString(httpCode).c_str());
+          DisplayText("Error: ");
+          DisplayText(https.errorToString(httpCode).c_str());
+          DisplayText("\n");
         }
   
         https.end();
       } else {
-        Serial.printf("[HTTPS] Unable to connect\r\n");
+        Serial.println("[HTTPS] Unable to connect");
+        DisplayText("Unable to connect.\n");
       }
 
       // End extra scoping block
@@ -178,28 +222,60 @@ bool GetDataFromCoinCapServer(void) {
 
 
 
-bool GetCoinCapData(void) {
+bool GetCoinCapData_1H(void) {
     bool result = false;
 
-    if ((millis() < (LastTimeCoinCapRefreshed + 30*60*1000)) && (LastTimeCoinCapRefreshed != 0)) {  // check server every 1/2 hour
-      Serial.println("CoinCap data is valid.");
+    if ((millis() < (LastTimeCoinCapRefreshed_1H + 30*60*1000)) && (LastTimeCoinCapRefreshed_1H != 0)) {  // check server every 1/2 hour
+      Serial.println("CoinCap data 1H is valid.");
       return true;  // data is already valid
     }
 
-    Serial.println("Requesting data from CoinCap server...");
+    Serial.println("Requesting data 1H from CoinCap server...");
     DisplayClear();
-    DisplayText("Contacting COINCAP server\n", CLYELLOW);
-    if (!GetDataFromCoinCapServer()) {
+    DisplayText("Contacting COINCAP server (1H)\n", CLYELLOW);
+    if (!GetDataFromCoinCapServer(false)) {
         DisplayText("FAILED!\n", CLRED);
         return false;
     }
-    LastTimeCoinCapRefreshed = millis();
+    LastTimeCoinCapRefreshed_1H = millis();
     result = true;
 
-    Serial.println("Number of data points: " + String(CoinCapDataLength));
+    Serial.println("Number of data points: " + String(CoinCapDataLength_1H));
     char Txt[20];
-    sprintf(Txt, "Data points: %d\n", CoinCapDataLength);
+    sprintf(Txt, "Data points: %d\n", CoinCapDataLength_1H);
     DisplayText(Txt);
+
+    DisplayText("Finished\n", CLGREEN);
+    delay (1500);
+    return result;
+}
+
+
+
+
+bool GetCoinCapData_5M(void) {
+    bool result = false;
+
+    if ((millis() < (LastTimeCoinCapRefreshed_5M + 5*60*1000)) && (LastTimeCoinCapRefreshed_5M != 0)) {  // check server every 1/2 hour
+      Serial.println("CoinCap data 5M is valid.");
+      return true;  // data is already valid
+    }
+
+    Serial.println("Requesting data 5M from CoinCap server...");
+    DisplayClear();
+    DisplayText("Contacting COINCAP server (5M)\n", CLYELLOW);
+    if (!GetDataFromCoinCapServer(true)) {
+        DisplayText("FAILED!\n", CLRED);
+        return false;
+    }
+    LastTimeCoinCapRefreshed_5M = millis();
+    result = true;
+
+    Serial.println("Number of data points: " + String(CoinCapDataLength_5M));
+    char Txt[20];
+    sprintf(Txt, "Data points: %d\n", CoinCapDataLength_5M);
+    DisplayText(Txt);
+
 /*
     Serial.println("------------");
     for (uint16_t i = 0; i < CoinCapDataLength; i++)
@@ -223,35 +299,51 @@ bool GetCoinCapData(void) {
 
 
 
-#ifdef DISPLAY_LCD_ST7735_Bodmer
+#ifdef DISPLAY_LCD_SPI_Bodmer
   #include <TFT_eSPI.h>
 
-void PlotCoinCapData(void) {
+void PlotCoinCapData(float *DataArray, int DataLen, int LineSpacing, char BgImage) {
   DisplayClear();
 
-  if (CoinCapDataLength < DspW) {
+  if (DataLen < DspW) {
     Serial.println("BTC: Not enough data to plot!");
-    tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.drawString("BTC: NOT ENOUGH DATA", 10, 20, 2);
+    DisplayText("BTC: NOT ENOUGH DATA", 1, 5, 20, CLRED);
     return;
   }
 
-//  tft.setTextColor(TFT_BLUE, TFT_BLACK);
-//  tft.drawString("BTC", 5, (DspH/2 - 5), 2);
-//  DisplayText("BTC", 2, 50, (DspH/2 - 15), CLDARKBLUE);
-//  DisplayText(" "); // reset to small font
+  char FileName[30];
+  sprintf(FileName, "/bg_btc_%dx%d_%c.bmp", DspW, DspH, BgImage);
+  DisplayShowImage(FileName,   0, 0);
 
-  DisplayShowImage("/bg_btc.bmp",   0, 0);
+  // vertical line
+  int LineX = DspW - LineSpacing;
+  String sTxt;
+  if (BgImage == 'd') {
+    sTxt = "day";
+  } else {
+    sTxt = "week";
+  }
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.drawString(sTxt, LineX + 4, DspH - 22, 1);
+  int numDots = DspH / 6;
+  for (int i = 0; i < numDots; i++)
+  {
+    tft.drawFastVLine(LineX, i*6, 3, TFT_DARKGREY);
+  }  
 
   float_t Minn, Maxx;
   Minn =  999999999;
   Maxx = -999999999;
-  uint16_t IgnoreFirst = CoinCapDataLength - DspW;
+  uint16_t IgnoreFirst = DataLen - DspW;
+  Serial.print("All data: ");
+  Serial.println(DataLen);
+  Serial.print("Ignored first points: ");
+  Serial.println(IgnoreFirst);
 
-  for (uint16_t i = IgnoreFirst; i < CoinCapDataLength; i++)
+  for (uint16_t i = IgnoreFirst; i < DataLen; i++)
   {
-    if (CoinCapData[i] > Maxx) {Maxx = CoinCapData[i];}
-    if (CoinCapData[i] < Minn) {Minn = CoinCapData[i];}
+    if (DataArray[i] > Maxx) {Maxx = DataArray[i];}
+    if (DataArray[i] < Minn) {Minn = DataArray[i];}
   }
   Serial.println("Min: " + String(Minn));
   Serial.println("Max: " + String(Maxx));
@@ -269,7 +361,7 @@ void PlotCoinCapData(void) {
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   for (X = 0; X < DspW; X++) {
-    fY = (CoinCapData[IgnoreFirst + X] - MinnD) * Scaling;
+    fY = (DataArray[IgnoreFirst + X] - MinnD) * Scaling;
     iY = round(fY);
     if (iY < 0) iY = 0;
     if (iY >= DspH) iY = DspH-1;
@@ -289,11 +381,21 @@ void PlotCoinCapData(void) {
     oldY = iY;
   }
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.drawNumber(round(Maxx), 30, 2, 1);
-  tft.drawNumber(round(Minn), 30, DspH - 12, 1);
+  tft.drawNumber(round(Maxx), 75, 2, 1);
+  tft.drawNumber(round(Minn), 75, DspH - 12, 1);
   tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-  X = tft.drawNumber(round(CoinCapData[CoinCapDataLength-1]), 90, 2, 1);
-  tft.drawString("USD", 90 + X + 3, 2, 1);
+  X = tft.drawNumber(round(DataArray[DataLen-1]), 140, 2, 1);
+  tft.drawString("USD", 140 + X + 3, 2, 1);
 }
+
+
+void PlotCoinCapData_5M(void) {
+  PlotCoinCapData(CoinCapData_5M, CoinCapDataLength_5M, 288, 'd'); // 1 px = 5 min. 288 px = 24 h.
+}
+
+void PlotCoinCapData_1H(void) {
+  PlotCoinCapData(CoinCapData_1H, CoinCapDataLength_1H, 168, 'w'); // 1 px = 1 h. 168 px = 1 week.
+}
+
 
 #endif  // tft bodmer

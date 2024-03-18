@@ -1,6 +1,6 @@
 #include "__CONFIG.h"
 
-#ifdef DISPLAY_LCD_ST7735_Bodmer
+#ifdef DISPLAY_LCD_SPI_Bodmer
 
 #include <SPI.h>
 #include <TFT_eSPI.h> // Hardware-specific library
@@ -47,10 +47,14 @@ void DisplaySetBrightness(uint8_t Brightness) {
 void DisplayInit(void) {
   Serial.println("Starting LCD...");
   tft.init();
+  #ifdef ST7789_DRIVER
+  tft.invertDisplay(false);
+  #endif
   tft.setRotation(3);
   tft.setTextWrap(true, true);
   DspH = tft.height();
   DspW = tft.width();
+  Serial.printf("LCD size: %d x %d \n", DspW, DspH);
   DisplayClear();
 
   // configure LED PWM functionalitites
@@ -473,4 +477,4 @@ void DisplayTest(void) {
 
 
 
-#endif // DISPLAY_LCD_ST7735
+#endif // DISPLAY_LCD_SPI_Bodmer

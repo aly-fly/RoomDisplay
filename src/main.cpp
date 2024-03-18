@@ -17,7 +17,6 @@
 uint16_t ScreenNumber = 0;
 int Hour;
 bool NightMode;
-uint16_t ArsoBgColor = CLWHITE;
 String TempOutdoor1, TempOutdoor2;
 
 void setup() {
@@ -29,13 +28,13 @@ void setup() {
     delay(100);
   }
   Serial.println();
-//  DisplayInit();
+  DisplayInit();
 //      DisplayTest();
 //      DisplayFontTest();
   DisplayClear();
   DisplayText("Init...\n", CLYELLOW);
 
-  DisplayText("SPIFFS start...");
+  DisplayText("SPIFFS start...\n");
   if (!SPIFFS.begin()) {
     Serial.println("SPIFFS initialisation failed!");
     DisplayText("FAILED!\n");
@@ -54,20 +53,12 @@ void setup() {
   }
 
 
-  //uint32_t pingIP = (216 << 24) | (58 << 16) | (205 << 8) | (46 << 0);  // google.com [216.58.205.46]
   String sPingIP;
   IPAddress pingIP;
-/*
   sPingIP = "216.58.205.46"; // google.com
   pingIP.fromString(sPingIP);
   Serial.println(sPingIP);
   ppiinngg(pingIP);
-*/
-  sPingIP = TIME_SERVER;
-  pingIP.fromString(sPingIP);
-  Serial.println(sPingIP);
-  ppiinngg(pingIP);
-
 
   setClock(); 
 
@@ -90,6 +81,13 @@ void loop() {
     Serial.println("Getting current time failed!");
     NightMode = false;
   }
+
+  if (!NightMode) {
+    DisplaySetBrightness(); // full power
+  } else { // fix temperature only with lower brightness at night
+    DisplaySetBrightness(30);
+  }
+
   
   //  HEAT PUMP DATA
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
@@ -120,7 +118,9 @@ void loop() {
     } // inHomeLAN
 
     DisplayClear(CLBLACK);
-    DisplayShowImage("/bg_grass.bmp",    0, 0);
+    char FileName[30];
+    sprintf(FileName, "/bg_grass_%dx%d.bmp", DspW, DspH);
+    DisplayShowImage(FileName,   0, 0);
     DisplayText("Temperatura pred hiso", 0, 10,   2, CLWHITE);
     DisplayText(TempOutdoor1.c_str(),    2, 32,  22, CLBLACK); // shadow
     DisplayText(TempOutdoor1.c_str(),    2, 30,  20, CLORANGE);
@@ -167,7 +167,11 @@ void loop() {
 
 
     // grafika
-    DisplayClear(ArsoBgColor);
+    DisplayClear(CLWHITE);
+
+    char FileName[30];
+    sprintf(FileName, "/bg_sky_%dx%d.bmp", DspW, DspH);
+    DisplayShowImage(FileName,   0, 0);
 
     // zgoraj - dnevi
     Line = ArsoWeather[0].Day;
@@ -196,8 +200,8 @@ void loop() {
     int p = TempOutdoor1.indexOf(".");
     if (p > -1) { TempOutdoor1.remove(p); }
 
-    DisplayText(TempOutdoor1.c_str(),                2,  12, 93, CLGREY); // shadow
-    DisplayText(TempOutdoor1.c_str(),                2,  10, 91, CLBLUE);
+    DisplayText(TempOutdoor1.c_str(),               2,  12, 93, CLGREY); // shadow
+    DisplayText(TempOutdoor1.c_str(),               2,  10, 91, CLBLUE);
     DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  12, 52, CLGREY); // shadow
     DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  10, 50, CLRED);
     DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  99, 93, CLGREY); // shadow
@@ -215,22 +219,21 @@ void loop() {
   }
   // COIN CAP DATA PLOT
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetCoinCapData();
-    PlotCoinCapData();
+    GetCoinCapData_1H();
+    PlotCoinCapData_1H();
+    delay(4000); // additional delay
+  }
+
+  // COIN CAP DATA PLOT
+  if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
+    GetCoinCapData_5M();
+    PlotCoinCapData_5M();
     delay(4000); // additional delay
   }
 
 
   ScreenNumber++;
-  if (ScreenNumber >= 3) ScreenNumber = 0;
-
-  if (!NightMode) {
-    ArsoBgColor = CLWHITE;
-    DisplaySetBrightness(); // full power
-  } else { // fix temperature only with lower brightness at night
-    ArsoBgColor = CLBLACK;
-    DisplaySetBrightness(30);
-  }
+  if (ScreenNumber >= 4) ScreenNumber = 0;
 
   delay(6000);
 
