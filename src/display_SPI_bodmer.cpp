@@ -180,7 +180,7 @@ uint32_t read32(fs::File &f) {
 
 
 // Bodmer's BMP image rendering function
-void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
+void DisplayShowImage_24bpp_only(const char *filename, int16_t x, int16_t y) {
 
   if ((x >= tft.width()) || (y >= tft.height())) return;
 
@@ -227,13 +227,13 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
       bmpFS.seek(seekOffset);
 
       uint16_t padding = (4 - ((w * 3) & 3)) & 3;
-      uint8_t lineBuffer[w * 3 + padding];
+      uint8_t FileLineBuffer[w * 3 + padding];
 
       for (row = 0; row < h; row++) {
         
-        bmpFS.read(lineBuffer, sizeof(lineBuffer));
-        uint8_t*  bptr = lineBuffer;
-        uint16_t* tptr = (uint16_t*)lineBuffer;
+        bmpFS.read(FileLineBuffer, sizeof(FileLineBuffer));
+        uint8_t*  bptr = FileLineBuffer;
+        uint16_t* tptr = (uint16_t*)FileLineBuffer;
         // Convert 24 to 16-bit colours
         for (uint16_t col = 0; col < w; col++)
         {
@@ -245,7 +245,7 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
 
         // Push the pixel row to screen, pushImage will crop the line if needed
         // y is decremented as the BMP image is drawn bottom up
-        tft.pushImage(x, y--, w, 1, (uint16_t*)lineBuffer);
+        tft.pushImage(x, y--, w, 1, (uint16_t*)FileLineBuffer);
       }
       tft.setSwapBytes(oldSwapBytes);
     }
@@ -253,6 +253,139 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
   }
   bmpFS.close();
 }
+
+
+void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
+  uint32_t StartTime = millis();
+  if ((x >= tft.width()) || (y >= tft.height())) return;
+
+  if (!SPIFFS.exists(filename)) {
+    Serial.print("File not found: ");
+    Serial.println(filename);
+    return;
+  }
+
+  fs::File bmpFS;
+
+  // Open requested file
+  bmpFS = SPIFFS.open(filename, "r");
+
+  if (!bmpFS)
+  {
+    Serial.print("Error opening file: ");
+    Serial.println(filename);
+    return;
+  }
+
+  Serial.print("Loading: ");
+  Serial.println(filename);
+
+  uint32_t seekOffset, headerSize, paletteSize = 0;
+  int16_t w, h, row, col;
+  uint16_t  r, g, b, bitDepth;
+  
+  uint16_t magic = read16(bmpFS);
+  if (magic == 0xFFFF) {
+    Serial.print("Can't openfile. Make sure you upload the SPIFFs image with BMPs. : ");
+    Serial.println(filename);
+    bmpFS.close();
+    return;
+  }
+  
+  if (magic != 0x4D42) {
+    Serial.print("File not a BMP. Magic: ");
+    Serial.println(magic);
+    bmpFS.close();
+    return;
+  }
+
+  read32(bmpFS); // filesize in bytes
+  read32(bmpFS); // reserved
+  seekOffset = read32(bmpFS); // start of bitmap
+  headerSize = read32(bmpFS); // header size
+  w = read32(bmpFS); // width
+  h = read32(bmpFS); // height
+  read16(bmpFS); // color planes (must be 1)
+  bitDepth = read16(bmpFS);
+  
+#ifdef DEBUG_OUTPUT
+  Serial.print(" image W, H, BPP: ");
+  Serial.print(w); 
+  Serial.print(", "); 
+  Serial.print(h);
+  Serial.print(", "); 
+  Serial.println(bitDepth);
+#endif
+
+  if (read32(bmpFS) != 0 || (bitDepth != 24 && bitDepth != 1 && bitDepth != 4 && bitDepth != 8)) {
+    Serial.println("BMP format not recognized.");
+    bmpFS.close();
+    return;
+  }
+
+  y += h - 1; // from bottom up
+  bool oldSwapBytes = tft.getSwapBytes();
+  tft.setSwapBytes(true);
+
+  uint32_t palette[256];
+  if (bitDepth <= 8) // 1,4,8 bit bitmap: read color palette
+  {
+    read32(bmpFS); read32(bmpFS); read32(bmpFS); // size, w resolution, h resolution
+    paletteSize = read32(bmpFS);
+    if (paletteSize == 0) paletteSize = bitDepth * bitDepth; // if 0, size is 2^bitDepth
+    bmpFS.seek(14 + headerSize); // start of color palette
+    for (uint16_t i = 0; i < paletteSize; i++) {
+      palette[i] = read32(bmpFS);
+    }
+  }
+
+  bmpFS.seek(seekOffset);
+
+  uint32_t lineSize = ((bitDepth * w +31) >> 5) * 4;
+  uint8_t FileLineBuffer[lineSize];
+  uint16_t ImageLineBuffer[w];
+
+  // row is decremented as the BMP image is drawn bottom up
+  for (row = h-1; row >= 0; row--) {
+    bmpFS.read(FileLineBuffer, sizeof(FileLineBuffer));
+    uint8_t*  bptr = FileLineBuffer;
+    
+    // Convert 24 to 16 bit colours while copying to output buffer.
+    for (col = 0; col < w; col++) {
+      if (bitDepth == 24) {
+          b = *bptr++;
+          g = *bptr++;
+          r = *bptr++;
+        } else {
+          uint32_t c = 0;
+          if (bitDepth == 8) {
+            c = palette[*bptr++];
+          }
+          else if (bitDepth == 4) {
+            c = palette[(*bptr >> ((col & 0x01)?0:4)) & 0x0F];
+            if (col & 0x01) bptr++;
+          }
+          else { // bitDepth == 1
+            c = palette[(*bptr >> (7 - (col & 0x07))) & 0x01];
+            if ((col & 0x07) == 0x07) bptr++;
+          }
+          b = c; g = c >> 8; r = c >> 16;
+        }
+      ImageLineBuffer[col] = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xFF) >> 3);
+    } // col
+    // Push the pixel row to screen, pushImage will crop the line if needed
+    // y is decremented as the BMP image is drawn bottom up
+    tft.pushImage(x, y--, w, 1, (uint16_t*)ImageLineBuffer);
+  } // row
+  tft.setSwapBytes(oldSwapBytes); 
+  bmpFS.close();
+#ifdef DEBUG_OUTPUT
+  Serial.print("img load time: ");
+  Serial.println(millis() - StartTime);  
+#endif
+  return;
+}
+
 
 
 void DisplayFontTest(void) {

@@ -149,23 +149,6 @@ void loop() {
     DisplayText("\n");
     DisplayUpdate();
     #else
-    /*
-    Line = ArsoWeather[ScreenNumber-1].Day + " " + ArsoWeather[ScreenNumber-1].PartOfDay; 
-    DisplayText(Line.c_str(), 1, 1, 00, CLYELLOW);
-    
-    //ArsoWeather[ScreenNumber-1].Sky.toUpperCase();
-    Line = ArsoWeather[ScreenNumber-1].Sky;
-    DisplayText(Line.c_str(), 1, 1, 30, CLCYAN);
-
-    ArsoWeather[ScreenNumber-1].Rain.toUpperCase();
-    Line = "Dez: " + ArsoWeather[ScreenNumber-1].Rain;
-    DisplayText(Line.c_str(), 1, 1, 60, CLGREEN);
-
-    Line = "Temp: " + ArsoWeather[ScreenNumber-1].Temperature + " C";
-    DisplayText(Line.c_str(), 1, 1, 90, CLORANGE);
-    */
-
-
     // grafika
     DisplayClear(CLWHITE);
 
@@ -176,9 +159,6 @@ void loop() {
     // zgoraj - dnevi
     Line = ArsoWeather[0].Day;
     DisplayText(Line.c_str(), 0, 6, 3, CLDARKBLUE);
-
-//    Line = ArsoWeather[1].Day + ArsoWeather[1].PartOfDay; 
-//    DisplayText(Line.c_str(), 0, 56, 1, CLDARKBLUE);
 
     Line = ArsoWeather[2].Day; // + ArsoWeather[2].PartOfDay; 
     DisplayText(Line.c_str(), 0, 93, 3, CLDARKBLUE);

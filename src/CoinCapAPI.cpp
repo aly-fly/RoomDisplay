@@ -37,7 +37,7 @@ unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
 
 
 // create static buffer for reading stream from the server
-uint8_t buff[4000] = { 0 }; // 4 kB
+uint8_t buff[3000] = { 0 }; // 3 kB
 
 
 bool GetDataFromCoinCapServer(bool Refresh_5M) {
@@ -89,7 +89,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   
           // file found at server
           if (httpCode == HTTP_CODE_OK) {
-                Serial.println("[HTTPS] Streaming data from server in 4k byte chunks.");
+                Serial.println("[HTTPS] Streaming data from server in 3k byte chunks.");
                 DisplayText("Reading data");
 
 // stream data in chunks
@@ -108,7 +108,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                     size_t BytesRead;
 
                     if (StreamAvailable) {
-                        // read up to 4000 bytes
+                        // read up to 3000 bytes
                         BytesRead = stream->readBytes(buff, ((StreamAvailable > sizeof(buff)) ? sizeof(buff) : StreamAvailable));
                         JsonDataSize += BytesRead;
                         #ifdef DEBUG_OUTPUT
@@ -168,11 +168,11 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                           } // while data found
                         } // process data
                     } // data available in stream
-                    delay(10);
+                    delay(20);
                     // No more data being received? 10 retries..
                     if (StreamAvailable == 0) {
                       NoMoreData++;
-                      delay(50);
+                      delay(150);
                     }
                     if (NoMoreData > 10) { break; }
                     // timeout
