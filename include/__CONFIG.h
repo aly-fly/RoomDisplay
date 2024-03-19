@@ -63,8 +63,8 @@
 
 // ************ BODMER LIBRARY CONFIG *********************
 
-//#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240
-#define ILI9341_DRIVER  // 2.8 inch LCD
+#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240
+//#define ILI9341_DRIVER  // 2.8 inch LCD
 //#define ST7796_DRIVER  // 4 inch LCD
 
 

@@ -71,7 +71,7 @@ bool CheckForValidDNSresponses(void) {
     }
 
     Serial.println("DNS test failed!");
-    DisplayText("DNS test failed!\n");
+    DisplayText("DNS test failed!\n", CLRED);
     return false;
 }
 
@@ -209,10 +209,11 @@ int HTTPconnectPOST(String URL, String PostData) {
 
 
 bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
-  Serial.println("Captive portal BEGIN");
-  DisplayText("Captive portal BEGIN");
+  Serial.println("Captive portal Begin");
+  DisplayText("Captive portal Begin\n");
     if (WifiState != connected) {
         Serial.println("No WiFi!");
+        DisplayText("NO WiFi!\n", CLRED);
         StatusConnectivityOk = false;
         return false;
     }
@@ -221,11 +222,15 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
 
   int ResCode = -99;
   Serial.println("Creating dummy HTTP request to get Redirect information...");
+  DisplayText("Checking for Redirect notice...\n");
   String URL1 = "http://";
   URL1.concat(TestHost2);  // host 1 produces 404, host 2 returns empty page
   ResCode = HTTPconnect(URL1);
   Serial.print("Res code: ");
   Serial.println(ResCode);
+  DisplayText("Result code: ");
+  DisplayText(String(ResCode).c_str());
+  DisplayText("\n");
 
   /* response - headers
   Connecting to: http://connectivitycheck.gstatic.com
@@ -253,30 +258,35 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
   if ((StatusDNSvalid) && (ResCode == 11)) { // connectivity ok - no need to do anything
     StatusConnectivityOk = true;
     Serial.println("Connectivity OK.");
+    DisplayText("Connectrivity OK\n", CLGREEN);
     return true;
   }
   if (ResCode == 22) { // Got redirect URL
-    Serial.println("Logging into Captive portal..");
+    Serial.println("Opening Captive portal..");
+    DisplayText("Opening Captive portal...\n", CLYELLOW);
     CaptivePortalURL.replace("https", "http");
     ResCode = HTTPconnect(CaptivePortalURL);
     Serial.print("Res code: ");
     Serial.println(ResCode);
+    DisplayText("Result code: ");
+    DisplayText(String(ResCode).c_str());
+    DisplayText("\n");
 
     if (ResCode == 11) { // Captive portal access OK
       Serial.println("Sending required POST message...");
-/*
+      DisplayText("Sending Login message...\n", CLYELLOW);
+      /*
       <form method="POST" action="swarm.cgi"> 
         <input type="hidden" name="orig_url" value="687474703a2f2f636c69656e7473332e676f6f676c652e636f6d2f" /> 
         <input type="hidden" name="opcode" value="cp_ack" /> 
         <input type="submit" value="Accept"/> 
       </form> 
-*/
-
+      */
       String POSTkey, POSTurl, POSTdata;
       int PosPost, PosKey, PosKeyValueBegin, PosKeyValueEnd;
 
       PosPost          = ResponseFromServer.indexOf("form method=");
-//      PosPost          = ResponseFromServer.indexOf("method=""POST""");
+      //PosPost          = ResponseFromServer.indexOf("method=""POST""");
       PosKey           = ResponseFromServer.indexOf("orig_url", PosPost);
       PosKeyValueBegin = ResponseFromServer.indexOf("value=", PosKey);
       PosKeyValueEnd   = ResponseFromServer.indexOf("/>", PosKeyValueBegin);
@@ -291,10 +301,10 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
 
       if ((PosKeyValueEnd < 40) || (POSTkey.length() < 50) || (POSTkey.length() > 60)){
         Serial.println("Error in data!");
+        DisplayText("ERROR IN DATA\n", CLRED);
         StatusConnectivityOk = false;
         return false;
       }
-
 
       POSTurl = "http://wifi.rls.si/swarm.cgi";
       POSTdata = "orig_url=" + POSTkey + "&opcode=cp_ack";  // "orig_url=xxxxxxxx&opcode=cp_ack"
@@ -305,23 +315,32 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
       ResCode = HTTPconnectPOST(POSTurl, POSTdata);
       Serial.print("Res code: ");
       Serial.println(ResCode);
+      DisplayText("Result code: ");
+      DisplayText(String(ResCode).c_str());
+      DisplayText("\n");
 
       // .....  is there anything left to analyze in the data returned from POST method?
 
       Serial.println("Another dummy HTTP request to verify connectivity...");
+      DisplayText("Checking connectivity...\n");
       String URL1 = "http://";
       URL1.concat(TestHost2);  // host 1 produces 404, host 2 returns empty page
       ResCode = HTTPconnect(URL1);
       Serial.print("Res code: ");
       Serial.println(ResCode);
+      DisplayText("Result code: ");
+      DisplayText(String(ResCode).c_str());
+      DisplayText("\n");
 
       if ((StatusDNSvalid) && (ResCode == 11)) { // connectivity ok
         StatusConnectivityOk = true;
         Serial.println("Connectivity OK.");
+        DisplayText("Connectivity OK.\n", CLGREEN);
         return true;
       }
     }
   }
+  DisplayText("ERROR\n", CLRED);
   return false;
 }
 

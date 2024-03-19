@@ -242,7 +242,7 @@ bool GetCoinCapData_1H(void) {
 
     Serial.println("Number of data points: " + String(CoinCapDataLength_1H));
     char Txt[20];
-    sprintf(Txt, "Data points: %d\n", CoinCapDataLength_1H);
+    sprintf(Txt, "Data points: %u\n", CoinCapDataLength_1H);
     DisplayText(Txt);
 
     DisplayText("Finished\n", CLGREEN);
@@ -273,7 +273,7 @@ bool GetCoinCapData_5M(void) {
 
     Serial.println("Number of data points: " + String(CoinCapDataLength_5M));
     char Txt[20];
-    sprintf(Txt, "Data points: %d\n", CoinCapDataLength_5M);
+    sprintf(Txt, "Data points: %u\n", CoinCapDataLength_5M);
     DisplayText(Txt);
 
 /*
@@ -302,7 +302,7 @@ bool GetCoinCapData_5M(void) {
 #ifdef DISPLAY_LCD_SPI_Bodmer
   #include <TFT_eSPI.h>
 
-void PlotCoinCapData(float *DataArray, int DataLen, int LineSpacing, char BgImage) {
+void PlotCoinCapData(const float *DataArray, int DataLen, int LineSpacing, char BgImage) {
   DisplayClear();
 
   if (DataLen < DspW) {

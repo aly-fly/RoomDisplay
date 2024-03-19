@@ -36,6 +36,10 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info){
       WifiState = disconnected;
       Serial.print("WiFi lost connection. Reason: ");
       Serial.println(info.wifi_sta_disconnected.reason);
+      DisplayClear();
+      DisplayText("WiFi lost connection. Reason: ");
+      DisplayText(String(info.wifi_sta_disconnected.reason).c_str());
+      DisplayText("\n");
       break;
     default:
       break;
@@ -44,7 +48,7 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info){
 
 
 // !! The bit 0 of the first byte of ESP32 MAC address can not be 1. For example, the MAC address can set to be “1a:XX:XX:XX:XX:XX”, but can not be “15:XX:XX:XX:XX:XX”.
-uint8_t newMACAddress[] = {0xA0, 0xCD, 0x98, 0x76, 0x54, 0x01};
+uint8_t newMACAddress[] = {0x50, 0xCD, 0x98, 0x76, 0x54, 0x10};
 
 void WifiInit(void)  {
 /*
@@ -57,8 +61,8 @@ void WifiInit(void)  {
   Serial.print("My old MAC = ");
   Serial.println(WiFi.macAddress());
 
-  esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, &newMACAddress[0]);
-//  esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, newMACAddress);
+//  esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, &newMACAddress[0]);
+  esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, newMACAddress);
   if (err == ESP_OK) {
       ESP_LOGI("MAC address", "MAC address successfully set.");
   } else {
@@ -105,10 +109,10 @@ void WifiInit(void)  {
   
   WifiState = connected;
 
-  DisplayText("\n Connected to: ", CLBLUE);
+  DisplayText("\n Connected to: ");
   DisplayText(WiFi.SSID().c_str(), CLCYAN);
-  DisplayText("\n IP: ", CLORANGE);
-  DisplayText(WiFi.localIP().toString().c_str(), CLYELLOW);
+  DisplayText("\n IP: ");
+  DisplayText(WiFi.localIP().toString().c_str(), CLCYAN);
   DisplayText("\n");
   
   Serial.println();
@@ -123,7 +127,7 @@ void WifiReconnectIfNeeded(void) {
   if ((WifiState == disconnected) && ((millis() - TimeOfWifiReconnectAttempt) > WIFI_RETRY_CONNECTION_SEC * 1000)) {
     Serial.println("Attempting WiFi reconnection...");
     DisplayClear();
-    DisplayText("WiFi reconnect...", CLCYAN);
+    DisplayText("WiFi reconnect...", CLYELLOW);
     WiFi.reconnect();
     TimeOfWifiReconnectAttempt = millis();
   }    

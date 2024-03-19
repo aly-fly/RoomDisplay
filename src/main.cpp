@@ -34,31 +34,32 @@ void setup() {
   DisplayClear();
   DisplayText("Init...\n", CLYELLOW);
 
-  DisplayText("SPIFFS start...\n");
+  DisplayText("SPIFFS start...");
   if (!SPIFFS.begin()) {
     Serial.println("SPIFFS initialisation failed!");
-    DisplayText("FAILED!\n");
+    DisplayText("FAILED!\n", CLRED);
     while (1) yield(); // Stay here twiddling thumbs waiting
   }
   Serial.println("\r\nSPIFFS available!");
+  DisplayText("OK\n", CLGREEN);
 
   WifiInit();
 
   if (!inHomeLAN) {
    bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
    if (!connOk){
-      Serial.println("=== HALT ===");   
+      Serial.println("=== HALT ===");
+      DisplayText("=== HALT ===\n", CLRED);
       while (1) {}
    }
   }
-
 
   String sPingIP;
   IPAddress pingIP;
   sPingIP = "216.58.205.46"; // google.com
   pingIP.fromString(sPingIP);
   Serial.println(sPingIP);
-  ppiinngg(pingIP);
+  ppiinngg(pingIP, true);
 
   setClock(); 
 
@@ -73,19 +74,22 @@ void setup() {
 }
 
 
-void loop() {
-  if(CurrentHour(Hour)) {
-    Serial.println("Hour: " + String(Hour));
-    NightMode = ((Hour > 22) || (Hour < 7));
-  } else {
-    Serial.println("Getting current time failed!");
-    NightMode = false;
-  }
+// ===============================================================================================================================================================
 
-  if (!NightMode) {
-    DisplaySetBrightness(); // full power
-  } else { // fix temperature only with lower brightness at night
-    DisplaySetBrightness(30);
+void loop() {
+  if (inHomeLAN) {
+    if(CurrentHour(Hour)) {
+      Serial.println("Hour: " + String(Hour));
+      NightMode = ((Hour > 22) || (Hour < 7));
+    } else {
+      Serial.println("Getting current time failed!");
+      NightMode = false;
+    }
+    if (!NightMode) {
+      DisplaySetBrightness(); // full power
+    } else { // fix temperature only with lower brightness at night
+      DisplaySetBrightness(30);
+    }
   }
 
   
@@ -94,7 +98,7 @@ void loop() {
     TempOutdoor1 = "- - -";
     TempOutdoor2 = "- - -";
     char ShellyTxt[10];
-    printf(ShellyTxt, "---");
+    sprintf(ShellyTxt, "---");
 
     if (inHomeLAN) {
       if (TCPclientRequest("Outdoor")) {
@@ -158,36 +162,36 @@ void loop() {
 
     // zgoraj - dnevi
     Line = ArsoWeather[0].Day;
-    DisplayText(Line.c_str(), 0, 6, 3, CLDARKBLUE);
+    DisplayText(Line.c_str(), 1,   6, 8, CLDARKBLUE);
 
-    Line = ArsoWeather[2].Day; // + ArsoWeather[2].PartOfDay; 
-    DisplayText(Line.c_str(), 0, 93, 3, CLDARKBLUE);
+    Line = ArsoWeather[2].Day;
+    DisplayText(Line.c_str(), 1, 170, 8, CLDARKBLUE);
 
 
-    // sredina slike
+    // na sredini so slikce (original 32x32)
     String FN;
     FN = "/w/" + ArsoWeather[0].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(),   21, 12);
+    DisplayShowImage(FN.c_str(),   21, 39, 2);
 
     FN = "/w/" + ArsoWeather[1].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(),  88, 12);
+    DisplayShowImage(FN.c_str(),  145, 39, 2);
 
     FN = "/w/" + ArsoWeather[2].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(), 124, 12);
+    DisplayShowImage(FN.c_str(),  219, 39, 2);
 
     // spodaj temperatura
     // remove trailing ".x C"
     int p = TempOutdoor1.indexOf(".");
     if (p > -1) { TempOutdoor1.remove(p); }
 
-    DisplayText(TempOutdoor1.c_str(),               2,  12, 93, CLGREY); // shadow
-    DisplayText(TempOutdoor1.c_str(),               2,  10, 91, CLBLUE);
-    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  12, 52, CLGREY); // shadow
-    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,  10, 50, CLRED);
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  99, 93, CLGREY); // shadow
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  97, 91, CLBLUE);
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  99, 52, CLGREY); // shadow
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  97, 50, CLRED);
+    DisplayText(TempOutdoor1.c_str(),               2,   30, 113+72, CLGREY); // shadow
+    DisplayText(TempOutdoor1.c_str(),               2,   28, 111+72, CLBLUE);
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   30,  52+72, CLGREY); // shadow
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   28,  50+72, CLRED);
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  182, 113+72, CLGREY); // shadow
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  180, 111+72, CLBLUE);
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  182,  52+72, CLGREY); // shadow
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  180,  50+72, CLRED);
 /*
     // na tleh ikonca
     DisplayText(ArsoWeather[0].WeatherIcon.c_str(), 0,   0, 119, CLGREY);
@@ -221,18 +225,44 @@ void loop() {
 
   WifiReconnectIfNeeded();
 
-  // debug
-  Serial.println("[IDLE] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
+  if (ScreenNumber == 0) {
+    // check connectivity
+    if (!inHomeLAN) {
+      //DisplayClear();
+      //DisplayText("Test connectivity...\n", 0, 0, 10, CLGREY);
+      String sPingIP;
+      IPAddress pingIP;
+      sPingIP = "216.58.205.46"; // google.com
+      pingIP.fromString(sPingIP);
+      Serial.println(sPingIP);
+      bool PingOK = ppiinngg(pingIP, false);
+      if (!PingOK) {
+        DisplayClear();
+        DisplayText("Test connectivity FAILED\n", CLORANGE);
 
-  multi_heap_info_t info;
-  heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); // internal RAM, memory capable to store data or to create new task
-  /*
-  info.total_free_bytes;   // total currently free in all non-continues blocks
-  info.minimum_free_bytes;  // minimum free ever
-  info.largest_free_block;   // largest continues block to allocate big array
-  */
-  Serial.println("[IDLE] Largest available block: " + String(info.largest_free_block) + " bytes");
-  Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
+        bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
+        if (!connOk){
+            Serial.println("=== REBOOT ===");
+            DisplayText("=== REBOOT ===\n", CLORANGE);
+            delay (15000);
+            ESP.restart();  // retry everything from the beginning
+        }
+      }
+    }
+
+    // debug
+    Serial.println("[IDLE] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
+
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); // internal RAM, memory capable to store data or to create new task
+    /*
+    info.total_free_bytes;   // total currently free in all non-continues blocks
+    info.minimum_free_bytes;  // minimum free ever
+    info.largest_free_block;   // largest continues block to allocate big array
+    */
+    Serial.println("[IDLE] Largest available block: " + String(info.largest_free_block) + " bytes");
+    Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
+  }
 } // loop
 
 
