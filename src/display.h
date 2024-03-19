@@ -41,7 +41,7 @@
   void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = 0xFFFF, bool Show=true);
   void DisplayUpdate(void);
 
-  void DisplayShowImage(const char *filename, int16_t x, int16_t y);
+  void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgScaling = 1);
 
 
   void DisplayTest(void);

@@ -178,7 +178,7 @@ uint32_t read32(fs::File &f) {
   return result;
 }
 
-
+/*
 // Bodmer's BMP image rendering function
 void DisplayShowImage_24bpp_only(const char *filename, int16_t x, int16_t y) {
 
@@ -253,9 +253,9 @@ void DisplayShowImage_24bpp_only(const char *filename, int16_t x, int16_t y) {
   }
   bmpFS.close();
 }
+*/
 
-
-void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
+void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgScaling) {
   uint32_t StartTime = millis();
   if ((x >= tft.width()) || (y >= tft.height())) return;
 
@@ -281,7 +281,7 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
   Serial.println(filename);
 
   uint32_t seekOffset, headerSize, paletteSize = 0;
-  int16_t w, h, row, col;
+  int16_t imgW, imgH, row, col, outW, outY;
   uint16_t  r, g, b, bitDepth;
   
   uint16_t magic = read16(bmpFS);
@@ -303,16 +303,16 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
   read32(bmpFS); // reserved
   seekOffset = read32(bmpFS); // start of bitmap
   headerSize = read32(bmpFS); // header size
-  w = read32(bmpFS); // width
-  h = read32(bmpFS); // height
+  imgW = read32(bmpFS); // width
+  imgH = read32(bmpFS); // height
   read16(bmpFS); // color planes (must be 1)
   bitDepth = read16(bmpFS);
   
 #ifdef DEBUG_OUTPUT
   Serial.print(" image W, H, BPP: ");
-  Serial.print(w); 
+  Serial.print(imgW); 
   Serial.print(", "); 
-  Serial.print(h);
+  Serial.print(imgH);
   Serial.print(", "); 
   Serial.println(bitDepth);
 #endif
@@ -323,7 +323,9 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
     return;
   }
 
-  y += h - 1; // from bottom up
+  outY = y + (imgH * imgScaling) - 1; // draws from bottom up
+  outW = imgW * imgScaling;
+
   bool oldSwapBytes = tft.getSwapBytes();
   tft.setSwapBytes(true);
 
@@ -341,17 +343,17 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
 
   bmpFS.seek(seekOffset);
 
-  uint32_t lineSize = ((bitDepth * w +31) >> 5) * 4;
+  uint32_t lineSize = ((bitDepth * imgW +31) >> 5) * 4;
   uint8_t FileLineBuffer[lineSize];
-  uint16_t ImageLineBuffer[w];
+  uint16_t ImageLineBuffer[outW];
 
   // row is decremented as the BMP image is drawn bottom up
-  for (row = h-1; row >= 0; row--) {
+  for (row = imgH-1; row >= 0; row--) {
     bmpFS.read(FileLineBuffer, sizeof(FileLineBuffer));
     uint8_t*  bptr = FileLineBuffer;
     
     // Convert 24 to 16 bit colours while copying to output buffer.
-    for (col = 0; col < w; col++) {
+    for (col = 0; col < imgW; col++) {
       if (bitDepth == 24) {
           b = *bptr++;
           g = *bptr++;
@@ -371,11 +373,16 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y) {
           }
           b = c; g = c >> 8; r = c >> 16;
         }
-      ImageLineBuffer[col] = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xFF) >> 3);
+      ImageLineBuffer[col*imgScaling]   = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xFF) >> 3);
+      if (imgScaling == 2) {
+      ImageLineBuffer[col*imgScaling+1] = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xFF) >> 3);
+      }
     } // col
     // Push the pixel row to screen, pushImage will crop the line if needed
     // y is decremented as the BMP image is drawn bottom up
-    tft.pushImage(x, y--, w, 1, (uint16_t*)ImageLineBuffer);
+    tft.pushImage(x, outY--, outW, 1, (uint16_t*)ImageLineBuffer);
+    if (imgScaling == 2)
+    tft.pushImage(x, outY--, outW, 1, (uint16_t*)ImageLineBuffer);
   } // row
   tft.setSwapBytes(oldSwapBytes); 
   bmpFS.close();
