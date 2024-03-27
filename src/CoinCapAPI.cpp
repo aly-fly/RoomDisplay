@@ -15,7 +15,10 @@
 #include "display.h"
 
 #define MAX_DATA_POINTS_1H (31*24 + 10)
-#define MAX_DATA_POINTS_5M 1440 + 10
+#define MAX_DATA_POINTS_5M ( 1440 + 10)
+
+#define REQ_DATA_POINTS_1H (31*24 - 70)
+#define REQ_DATA_POINTS_5M ( 1440 - 70)
 
 float_t CoinCapData_1H[MAX_DATA_POINTS_1H];  // data for 1 month = 3 kB (4B / point)
 float_t CoinCapData_5M[MAX_DATA_POINTS_5M];  // data = 5,8 kB
@@ -149,8 +152,9 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                                 CoinCapData_5M[CoinCapDataLength_5M] = sVal.toFloat();
                                 CoinCapDataLength_5M++;
                                 if (CoinCapDataLength_5M > MAX_DATA_POINTS_5M) {
+                                  Serial.println();
                                   Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                                  DisplayText("Max number of data points reached!\n");
+                                  DisplayText("\nMax number of data points reached!\n");
                                   NoMoreData = 1000;
                                   break;
                                 }
@@ -158,15 +162,23 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                                 CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
                                 CoinCapDataLength_1H++;
                                 if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
+                                  Serial.println();
                                   Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                                  DisplayText("Max number of data points reached!\n");
+                                  DisplayText("\nMax number of data points reached!\n");
                                   NoMoreData = 1000;
                                   break;
                                 }
                               }
                             } // if data found
                           } // while data found
-                        } // process data
+                          // last section was received; it finishes off with "timestamp"
+                          if (sBuf.indexOf("timestamp") >= 0) {
+                            Serial.println();
+                            Serial.println("End identifier found.");
+                            DisplayText("\nEnd identifier found.\n", CLGREEN);
+                            NoMoreData = 1000;
+                            }
+                        } // process data (BytesRead > 0)
                     } // data available in stream
                     delay(20);
                     // No more data being received? 10 retries..
@@ -237,16 +249,22 @@ bool GetCoinCapData_1H(void) {
         DisplayText("FAILED!\n", CLRED);
         return false;
     }
-    LastTimeCoinCapRefreshed_1H = millis();
-    result = true;
-
     Serial.println("Number of data points: " + String(CoinCapDataLength_1H));
     char Txt[20];
     sprintf(Txt, "Data points: %u\n", CoinCapDataLength_1H);
     DisplayText(Txt);
 
+    if (CoinCapDataLength_1H > REQ_DATA_POINTS_1H) {
+      LastTimeCoinCapRefreshed_1H = millis();
+      result = true;
+    } else {
+      Serial.println("Not enough data points!");
+      DisplayText("Not enough data points!\n", CLRED);
+      return false;
+    }
+
     DisplayText("Finished\n", CLGREEN);
-    delay (1500);
+    delay (500);
     return result;
 }
 
@@ -268,13 +286,19 @@ bool GetCoinCapData_5M(void) {
         DisplayText("FAILED!\n", CLRED);
         return false;
     }
-    LastTimeCoinCapRefreshed_5M = millis();
-    result = true;
-
     Serial.println("Number of data points: " + String(CoinCapDataLength_5M));
     char Txt[20];
     sprintf(Txt, "Data points: %u\n", CoinCapDataLength_5M);
     DisplayText(Txt);
+
+    if (CoinCapDataLength_5M > REQ_DATA_POINTS_5M) {
+      LastTimeCoinCapRefreshed_5M = millis();
+      result = true;
+    } else {
+      Serial.println("Not enough data points!");
+      DisplayText("Not enough data points!\n", CLRED);
+      return false;
+    }
 
 /*
     Serial.println("------------");
@@ -286,7 +310,7 @@ bool GetCoinCapData_5M(void) {
 */    
 
     DisplayText("Finished\n", CLGREEN);
-    delay (1500);
+    delay (500);
     return result;
 }
 
@@ -302,7 +326,7 @@ bool GetCoinCapData_5M(void) {
 #ifdef DISPLAY_LCD_SPI_Bodmer
   #include <TFT_eSPI.h>
 
-void PlotCoinCapData(const float *DataArray, int DataLen, int LineSpacing, char BgImage) {
+void PlotCoinCapData(const float *DataArray, const int DataLen, const int LineSpacing, const char BgImage) {
   DisplayClear();
 
   if (DataLen < DspW) {
@@ -384,8 +408,10 @@ void PlotCoinCapData(const float *DataArray, int DataLen, int LineSpacing, char 
   tft.drawNumber(round(Maxx), 75, 2, 1);
   tft.drawNumber(round(Minn), 75, DspH - 12, 1);
   tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-  X = tft.drawNumber(round(DataArray[DataLen-1]), 140, 2, 1);
-  tft.drawString("USD", 140 + X + 3, 2, 1);
+  tft.loadFont(FONT_SIZE_1);
+  X = tft.drawNumber(round(DataArray[DataLen-1]), 150, 2);
+  tft.drawString("USD", 150 + X + 3, 2);
+  tft.unloadFont();
 }
 
 
