@@ -47,10 +47,16 @@ void setup() {
 
   if (!inHomeLAN) {
    bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
-   if (!connOk){
+   if (!connOk) {
+      /*    
       Serial.println("=== HALT ===");
       DisplayText("=== HALT ===\n", CLRED);
       while (1) {}
+      */
+      Serial.println("=== REBOOT ===");
+      DisplayText("=== REBOOT ===\n", CLORANGE);
+      delay (30000);
+      ESP.restart();  // retry everything from the beginning
    }
   }
 
@@ -132,6 +138,9 @@ void loop() {
     DisplayText(TempOutdoor2.c_str(),    1, 40,  70, CLCYAN);
     DisplayText(ShellyTxt,               1, 62, 107, CLBLACK); // shadow
     DisplayText(ShellyTxt,               1, 60, 105, CLRED);
+
+    DisplayText(SunRiseTime.c_str(), 1,   10,        240-26,   CLBLACK);
+    DisplayText(SunSetTime.c_str(),  1,  320 - 80,   240-26,   CLBLACK);
   }
 
 // WEATHER FORECAST  
@@ -140,20 +149,6 @@ void loop() {
 
     String Line;
     
-    #ifdef DISPLAY_OLED_SSD1306
-    DisplayClearCanvas();
-    Line = ArsoWeather[ScreenNumber-1].Day + " " + ArsoWeather[ScreenNumber-1].PartOfDay; 
-    DisplayText(Line.c_str());
-    DisplayText("\nNebo: ");
-    DisplayText(ArsoWeather[ScreenNumber-1].Sky.c_str());
-    DisplayText("\nDez: ");
-    DisplayText(ArsoWeather[ScreenNumber-1].Rain.c_str());
-    DisplayText("\nTemperatura:");
-    DisplayText(ArsoWeather[ScreenNumber-1].Temperature.c_str());
-    DisplayText("\n");
-    DisplayUpdate();
-    #else
-    // grafika
     DisplayClear(CLWHITE);
 
     char FileName[30];
@@ -162,45 +157,52 @@ void loop() {
 
     // zgoraj - dnevi
     Line = ArsoWeather[0].Day;
-    DisplayText(Line.c_str(), 1,   6, 8, CLDARKBLUE);
+    DisplayText(Line.c_str(), 1,   10, 10, CLDARKBLUE);
 
     Line = ArsoWeather[2].Day;
-    DisplayText(Line.c_str(), 1, 170, 8, CLDARKBLUE);
+    DisplayText(Line.c_str(), 1, 180, 10, CLDARKBLUE);
 
 
-    // na sredini so slikce (original 32x32)
+    // na sredini so slikce (original 32x32, povečane x2)
     String FN;
     FN = "/w/" + ArsoWeather[0].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(),   21, 39, 2);
+    DisplayShowImage(FN.c_str(),   6, 44, 2);
 
     FN = "/w/" + ArsoWeather[1].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(),  145, 39, 2);
+    DisplayShowImage(FN.c_str(),  82, 44, 2);
 
     FN = "/w/" + ArsoWeather[2].WeatherIcon + ".bmp";
-    DisplayShowImage(FN.c_str(),  219, 39, 2);
+    DisplayShowImage(FN.c_str(),  174, 44, 2);
 
-    // spodaj temperatura
-    // remove trailing ".x C"
-    int p = TempOutdoor1.indexOf(".");
-    if (p > -1) { TempOutdoor1.remove(p); }
+    FN = "/w/" + ArsoWeather[3].WeatherIcon + ".bmp";
+    DisplayShowImage(FN.c_str(),  249, 44, 2);
 
-    DisplayText(TempOutdoor1.c_str(),               2,   30, 113+72, CLGREY); // shadow
-    DisplayText(TempOutdoor1.c_str(),               2,   28, 111+72, CLBLUE);
-    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   30,  52+72, CLGREY); // shadow
-    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   28,  50+72, CLRED);
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  182, 113+72, CLGREY); // shadow
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,  180, 111+72, CLBLUE);
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  182,  52+72, CLGREY); // shadow
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  180,  50+72, CLRED);
-/*
-    // na tleh ikonca
-    DisplayText(ArsoWeather[0].WeatherIcon.c_str(), 0,   0, 119, CLGREY);
-    DisplayText(ArsoWeather[1].WeatherIcon.c_str(), 0,  50, 110, CLGREY);
-    DisplayText(ArsoWeather[2].WeatherIcon.c_str(), 0,  90, 119, CLGREY);
-*/
-    #endif    
-    delay(4000); // additional delay
+    if (inHomeLAN) {
+      // heat pump data
+      // remove trailing ".x C"
+      int p = TempOutdoor1.indexOf(".");
+      if (p > -1) { TempOutdoor1.remove(p); }
+
+      DisplayText(TempOutdoor1.c_str(),               2,   44+2, 170+2, CLGREY); // shadow
+      DisplayText(TempOutdoor1.c_str(),               2,   44,   170,   CLBLUE);
+    } else {
+      // ARSO data
+      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44+2, 170+2, CLGREY); // shadow
+      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44,   170,   CLBLUE);
+    }
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44+2, 127+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44,   127,   CLRED);
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201+2, 170+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201,   170,   CLBLUE);
+    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201+2, 127+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201,   127,   CLRED);
+
+    DisplayText(SunRiseTime.c_str(), 1,    5,        240-23,   CLDARKGREEN);
+    DisplayText(SunSetTime.c_str(),  1,  320 - 80,   240-23,   CLDARKGREEN);
+
+    delay(5000); // additional delay
   }
+
   // COIN CAP DATA PLOT
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
     GetCoinCapData_1H();
@@ -217,15 +219,13 @@ void loop() {
 
 
   ScreenNumber++;
-  if (ScreenNumber >= 4) ScreenNumber = 0;
+  if (ScreenNumber >= 4) { // housekeeping at the end of display cycles
+    if (inHomeLAN)
+      ScreenNumber = 0; else
+      ScreenNumber = 1;   // skip heat pump
 
-  delay(6000);
+    WifiReconnectIfNeeded();
 
-
-
-  WifiReconnectIfNeeded();
-
-  if (ScreenNumber == 0) {
     // check connectivity
     if (!inHomeLAN) {
       //DisplayClear();
@@ -263,6 +263,9 @@ void loop() {
     Serial.println("[IDLE] Largest available block: " + String(info.largest_free_block) + " bytes");
     Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
   }
+
+  delay(6000);
+
 } // loop
 
 

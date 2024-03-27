@@ -24,7 +24,20 @@
   #define CLCYAN     TFT_CYAN
   #define CLGREY     TFT_DARKGREY
   #define CLBLACK    TFT_BLACK
-  #define CLDARKBLUE 0x000F         // 0x001F -> 0F
+  #define CLDARKBLUE  0x000F         // 0x001F -> 0F
+  #define CLDARKGREEN TFT_DARKGREEN
+
+//  The fonts used are in the data folder.
+
+//  A processing sketch to create new fonts can be found in the Tools folder of TFT_eSPI
+//  https://github.com/Bodmer/TFT_eSPI/tree/master/Tools/Create_Smooth_Font/Create_font
+
+//  This sketch uses font files created from the Noto family of fonts:
+//  https://www.google.com/get/noto/
+
+//0 -> Original Adafruit 8 pixel font
+#define FONT_SIZE_1 "24-Latin-Hiragana"
+#define FONT_SIZE_2 "36-Noto-Sans-Bold"
 
   extern TFT_eSPI tft; // for graphical plot
 #endif

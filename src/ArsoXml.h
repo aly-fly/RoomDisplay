@@ -15,6 +15,7 @@ struct ArsoWeather_t
 };
 
 
-extern ArsoWeather_t ArsoWeather[3];
+extern ArsoWeather_t ArsoWeather[4];
+extern String SunRiseTime, SunSetTime;
 
 #endif // __ARSO_XML_H_

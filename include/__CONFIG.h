@@ -36,7 +36,8 @@
 #define SHELLY_3EM_HOST "10.38.22.111" // Poraba TC
 
 // ARSO:
-#define ARSO_SERVER_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
+#define ARSO_SERVER_CURRENT_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
+#define ARSO_SERVER_FORECAST_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
 // also validate: include\Arso_https_certificate.h
 
 

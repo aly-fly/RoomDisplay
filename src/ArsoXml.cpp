@@ -1,6 +1,8 @@
 // ARSO xml: https://meteo.arso.gov.si/met/sl/service/
 // osrednja 3 dni: https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SLOVENIA_MIDDLE_latest.xml
 // osrednja čez dan: https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml
+// trenutno stanje auto: https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observationAms_LJUBL-ANA_BRNIK_latest.xml
+// trenutno stanje manu: https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml
 
 #include <Arduino.h>
 #include <stdint.h>
@@ -21,7 +23,7 @@ unsigned long LastTimeArsoRefreshed = 0; // data is not valid
 
 String XMLdata;
 
-bool GetXmlDataFromServer(void) {
+bool GetXmlDataFromServer(const char *URL) {
   bool result = false;
   
     if (WifiState != connected) {
@@ -39,7 +41,7 @@ bool GetXmlDataFromServer(void) {
       HTTPClient https;
   
       Serial.print("[HTTPS] begin...\r\n");
-      if (https.begin(*client, ARSO_SERVER_XML_URL)) {  // HTTPS
+      if (https.begin(*client, URL)) {  // HTTPS
         Serial.print("[HTTPS] GET...\r\n");
         // start connection and send HTTP header
         int httpCode = https.GET();
@@ -87,7 +89,8 @@ void TrimLogWords(String& Txt) {
   }
 }
 
-ArsoWeather_t ArsoWeather[3];
+ArsoWeather_t ArsoWeather[4];
+String SunRiseTime, SunSetTime;
 
 bool GetARSOdata(void) {
     bool result = false;
@@ -97,10 +100,11 @@ bool GetARSOdata(void) {
       return true;  // data is already valid
     }
 
-    Serial.println("Requesting data from ARSO server...");
     DisplayClear();
-    DisplayText("Reading ARSO server...\n", CLYELLOW);
-    if (!GetXmlDataFromServer()) {
+
+    Serial.println("Requesting current weather data from ARSO server...");
+    DisplayText("Reading ARSO server current...\n", CLYELLOW);
+    if (!GetXmlDataFromServer(ARSO_SERVER_CURRENT_XML_URL)) {
         XMLdata = "";  // free memory
         DisplayText("FAILED!\n", CLRED);
         return false;
@@ -110,8 +114,72 @@ bool GetARSOdata(void) {
 
     DisplayText("OK\n", CLGREEN);
     DisplayText("Parsing data...\n");
+    Serial.println("[ARSO] Parsing data...");
+    // current  has index 0
+    // forecast has index 1..3
     int ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    ArsoWeather[0].Day = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
+    // remove text after space
+    ArsoWeather[0].Day.remove(ArsoWeather[0].Day.indexOf(" "));
+    ArsoWeather[0].Day.toUpperCase();
+
+    ArsoWeather[0].PartOfDay = "trenutno"; // not existing in this xml
+
+    ParamPos = 0;
+    ArsoWeather[0].Rain = utf8ascii(FindXMLParam(XMLdata, "wwsyn_shortText", ParamPos).c_str());
+
+    ParamPos = 0;
+    ArsoWeather[0].Sky = utf8ascii(FindXMLParam(XMLdata, "nn_shortText", ParamPos).c_str());
+
+    ParamPos = 0;
+    ArsoWeather[0].Temperature = utf8ascii(FindXMLParam(XMLdata, "t_degreesC", ParamPos).c_str());
+
+    ParamPos = 0;
+    ArsoWeather[0].WeatherIcon = utf8ascii(FindXMLParam(XMLdata, "nn_icon-wwsyn_icon", ParamPos).c_str());
+
+    ParamPos = 0;
+    ArsoWeather[0].WindIcon = utf8ascii(FindXMLParam(XMLdata, "ddff_icon", ParamPos).c_str());
+
+
+    ParamPos = 0;
+    SunRiseTime = utf8ascii(FindXMLParam(XMLdata, "sunrise", ParamPos).c_str());
+    SunSetTime  = utf8ascii(FindXMLParam(XMLdata, "sunset", ParamPos).c_str());
+    XMLdata = "";  // free memory
+
+    // <sunrise>27.03.2024 5:51 CET</sunrise>
+    // <sunset>27.03.2024 18:25 CET</sunset>
+    // isolate time data
+    int p1, p2;
+    p1 = SunRiseTime.indexOf(" ");
+    p2 = SunRiseTime.indexOf(" ", p1+1);
+    SunRiseTime.remove(p2);
+    SunRiseTime.remove(0, p1);
+
+    p1 = SunSetTime.indexOf(" ");
+    p2 = SunSetTime.indexOf(" ", p1+1);
+    SunSetTime.remove(p2);
+    SunSetTime.remove(0, p1);
+
+
+
+
+    Serial.println("Requesting forecast data from ARSO server...");
+    DisplayText("Reading ARSO server forecast...\n", CLYELLOW);
+    if (!GetXmlDataFromServer(ARSO_SERVER_FORECAST_XML_URL)) {
+        XMLdata = "";  // free memory
+        DisplayText("FAILED!\n", CLRED);
+        return false;
+    }
+
+    Serial.println("[ARSO] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
+
+    DisplayText("OK\n", CLGREEN);
+    DisplayText("Parsing data...\n");
+    Serial.println("[ARSO] Parsing data...");
+    // current  has index 0
+    // forecast has index 1..3
+    ParamPos = 0;
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].Day = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
         // remove text after space
@@ -120,41 +188,49 @@ bool GetARSOdata(void) {
         ArsoWeather[i].Day.toUpperCase();
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].PartOfDay = utf8ascii(FindXMLParam(XMLdata, "valid_daypart", ParamPos).c_str());
-        TrimLogWords(ArsoWeather[i].PartOfDay);
+        //TrimLogWords(ArsoWeather[i].PartOfDay);
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].Rain = utf8ascii(FindXMLParam(XMLdata, "wwsyn_shortText", ParamPos).c_str());
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].Sky = utf8ascii(FindXMLParam(XMLdata, "nn_shortText", ParamPos).c_str());
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].Temperature = utf8ascii(FindXMLParam(XMLdata, "t_degreesC", ParamPos).c_str());
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].WeatherIcon = utf8ascii(FindXMLParam(XMLdata, "nn_icon-wwsyn_icon", ParamPos).c_str());
     }
     ParamPos = 0;
-    for (uint8_t i = 0; i < 3; i++)
+    for (uint8_t i = 1; i < 4; i++)
     {
         ArsoWeather[i].WindIcon = utf8ascii(FindXMLParam(XMLdata, "ddff_icon", ParamPos).c_str());
     }
-    result = true;
-    LastTimeArsoRefreshed = millis();
     XMLdata = "";  // free memory
 
-    for (uint8_t i = 0; i < 3; i++)
+
+
+
+
+
+
+
+    result = true;
+    LastTimeArsoRefreshed = millis();
+
+    for (uint8_t i = 0; i < 4; i++)
     {
       Serial.println("------------");
       Serial.println(ArsoWeather[i].Day + "  " +ArsoWeather[i].PartOfDay);
@@ -165,6 +241,11 @@ bool GetARSOdata(void) {
       Serial.println(ArsoWeather[i].WindIcon);
       Serial.println("------------");
     }
+    Serial.print("Sunrise: ");
+    Serial.println(SunRiseTime);
+    Serial.print("Sunset: ");
+    Serial.println(SunSetTime);
+    Serial.println("------------");
 
     DisplayText("Finished\n");
     delay (500);

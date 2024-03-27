@@ -12,24 +12,6 @@ signed int DspH;
 signed int DspW;
 uint16_t DspBgColor = TFT_BLACK;
 
-//  The fonts used are in the data folder.
-
-//  A processing sketch to create new fonts can be found in the Tools folder of TFT_eSPI
-//  https://github.com/Bodmer/TFT_eSPI/tree/master/Tools/Create_Smooth_Font/Create_font
-
-//  This sketch uses font files created from the Noto family of fonts:
-//  https://www.google.com/get/noto/
-
-#define FONT_SIZE_1 "24-Latin-Hiragana"
-#define FONT_SIZE_2 "36-Noto-Sans-Bold"
-
-/* 
-Font sizes:
-0 -> Font 1. Original Adafruit 8 pixel font
-1 -> Font 4. Medium 26 pixel high font
-2 -> Font 6. Large 48 pixel font
-*/
-
 
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
  
