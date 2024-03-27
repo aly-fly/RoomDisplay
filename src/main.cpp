@@ -131,16 +131,21 @@ void loop() {
     char FileName[30];
     sprintf(FileName, "/bg_grass_%dx%d.bmp", DspW, DspH);
     DisplayShowImage(FileName,   0, 0);
-    DisplayText("Temperatura pred hiso", 0, 10,   2, CLWHITE);
-    DisplayText(TempOutdoor1.c_str(),    2, 32,  22, CLBLACK); // shadow
-    DisplayText(TempOutdoor1.c_str(),    2, 30,  20, CLORANGE);
-    DisplayText(TempOutdoor2.c_str(),    1, 42,  72, CLBLACK); // shadow
-    DisplayText(TempOutdoor2.c_str(),    1, 40,  70, CLCYAN);
-    DisplayText(ShellyTxt,               1, 62, 107, CLBLACK); // shadow
-    DisplayText(ShellyTxt,               1, 60, 105, CLRED);
+    DisplayText("Temperatura pred hiso", 1,  20,   8, CLWHITE);
+    DisplayText(TempOutdoor1.c_str(),    2,  92,  42, CLBLACK); // shadow
+    DisplayText(TempOutdoor1.c_str(),    2,  90,  40, CLORANGE);
+    DisplayText(TempOutdoor2.c_str(),    2,  92, 102, CLBLACK); // shadow
+    DisplayText(TempOutdoor2.c_str(),    2,  90, 100, CLCYAN);
+    DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
+    DisplayText(ShellyTxt,               1, 100, 160, CLRED);
 
-    DisplayText(SunRiseTime.c_str(), 1,   10,        240-26,   CLBLACK);
-    DisplayText(SunSetTime.c_str(),  1,  320 - 80,   240-26,   CLBLACK);
+    DisplayText(SunRiseTime.c_str(), 1,   5+3,       240-45-26-3+3, CLBLACK);  // shadow
+    DisplayText(SunRiseTime.c_str(), 1,   5,         240-45-26-3,   CLYELLOW);
+    DisplayText(SunSetTime.c_str(),  1,  320 - 75+3, 240-45-26-3+3, CLBLACK);  // shadow
+    DisplayText(SunSetTime.c_str(),  1,  320 - 75,   240-45-26-3,   CLYELLOW);
+
+    DisplayShowImage("/sunrise.bmp",  0,      240-45);
+    DisplayShowImage("/sunset.bmp",   320-53, 240-45);
   }
 
 // WEATHER FORECAST  
