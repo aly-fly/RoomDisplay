@@ -47,6 +47,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   bool result = false;
   unsigned long StartTime = millis();
   bool Timeout = false;
+  bool Finished = false;
   unsigned int NoMoreData = 0;
   unsigned int JsonDataSize = 0;
   String COINCAP_URL;
@@ -155,7 +156,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                                   Serial.println();
                                   Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
                                   DisplayText("\nMax number of data points reached!\n");
-                                  NoMoreData = 1000;
+                                  Finished = true;
                                   break;
                                 }
                               } else {
@@ -165,7 +166,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                                   Serial.println();
                                   Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
                                   DisplayText("\nMax number of data points reached!\n");
-                                  NoMoreData = 1000;
+                                  Finished = true;
                                   break;
                                 }
                               }
@@ -176,20 +177,22 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                             Serial.println();
                             Serial.println("End identifier found.");
                             DisplayText("\nEnd identifier found.\n", CLGREEN);
-                            NoMoreData = 1000;
+                            Finished = true;
                             }
                         } // process data (BytesRead > 0)
                     } // data available in stream
-                    delay(20);
+                    delay(10);
                     // No more data being received? 10 retries..
                     if (StreamAvailable == 0) {
                       NoMoreData++;
                       delay(150);
                     }
-                    if (NoMoreData > 10) { break; }
+                    else {
+                      NoMoreData = 0;
+                    }
                     // timeout
                     Timeout = (millis() > (StartTime + 20 * 1000));  // 20 seconds
-                    if (Timeout) { break; }
+                    if (Timeout || Finished || (NoMoreData > 10)) { break; }
                 } // connected or document still has data
                 Serial.println();
                 if (Timeout) {
@@ -200,7 +203,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                 }
 // streaming end
             DisplayText("\n");
-            result = true;
+            result = Finished;
           } // HTTP code ok
         } else {
           Serial.printf("[HTTPS] GET... failed, error: %s\r\n", https.errorToString(httpCode).c_str());
