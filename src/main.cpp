@@ -182,25 +182,31 @@ void loop() {
     FN = "/w/" + ArsoWeather[3].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  249, 44, 2);
 
+    // wind data
+    DisplayText(ArsoWeather[0].WindIcon.c_str(), 0,   6, 111, CLDARKBLUE);    
+    DisplayText(ArsoWeather[1].WindIcon.c_str(), 0,  82, 111, CLDARKBLUE);    
+    DisplayText(ArsoWeather[2].WindIcon.c_str(), 0, 174, 111, CLDARKBLUE);    
+    DisplayText(ArsoWeather[3].WindIcon.c_str(), 0, 249, 111, CLDARKBLUE);    
+
     if (inHomeLAN) {
       // heat pump data
       // remove trailing ".x C"
       int p = TempOutdoor1.indexOf(".");
       if (p > -1) { TempOutdoor1.remove(p); }
 
-      DisplayText(TempOutdoor1.c_str(),               2,   44+2, 170+2, CLGREY); // shadow
-      DisplayText(TempOutdoor1.c_str(),               2,   44,   170,   CLBLUE);
+      DisplayText(TempOutdoor1.c_str(),               2,   44+2, 175+2, CLGREY); // shadow
+      DisplayText(TempOutdoor1.c_str(),               2,   44,   175,   CLBLUE);
     } else {
       // ARSO data
-      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44+2, 170+2, CLGREY); // shadow
-      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44,   170,   CLBLUE);
+      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44+2, 175+2, CLGREY); // shadow
+      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44,   175,   CLBLUE);
     }
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44+2, 127+2, CLGREY); // shadow
-    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44,   127,   CLRED);
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201+2, 170+2, CLGREY); // shadow
-    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201,   170,   CLBLUE);
-    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201+2, 127+2, CLGREY); // shadow
-    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201,   127,   CLRED);
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44+2, 132+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44,   132,   CLRED);
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201+2, 175+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201,   175,   CLBLUE);
+    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201+2, 132+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[3].Temperature.c_str(), 2,  201,   132,   CLRED);
 
     DisplayText(SunRiseTime.c_str(), 1,    5,        240-23,   CLDARKGREEN);
     DisplayText(SunSetTime.c_str(),  1,  320 - 80,   240-23,   CLDARKGREEN);
