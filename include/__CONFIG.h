@@ -20,7 +20,11 @@
 
 #define TIME_SERVER  "si.pool.ntp.org"  // "pool.ntp.org"
 #define GMT_OFFSET  1
-#define DST_OFFSET  0
+#define DST_OFFSET  1
+
+#define DAY_TIME     7
+#define NIGHT_TIME  22
+
 
 // ************ WiFi config *********************
 //#define WIFI_SSID  "..." -> enter into the file __CONFIG_SECRETS.h
@@ -64,8 +68,8 @@
 
 // ************ BODMER LIBRARY CONFIG *********************
 
-#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240
-//#define ILI9341_DRIVER  // 2.8 inch LCD
+#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240 (firma)
+//#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
 //#define ST7796_DRIVER  // 4 inch LCD
 
 
@@ -88,7 +92,7 @@
 #define SMOOTH_FONT
 //  FONT_FS_AVAILABLE    // while examining the library, looks like this should be enabled because fonts are in the file system, but it crashes with this enabled..
 
-#define SPI_FREQUENCY  40000000
+#define SPI_FREQUENCY  50000000
 
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #define USER_SETUP_LOADED
