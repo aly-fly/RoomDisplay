@@ -305,6 +305,11 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
     return;
   }
 
+  // do not scale big images
+  if (imgW > 33) {
+    imgScaling = 1;
+  }
+
   outY = y + (imgH * imgScaling) - 1; // draws from bottom up
   outW = imgW * imgScaling;
 

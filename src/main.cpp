@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <SPIFFS.h>
+#include "Version.h"
 #include "__CONFIG.h"
 #include "display.h"
 #include "myWiFi.h"
@@ -18,6 +19,7 @@ uint16_t ScreenNumber = 0;
 int Hour;
 bool NightMode;
 String TempOutdoor1, TempOutdoor2;
+bool ok;
 
 void setup() {
   Serial.begin(115200);
@@ -28,11 +30,27 @@ void setup() {
     delay(100);
   }
   Serial.println();
+
+  Serial.println("Project: github.com/aly-fly/RoomDisplay");
+  Serial.print("Version: ");
+  Serial.println(VERSION);
+  Serial.print("Build: ");
+  Serial.println(BUILD_TIMESTAMP);
+
   DisplayInit();
 //      DisplayTest();
 //      DisplayFontTest();
   DisplayClear();
+
   DisplayText("Init...\n", CLYELLOW);
+  DisplayText("Project: github.com/aly-fly/RoomDisplay\n", CLWHITE);
+  DisplayText("Version: ", CLWHITE);
+  DisplayText(VERSION, CLCYAN);
+  DisplayText("\n", CLWHITE);
+  DisplayText("Build: ", CLWHITE);
+  DisplayText(BUILD_TIMESTAMP, CLCYAN);
+  DisplayText("\n", CLWHITE);
+
 
   DisplayText("SPIFFS start...");
   if (!SPIFFS.begin()) {
@@ -71,6 +89,8 @@ void setup() {
 
   if (inHomeLAN) {
     TCPclientConnect();
+  } else {
+    ScreenNumber = 1;   // skip heat pump display
   }
 
   DisplayText("Init finished.", CLGREEN)    ;
@@ -86,7 +106,7 @@ void loop() {
   if (inHomeLAN) {
     if(CurrentHour(Hour)) {
       Serial.println("Hour: " + String(Hour));
-      NightMode = ((Hour > 22) || (Hour < 7));
+      NightMode = ((Hour > NIGHT_TIME) || (Hour < DAY_TIME));
     } else {
       Serial.println("Getting current time failed!");
       NightMode = false;
@@ -107,14 +127,14 @@ void loop() {
     sprintf(ShellyTxt, "---");
 
     if (inHomeLAN) {
-      if (TCPclientRequest("Outdoor")) {
+      if (TCPclientRequest("Outdoor HP")) {
         TCPresponse.replace(",", ".");
         // remove trailing "0"
         TCPresponse.remove(TCPresponse.indexOf(".")+2);
         TCPresponse.concat(" C");
         TempOutdoor1 = TCPresponse;
       }
-      if (TCPclientRequest("Outdoor HP")) {
+      if (TCPclientRequest("Outdoor")) {
         TCPresponse.replace(",", ".");
         // remove trailing "0"
         TCPresponse.remove(TCPresponse.indexOf(".")+2);
@@ -132,8 +152,8 @@ void loop() {
     sprintf(FileName, "/bg_grass_%dx%d.bmp", DspW, DspH);
     DisplayShowImage(FileName,   0, 0);
     DisplayText("Temperatura pred hiso", 1,  20,   8, CLWHITE);
-    DisplayText(TempOutdoor1.c_str(),    2,  92,  42, CLBLACK); // shadow
-    DisplayText(TempOutdoor1.c_str(),    2,  90,  40, CLORANGE);
+    DisplayText(TempOutdoor1.c_str(),    2,  92,  46, CLBLACK); // shadow
+    DisplayText(TempOutdoor1.c_str(),    2,  90,  44, CLORANGE);
     DisplayText(TempOutdoor2.c_str(),    2,  92, 102, CLBLACK); // shadow
     DisplayText(TempOutdoor2.c_str(),    2,  90, 100, CLCYAN);
     DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
@@ -146,11 +166,12 @@ void loop() {
 
     DisplayShowImage("/sunrise.bmp",  0,      240-45);
     DisplayShowImage("/sunset.bmp",   320-53, 240-45);
+    delay(6000);
   }
 
 // WEATHER FORECAST  
   if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetARSOdata();
+    ok = GetARSOdata();
 
     String Line;
     
@@ -188,19 +209,8 @@ void loop() {
     DisplayText(ArsoWeather[2].WindIcon.c_str(), 0, 174, 111, CLDARKBLUE);    
     DisplayText(ArsoWeather[3].WindIcon.c_str(), 0, 249, 111, CLDARKBLUE);    
 
-    if (inHomeLAN) {
-      // heat pump data
-      // remove trailing ".x C"
-      int p = TempOutdoor1.indexOf(".");
-      if (p > -1) { TempOutdoor1.remove(p); }
-
-      DisplayText(TempOutdoor1.c_str(),               2,   44+2, 175+2, CLGREY); // shadow
-      DisplayText(TempOutdoor1.c_str(),               2,   44,   175,   CLBLUE);
-    } else {
-      // ARSO data
-      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44+2, 175+2, CLGREY); // shadow
-      DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44,   175,   CLBLUE);
-    }
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44+2, 175+2, CLGREY); // shadow
+    DisplayText(ArsoWeather[0].Temperature.c_str(), 2,   44,   175,   CLBLUE);
     DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44+2, 132+2, CLGREY); // shadow
     DisplayText(ArsoWeather[1].Temperature.c_str(), 2,   44,   132,   CLRED);
     DisplayText(ArsoWeather[2].Temperature.c_str(), 2,  201+2, 175+2, CLGREY); // shadow
@@ -211,21 +221,21 @@ void loop() {
     DisplayText(SunRiseTime.c_str(), 1,    5,        240-23,   CLDARKGREEN);
     DisplayText(SunSetTime.c_str(),  1,  320 - 80,   240-23,   CLDARKGREEN);
 
-    delay(5000); // additional delay
+    if (ok) delay(8000);
   }
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetCoinCapData_1H();
+    ok = GetCoinCapData_1H();
     PlotCoinCapData_1H();
-    delay(4000); // additional delay
+    if (ok) delay(8000);
   }
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetCoinCapData_5M();
+    ok = GetCoinCapData_5M();
     PlotCoinCapData_5M();
-    delay(4000); // additional delay
+    if (ok) delay(8000);
   }
 
 
@@ -255,7 +265,7 @@ void loop() {
         if (!connOk){
             Serial.println("=== REBOOT ===");
             DisplayText("=== REBOOT ===\n", CLORANGE);
-            delay (15000);
+            delay (10000);
             ESP.restart();  // retry everything from the beginning
         }
       }
@@ -275,7 +285,7 @@ void loop() {
     Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
   }
 
-  delay(6000);
+  delay(1000);
 
 } // loop
 

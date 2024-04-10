@@ -204,7 +204,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
 // streaming end
             DisplayText("\n");
             result = Finished;
-          } // HTTP code ok
+          } // HTTP code > 0
         } else {
           Serial.printf("[HTTPS] GET... failed, error: %s\r\n", https.errorToString(httpCode).c_str());
           DisplayText("Error: ");
@@ -224,6 +224,14 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
     delete client;
   } else {
     Serial.println("Unable to create HTTPS client");
+  }
+
+  if (!result) {
+    if (Refresh_5M) {
+      CoinCapDataLength_5M = 0;
+    } else {
+      CoinCapDataLength_1H = 0;
+      }
   }
     Serial.print("Time needed (ms): ");
     Serial.println(millis() - StartTime);
@@ -250,6 +258,7 @@ bool GetCoinCapData_1H(void) {
     DisplayText("Contacting COINCAP server (1H)\n", CLYELLOW);
     if (!GetDataFromCoinCapServer(false)) {
         DisplayText("FAILED!\n", CLRED);
+        delay (500);
         return false;
     }
     Serial.println("Number of data points: " + String(CoinCapDataLength_1H));
@@ -263,6 +272,7 @@ bool GetCoinCapData_1H(void) {
     } else {
       Serial.println("Not enough data points!");
       DisplayText("Not enough data points!\n", CLRED);
+      delay (500);
       return false;
     }
 
@@ -287,6 +297,7 @@ bool GetCoinCapData_5M(void) {
     DisplayText("Contacting COINCAP server (5M)\n", CLYELLOW);
     if (!GetDataFromCoinCapServer(true)) {
         DisplayText("FAILED!\n", CLRED);
+        delay (500);
         return false;
     }
     Serial.println("Number of data points: " + String(CoinCapDataLength_5M));
@@ -300,6 +311,7 @@ bool GetCoinCapData_5M(void) {
     } else {
       Serial.println("Not enough data points!");
       DisplayText("Not enough data points!\n", CLRED);
+      delay (500);
       return false;
     }
 
