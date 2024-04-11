@@ -228,14 +228,14 @@ void loop() {
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetCoinCapData_1H();
     PlotCoinCapData_1H();
-    if (ok) delay(8000);
+    if (ok) delay(5000);
   }
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetCoinCapData_5M();
     PlotCoinCapData_5M();
-    if (ok) delay(8000);
+    if (ok) delay(3000);
   }
 
 

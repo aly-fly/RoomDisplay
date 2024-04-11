@@ -92,7 +92,7 @@
 #define SMOOTH_FONT
 //  FONT_FS_AVAILABLE    // while examining the library, looks like this should be enabled because fonts are in the file system, but it crashes with this enabled..
 
-#define SPI_FREQUENCY  50000000
+#define SPI_FREQUENCY  20000000
 
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #define USER_SETUP_LOADED
