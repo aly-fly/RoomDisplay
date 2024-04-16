@@ -46,14 +46,15 @@ void DisplayInit(void) {
   ledcAttachPin(TFT_BL, ledChannel);
   // full power
   DisplaySetBrightness();
+}
 
+void DisplayInitFonts(void) {
   // extra fonts
   if (!SPIFFS.begin()) {
     Serial.println("SPIFFS initialisation failed!");
     while (1) yield(); // Stay here twiddling thumbs waiting
   }
   Serial.println("\r\nSPIFFS available!");
-  
   // ESP32 will crash if any of the fonts are missing; check if they are present on startup
   bool font_missing = false;
   if (SPIFFS.exists("/24-Latin-Hiragana.vlw")    == false) font_missing = true;

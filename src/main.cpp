@@ -17,7 +17,8 @@
 
 uint16_t ScreenNumber = 0;
 int Hour;
-bool NightMode;
+bool NightMode = false;
+uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
 bool ok;
 
@@ -51,6 +52,11 @@ void setup() {
   DisplayText(BUILD_TIMESTAMP, CLCYAN);
   DisplayText("\n", CLWHITE);
 
+#ifdef LDR_PIN
+  pinMode(LDR_PIN, ANALOG);
+  adcAttachPin(LDR_PIN);
+  analogSetAttenuation(ADC_0db);
+#endif
 
   DisplayText("SPIFFS start...");
   if (!SPIFFS.begin()) {
@@ -66,11 +72,6 @@ void setup() {
   if (!inHomeLAN) {
    bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
    if (!connOk) {
-      /*    
-      Serial.println("=== HALT ===");
-      DisplayText("=== HALT ===\n", CLRED);
-      while (1) {}
-      */
       Serial.println("=== REBOOT ===");
       DisplayText("=== REBOOT ===\n", CLORANGE);
       delay (30000);
@@ -93,6 +94,8 @@ void setup() {
     ScreenNumber = 1;   // skip heat pump display
   }
 
+  DisplayInitFonts();
+
   DisplayText("Init finished.", CLGREEN)    ;
   delay(2000);
   DisplayClear();
@@ -111,12 +114,26 @@ void loop() {
       Serial.println("Getting current time failed!");
       NightMode = false;
     }
-    if (!NightMode) {
-      DisplaySetBrightness(); // full power
-    } else { // fix temperature only with lower brightness at night
-      DisplaySetBrightness(30);
-    }
   }
+
+#ifdef LDR_PIN
+  LDRvalue = analogRead(LDR_PIN); //     0 is full brightness, higher values == darker; Default is 12 bits (range from 0 to 4096).
+  Serial.print("LDR: ");
+  Serial.println(LDRvalue);
+
+  DisplayText(String (LDRvalue).c_str());
+  DisplayText("\n");
+
+  delay(500);
+  return;
+
+#else
+  if (NightMode) {
+    DisplaySetBrightness(30);
+  } else { // lower brightness at night
+    DisplaySetBrightness(); // full power
+  }
+#endif
 
   
   //  HEAT PUMP DATA
@@ -171,6 +188,9 @@ void loop() {
 
 // WEATHER FORECAST  
   if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------
+    GetARSOmeteogram();
+    delay (1000);
+    
     ok = GetARSOdata();
 
     String Line;

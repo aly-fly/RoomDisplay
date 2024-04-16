@@ -46,6 +46,7 @@
   extern signed int DspW;
 
   void DisplayInit(void);
+  void DisplayInitFonts(void);
   void DisplaySetBrightness(uint8_t Brightness = 255);
   void DisplayClearCanvas(void);
   void DisplayClear(uint16_t Color = TFT_BLACK);

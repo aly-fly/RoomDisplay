@@ -17,6 +17,7 @@
 #include "display.h"
 
 unsigned long LastTimeArsoRefreshed = 0; // data is not valid
+unsigned long LastTimeArsoMeteogramRefreshed = 0; // data is not valid
 
 
 // reference: "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\BasicHttpsClient\BasicHttpsClient.ino"
@@ -90,7 +91,10 @@ void TrimLogWords(String& Txt) {
 }
 
 ArsoWeather_t ArsoWeather[4];
+ArsoWeather_t ArsoMeteogram[MTG_NUMPTS];
 String SunRiseTime, SunSetTime;
+
+// ###############################################################################################################################################
 
 bool GetARSOdata(void) {
     bool result = false;
@@ -239,12 +243,137 @@ bool GetARSOdata(void) {
       Serial.println(ArsoWeather[i].Temperature);
       Serial.println(ArsoWeather[i].WeatherIcon);
       Serial.println(ArsoWeather[i].WindIcon);
-      Serial.println("------------");
     }
+    Serial.println("------------");
     Serial.print("Sunrise: ");
     Serial.println(SunRiseTime);
     Serial.print("Sunset: ");
     Serial.println(SunSetTime);
+    Serial.println("------------");
+
+    DisplayText("Finished\n");
+    delay (500);
+    return result;
+}
+
+
+// ###############################################################################################################################################
+
+bool GetARSOmeteogram(void) {
+    bool result = false;
+
+    if ((millis() < (LastTimeArsoMeteogramRefreshed + 60*60*1000)) && (LastTimeArsoMeteogramRefreshed != 0)) {  // check server every hour
+      Serial.println("ARSO meteogram data is valid.");
+      return true;  // data is already valid
+    }
+
+    DisplayClear();
+
+    Serial.println("Requesting meteogram data from ARSO server...");
+    DisplayText("Reading ARSO server meteogram...\n", CLYELLOW);
+    if (!GetXmlDataFromServer(ARSO_SERVER_METEOGRAM_XML_URL)) {
+        XMLdata = "";  // free memory
+        DisplayText("FAILED!\n", CLRED);
+        return false;
+    }
+
+    Serial.println("[ARSO] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
+
+    DisplayText("OK\n", CLGREEN);
+    DisplayText("Parsing data...\n");
+    Serial.println("[ARSO] Parsing data...");
+
+    String S1;
+
+    // <valid>16.04.2024 2:00 CEST</valid>
+    int ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].Day = utf8ascii(FindXMLParam(XMLdata, "valid", ParamPos).c_str());
+    }
+
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].PartOfDay = "";
+    }
+
+    // <wwsyn_shortText>dež s snegom</wwsyn_shortText>    
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].Rain = utf8ascii(FindXMLParam(XMLdata, "wwsyn_shortText", ParamPos).c_str());
+    }
+
+    // <nn_shortText>pretežno oblačno</nn_shortText>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].Sky = utf8ascii(FindXMLParam(XMLdata, "nn_shortText", ParamPos).c_str());
+    }
+
+    // <nn_icon-wwsyn_icon>overcast_modSHRA</nn_icon-wwsyn_icon>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].WeatherIcon = utf8ascii(FindXMLParam(XMLdata, "nn_icon-wwsyn_icon", ParamPos).c_str());
+    }
+
+    // <ddff_icon>lightNW</ddff_icon>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        ArsoMeteogram[i].WindIcon = utf8ascii(FindXMLParam(XMLdata, "ddff_icon", ParamPos).c_str());
+    }
+
+    // <t>7.2</t>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        S1 = utf8ascii(FindXMLParam(XMLdata, "t", ParamPos).c_str());
+        ArsoMeteogram[i].TemperatureN = atof(S1.c_str());
+    }
+
+    // <tp_3h_acc>8.8</tp_3h_acc>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        S1 = utf8ascii(FindXMLParam(XMLdata, "tp_3h_acc", ParamPos).c_str());
+        ArsoMeteogram[i].RainN = atof(S1.c_str());
+    }
+
+    // <sn_3h_acc>0.4</sn_3h_acc>    
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        S1 = utf8ascii(FindXMLParam(XMLdata, "sn_3h_acc", ParamPos).c_str());
+        ArsoMeteogram[i].SnowN = atof(S1.c_str());
+    }
+
+    XMLdata = "";  // free memory
+
+
+
+
+
+
+
+
+    result = true;
+    LastTimeArsoMeteogramRefreshed = millis();
+
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+      Serial.println("------------");
+      Serial.println(ArsoMeteogram[i].Day);
+      Serial.println(ArsoMeteogram[i].Sky);
+      Serial.println(ArsoMeteogram[i].Rain);
+      Serial.println(ArsoMeteogram[i].WeatherIcon);
+      Serial.println(ArsoMeteogram[i].WindIcon);
+      Serial.println(ArsoMeteogram[i].TemperatureN);
+      Serial.println(ArsoMeteogram[i].RainN);
+      Serial.println(ArsoMeteogram[i].SnowN);
+    }
     Serial.println("------------");
 
     DisplayText("Finished\n");

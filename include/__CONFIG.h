@@ -40,8 +40,10 @@
 #define SHELLY_3EM_HOST "10.38.22.111" // Poraba TC
 
 // ARSO:
-#define ARSO_SERVER_CURRENT_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
-#define ARSO_SERVER_FORECAST_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
+#define ARSO_SERVER_CURRENT_XML_URL   "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
+#define ARSO_SERVER_FORECAST_XML_URL  "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
+#define ARSO_SERVER_METEOGRAM_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/forecast_SI_OSREDNJESLOVENSKA_int3h.xml"
+#define MTG_NUMPTS 26
 // also validate: include\Arso_https_certificate.h
 
 
@@ -57,19 +59,38 @@
 //#define OLED_SDA  4
 //#define OLED_SCL  15
 
+#define BOARD_CYD
+
+#ifdef BOARD_CYD
+
+  #define TFT_RST       -1 // connect to RESET pin / ESP32 EN pin
+  #define TFT_DC         2
+  #define TFT_CS        15
+  #define TFT_SCLK      14
+  #define TFT_MISO      12
+  #define TFT_MOSI      13
+  #define TFT_BL        21
+
+  #define LDR_PINx       34  
+
+#else
 
   #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin
   #define TFT_DC         4 // GPIO04 
   #define TFT_CS         5 // VSPI CS0 (GPIO05)
-  #define TFT_SCK       18 // VSPI SCK (GPIO18)
+  #define TFT_SCLK      18 // VSPI SCK (GPIO18)
   #define TFT_MISO      19 // VSPI Q   (GPIO19)
   #define TFT_MOSI      23 // VSPI D   (GPIO23)
   #define TFT_BL        25 // GPIO25  Backlight EN
 
+#endif
+
 // ************ BODMER LIBRARY CONFIG *********************
 
-#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240 (firma)
+//#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240 (firma)
 //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
+#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+
 //#define ST7796_DRIVER  // 4 inch LCD
 
 
