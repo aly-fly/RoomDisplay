@@ -109,7 +109,7 @@ void loop() {
   if (inHomeLAN) {
     if(CurrentHour(Hour)) {
       Serial.println("Hour: " + String(Hour));
-      NightMode = ((Hour > NIGHT_TIME) || (Hour < DAY_TIME));
+      NightMode = ((Hour >= NIGHT_TIME) || (Hour < DAY_TIME));
     } else {
       Serial.println("Getting current time failed!");
       NightMode = false;
@@ -244,7 +244,7 @@ void loop() {
   // Arso meteogram
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetARSOmeteogram();
-    DisplayClear(CLBLACK);
+    DisplayClear(CLWHITE);
     float_t Xscaling = (float_t) DspW / (float_t)MTG_NUMPTS;
     Serial.printf("Scaling X: %f\r\n", Xscaling);
 
@@ -276,13 +276,29 @@ void loop() {
       }
     }
 
+    // images
+    String FN;
+    uint8_t idx;
+/*
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      X2 = (i * Xscaling);
+      FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
+      DisplayShowImage(FN.c_str(),  round(X2), 1);
+    }
+*/
+    for (uint8_t i = 0; i < 3; i++) {
+      idx = MidnightIdx + i * 8 + 4;
+      if (idx >= MTG_NUMPTS) {break;}
+      X2 = ((idx-4) * Xscaling) + 5;
+      FN = "/w/" + ArsoMeteogram[idx].WeatherIcon + ".bmp";
+      DisplayShowImage(FN.c_str(),  round(X2), 1);
+    }
 
     // vertical lines
-    uint8_t idx1;
     uint32_t X;
     for (uint8_t i = 0; i < 3; i++) {
-      idx1 = MidnightIdx + i * 8;
-      X = round((Xscaling / 2) + ((idx1) * Xscaling)) - 5;
+      idx = MidnightIdx + i * 8;
+      X = round((Xscaling / 2) + ((idx) * Xscaling)) - 5;
       if (X >= DspW) {break;}
 
       int numDots = DspH / 6;
@@ -291,6 +307,7 @@ void loop() {
         tft.drawFastVLine(X, j*6, 3, TFT_DARKGREY);
       }
     }
+
 
 
     for (uint8_t i = 1; i < MTG_NUMPTS; i++) {
@@ -302,13 +319,12 @@ void loop() {
       Y1 = DspH - Y1;
       Y2 = DspH - Y2;
 
-      tft.drawWideLine(X1, Y1, X2, Y2, 3, CLYELLOW, CLBLACK);
-      delay(10);
+      tft.drawWideLine(X1, Y1, X2, Y2, 3, CLORANGE, CLWHITE);
+      delay(40);
     }
 
     tft.loadFont(FONT_SIZE_2);
-    tft.setTextColor(CLBLUE, TFT_BLACK);
-    uint8_t idx;
+    tft.setTextColor(CLBLUE, CLWHITE);
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8 + 1;
       if (idx >= MTG_NUMPTS) {break;}
@@ -316,29 +332,23 @@ void loop() {
       Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
       Y2 = DspH - Y2;
       tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 + 8, 2);
+      delay(80);
     }
 
-    tft.setTextColor(CLRED, TFT_BLACK);
+    tft.setTextColor(CLRED, CLWHITE);
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8 + 5;
       if (idx >= MTG_NUMPTS) {break;}
       X2 = (Xscaling / 2) + ((idx) * Xscaling);
       Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
       Y2 = DspH - Y2;
-      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 - 17, 2);
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 - 25, 2);
+      delay(80);
     }
     tft.unloadFont();
 
-/*
-    String FN;
-    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
-      X2 = (i * Xscaling);
-      FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
-      DisplayShowImage(FN.c_str(),  round(X2), 1);
-    }
-*/
 
-    if (ok) delay(15000);
+    if (ok) delay(12000);
   }
 
   // COIN CAP DATA PLOT

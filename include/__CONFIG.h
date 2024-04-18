@@ -60,9 +60,11 @@
 //#define OLED_SDA  4
 //#define OLED_SCL  15
 
-#define BOARD_CYD
+//#define BOARD_CYD
 
 #ifdef BOARD_CYD
+
+  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
 
   #define TFT_RST       -1 // connect to RESET pin / ESP32 EN pin
   #define TFT_DC         2
@@ -76,6 +78,11 @@
 
 #else
 
+  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
+  //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
+  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+  //#define ST7796_DRIVER   // 4 inch LCD
+
   #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin
   #define TFT_DC         4 // GPIO04 
   #define TFT_CS         5 // VSPI CS0 (GPIO05)
@@ -88,19 +95,10 @@
 
 // ************ BODMER LIBRARY CONFIG *********************
 
-//#define ST7789_DRIVER  // 2.8 inch LCD  320 x 240 (firma)
-//#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
-#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
-
-//#define ST7796_DRIVER  // 4 inch LCD
-
-
 #ifdef ST7789_DRIVER
   #define TFT_INVERSION_OFF
   #define TFT_RGB_ORDER TFT_BGR  // Colour order Blue-Green-Red
 #endif
-
-
 
 #define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
 //#define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
