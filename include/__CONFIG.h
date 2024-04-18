@@ -12,7 +12,7 @@
 #define DEBUG_OUTPUT
 
 #define DEVICE_NAME "Display_v1"
-//#define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi
+#define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi
 
 #define DISPLAY_LCD_SPI_Bodmer                                //  TFT SPI
 //#define DISPLAY_LCD_ST7735_Adafruit                         // 128x160 TFT SPI
@@ -25,6 +25,7 @@
 #define DAY_TIME     7
 #define NIGHT_TIME  22
 
+#define DST_OFFSET  1
 
 // ************ WiFi config *********************
 //#define WIFI_SSID  "..." -> enter into the file __CONFIG_SECRETS.h
@@ -43,7 +44,7 @@
 #define ARSO_SERVER_CURRENT_XML_URL   "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
 #define ARSO_SERVER_FORECAST_XML_URL  "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/fcast_SI_OSREDNJESLOVENSKA_latest.xml"
 #define ARSO_SERVER_METEOGRAM_XML_URL "https://meteo.arso.gov.si/uploads/probase/www/fproduct/text/sl/forecast_SI_OSREDNJESLOVENSKA_int3h.xml"
-#define MTG_NUMPTS 26
+#define MTG_NUMPTS 25
 // also validate: include\Arso_https_certificate.h
 
 

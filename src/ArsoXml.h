@@ -20,7 +20,7 @@ struct ArsoWeather_t
 
 
 extern ArsoWeather_t ArsoWeather[4];
-extern ArsoWeather_t ArsoMeteogram[26];
+extern ArsoWeather_t ArsoMeteogram[MTG_NUMPTS];
 extern String SunRiseTime, SunSetTime;
 
 #endif // __ARSO_XML_H_

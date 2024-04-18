@@ -187,10 +187,7 @@ void loop() {
   }
 
 // WEATHER FORECAST  
-  if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetARSOmeteogram();
-    delay (1000);
-    
+  if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------    
     ok = GetARSOdata();
 
     String Line;
@@ -244,15 +241,115 @@ void loop() {
     if (ok) delay(8000);
   }
 
-  // COIN CAP DATA PLOT
+  // Arso meteogram
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
+    ok = GetARSOmeteogram();
+    DisplayClear(CLBLACK);
+    float_t Xscaling = (float_t) DspW / (float_t)MTG_NUMPTS;
+    Serial.printf("Scaling X: %f\r\n", Xscaling);
+
+    float_t Minn, Maxx;
+    Minn =  999999999;
+    Maxx = -999999999;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      if (ArsoMeteogram[i].TemperatureN > Maxx) {Maxx = ArsoMeteogram[i].TemperatureN;}
+      if (ArsoMeteogram[i].TemperatureN < Minn) {Minn = ArsoMeteogram[i].TemperatureN;}
+    }
+    Serial.println("Min T: " + String(Minn));
+    Serial.println("Max T: " + String(Maxx));
+
+    Minn = Minn - 6;
+    Maxx = Maxx + 6;
+    
+    float_t X1, X2, Y1, Y2, Yscaling;
+    Yscaling = (float(DspH) / (Maxx - Minn));
+    Serial.printf("Scaling Y: %f\r\n", Yscaling);
+
+    uint8_t MidnightIdx = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      if ((ArsoMeteogram[i].Day.indexOf(" 1:00 ") > 0) ||
+          (ArsoMeteogram[i].Day.indexOf(" 2:00 ") > 0)) {
+        MidnightIdx = i;
+        Serial.print("Midnight idx = ");
+        Serial.println(MidnightIdx);
+        break;
+      }
+    }
+
+
+    // vertical lines
+    uint8_t idx1;
+    uint32_t X;
+    for (uint8_t i = 0; i < 3; i++) {
+      idx1 = MidnightIdx + i * 8;
+      X = round((Xscaling / 2) + ((idx1) * Xscaling)) - 5;
+      if (X >= DspW) {break;}
+
+      int numDots = DspH / 6;
+      for (int j = 0; j < numDots; j++)
+      {
+        tft.drawFastVLine(X, j*6, 3, TFT_DARKGREY);
+      }
+    }
+
+
+    for (uint8_t i = 1; i < MTG_NUMPTS; i++) {
+      X1 = (Xscaling / 2) + ((i-1) * Xscaling);
+      X2 = (Xscaling / 2) + ((i  ) * Xscaling);
+
+      Y1 = (ArsoMeteogram[i-1].TemperatureN - Minn) * Yscaling;
+      Y2 = (ArsoMeteogram[i  ].TemperatureN - Minn) * Yscaling;
+      Y1 = DspH - Y1;
+      Y2 = DspH - Y2;
+
+      tft.drawWideLine(X1, Y1, X2, Y2, 3, CLYELLOW, CLBLACK);
+      delay(10);
+    }
+
+    tft.loadFont(FONT_SIZE_2);
+    tft.setTextColor(CLBLUE, TFT_BLACK);
+    uint8_t idx;
+    for (uint8_t i = 0; i < 3; i++) {
+      idx = MidnightIdx + i * 8 + 1;
+      if (idx >= MTG_NUMPTS) {break;}
+      X2 = (Xscaling / 2) + ((idx) * Xscaling);
+      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
+      Y2 = DspH - Y2;
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 + 8, 2);
+    }
+
+    tft.setTextColor(CLRED, TFT_BLACK);
+    for (uint8_t i = 0; i < 3; i++) {
+      idx = MidnightIdx + i * 8 + 5;
+      if (idx >= MTG_NUMPTS) {break;}
+      X2 = (Xscaling / 2) + ((idx) * Xscaling);
+      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
+      Y2 = DspH - Y2;
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 - 17, 2);
+    }
+    tft.unloadFont();
+
+/*
+    String FN;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      X2 = (i * Xscaling);
+      FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
+      DisplayShowImage(FN.c_str(),  round(X2), 1);
+    }
+*/
+
+    if (ok) delay(15000);
+  }
+
+  // COIN CAP DATA PLOT
+  if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetCoinCapData_1H();
     PlotCoinCapData_1H();
     if (ok) delay(5000);
   }
 
   // COIN CAP DATA PLOT
-  if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
+  if (ScreenNumber == 4) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetCoinCapData_5M();
     PlotCoinCapData_5M();
     if (ok) delay(3000);
@@ -260,7 +357,7 @@ void loop() {
 
 
   ScreenNumber++;
-  if (ScreenNumber >= 4) { // housekeeping at the end of display cycles
+  if (ScreenNumber >= 5) { // housekeeping at the end of display cycles
     if (inHomeLAN)
       ScreenNumber = 0; else
       ScreenNumber = 1;   // skip heat pump

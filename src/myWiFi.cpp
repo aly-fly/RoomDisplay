@@ -80,6 +80,7 @@ void WifiInit(void)  {
   WiFi.setHostname(DEVICE_NAME);  
   WiFi.onEvent(WiFiEvent);
 
+#ifdef WIFI_SSID2
   Serial.println("Multi WiFi start...");
   wifiMulti.addAP(WIFI_SSID1, WIFI_PASSWD1);
   wifiMulti.addAP(WIFI_SSID2, WIFI_PASSWD2);
@@ -89,10 +90,9 @@ void WifiInit(void)  {
     WifiState = disconnected;
     return; // exit loop, exit procedure, continue startup
   }
-
-/*
+#else
   Serial.print("WiFi start");
-  WiFi.begin(WIFI_SSID, WIFI_PASSWD); 
+  WiFi.begin(WIFI_SSID1, WIFI_PASSWD1); 
   unsigned long StartTime = millis();
   while ((WiFi.status() != WL_CONNECTED)) {
     delay(500);
@@ -105,7 +105,8 @@ void WifiInit(void)  {
       return; // exit loop, exit procedure, continue startup
     }
   }
-*/  
+#endif
+
   
   WifiState = connected;
 
