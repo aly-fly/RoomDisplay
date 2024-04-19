@@ -18,7 +18,6 @@ struct ArsoWeather_t
     float SnowN;
 };
 
-
 extern ArsoWeather_t ArsoWeather[4];
 extern ArsoWeather_t ArsoMeteogram[MTG_NUMPTS];
 extern String SunRiseTime, SunSetTime;

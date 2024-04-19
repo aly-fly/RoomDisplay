@@ -14,6 +14,7 @@
 #include "CoinCapAPI.h"
 #include "myPing.h"
 
+const char* DAYS[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
 
 uint16_t ScreenNumber = 0;
 int Hour;
@@ -296,9 +297,9 @@ void loop() {
 
     // vertical lines
     uint32_t X;
-    for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t i = 0; i < 4; i++) {
       idx = MidnightIdx + i * 8;
-      X = round((Xscaling / 2) + ((idx) * Xscaling)) - 5;
+      X = round((Xscaling / 2) + ((idx) * Xscaling)) - 3;
       if (X >= DspW) {break;}
 
       int numDots = DspH / 6;
@@ -309,18 +310,48 @@ void loop() {
     }
 
 
+    float Yoffset = -15; // vertical shift data plot and numbers
+
+
+    // day names
+    uint8_t CurrDay;
+    bool Found;
+    String Today = ArsoWeather[0].Day;
+    Today.toUpperCase();
+    for (uint8_t i = 0; i < 7; i++) {
+      Found = Today.indexOf(DAYS[i]) > -1;
+      if (Found) {
+        CurrDay = i;
+        Serial.print("Today is: ");
+        Serial.println(DAYS[CurrDay]);
+        break;
+      }
+    }
+    uint8_t DayIdx;  
+    for (uint8_t i = 0; i < 3; i++) {
+      idx = MidnightIdx + i * 8;
+      if (idx >= MTG_NUMPTS) {break;}
+      X = round((Xscaling / 2) + ((idx) * Xscaling)) + 35;
+      DayIdx = CurrDay + i;
+      if (DayIdx > 6) DayIdx -=7; // overflow
+      DisplayText(DAYS[DayIdx], 1, X, DspH/2+15-Yoffset, CLGREY);
+    }
+
+
+
+
 
     for (uint8_t i = 1; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + ((i-1) * Xscaling);
       X2 = (Xscaling / 2) + ((i  ) * Xscaling);
 
-      Y1 = (ArsoMeteogram[i-1].TemperatureN - Minn) * Yscaling;
-      Y2 = (ArsoMeteogram[i  ].TemperatureN - Minn) * Yscaling;
+      Y1 = (ArsoMeteogram[i-1].TemperatureN - Minn) * Yscaling + Yoffset;
+      Y2 = (ArsoMeteogram[i  ].TemperatureN - Minn) * Yscaling + Yoffset;
       Y1 = DspH - Y1;
       Y2 = DspH - Y2;
 
       tft.drawWideLine(X1, Y1, X2, Y2, 3, CLORANGE, CLWHITE);
-      delay(40);
+      delay(30);
     }
 
     tft.loadFont(FONT_SIZE_2);
@@ -329,10 +360,10 @@ void loop() {
       idx = MidnightIdx + i * 8 + 1;
       if (idx >= MTG_NUMPTS) {break;}
       X2 = (Xscaling / 2) + ((idx) * Xscaling);
-      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
+      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling + Yoffset;
       Y2 = DspH - Y2;
-      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 + 8, 2);
-      delay(80);
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 10, Y2 + 5, 2);
+      delay(60);
     }
 
     tft.setTextColor(CLRED, CLWHITE);
@@ -340,10 +371,10 @@ void loop() {
       idx = MidnightIdx + i * 8 + 5;
       if (idx >= MTG_NUMPTS) {break;}
       X2 = (Xscaling / 2) + ((idx) * Xscaling);
-      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling;
+      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling + Yoffset;
       Y2 = DspH - Y2;
-      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 15, Y2 - 25, 2);
-      delay(80);
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 20, Y2 - 34, 2);
+      delay(60);
     }
     tft.unloadFont();
 

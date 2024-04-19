@@ -2,3 +2,5 @@
 - True type font
 - ikone za veter
 - lunina faza
+- horizontalne črte za BTC
+- Meteogram graf
