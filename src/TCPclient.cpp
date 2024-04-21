@@ -13,7 +13,7 @@ String TCPresponse;
 
 bool TCPclientConnect(void) {
     bool result = false;
-    if (WifiState != connected) {
+    if (!WiFi.isConnected()) {
         return false;
     }
     

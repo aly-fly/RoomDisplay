@@ -242,6 +242,20 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
   uint32_t StartTime = millis();
   if ((x >= tft.width()) || (y >= tft.height())) return;
 
+  if (imgScaling == 2) {
+    String FN = filename;
+    FN.remove(FN.indexOf("."));
+    FN.concat("2.bmp");
+    Serial.print("Searching for: ");
+    Serial.print(FN);
+    if (SPIFFS.exists(FN)) {
+      Serial.println("...Found");
+      filename = FN.c_str();
+    } else {
+      Serial.println("...NOT found");
+    }
+  }
+
   if (!SPIFFS.exists(filename)) {
     Serial.print("File not found: ");
     Serial.println(filename);

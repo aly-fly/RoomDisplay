@@ -27,7 +27,7 @@ String XMLdata;
 bool GetXmlDataFromServer(const char *URL) {
   bool result = false;
   
-    if (WifiState != connected) {
+    if (!WiFi.isConnected()) {
         return false;
     }
 

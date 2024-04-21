@@ -5,11 +5,11 @@
 #include "___CONFIG_SECRETS.h"
 
 
-enum WifiState_t {disconnected, connected};
+//enum WifiState_t {disconnected, connected};
 void WifiInit(void);
 void WifiReconnectIfNeeded(void);
 
-extern WifiState_t WifiState;
+//extern WifiState_t WifiState;
 extern bool inHomeLAN;
 
 #endif // MYWIFI_H

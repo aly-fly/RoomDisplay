@@ -29,7 +29,7 @@ bool StatusConnectivityOk = false;
 bool CheckForValidDNSresponses(void) {
     Serial.println("Checking for captive portal..");
     DisplayText("Checking for captive portal..\n");
-    if (WifiState != connected) {
+    if (!WiFi.isConnected()) {
         Serial.println("NO WiFi!");
         DisplayText("NO WiFi!\n", CLRED);
         return false;
@@ -78,7 +78,7 @@ bool CheckForValidDNSresponses(void) {
 // ***********************************************************************************************************************************************************
 
 bool HTTPSconnect(String URL) {
-  if (WifiState != connected) {
+  if (!WiFi.isConnected()) {
       return false;
   }
   bool result = false;
@@ -135,7 +135,7 @@ bool HTTPSconnect(String URL) {
 
 int HTTPconnect(String URL) {
   int result = -1;
-  if (WifiState != connected) {
+  if (!WiFi.isConnected()) {
     return result;
   }
   Serial.println("Connecting to: " + URL);
@@ -178,7 +178,7 @@ int HTTPconnect(String URL) {
 
 int HTTPconnectPOST(String URL, String PostData) {
   int result = -1;
-  if (WifiState != connected) {
+  if (!WiFi.isConnected()) {
     return result;
   }
   Serial.println("Connecting to: " + URL);
@@ -211,12 +211,12 @@ int HTTPconnectPOST(String URL, String PostData) {
 bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
   Serial.println("Captive portal Begin");
   DisplayText("Captive portal Begin\n");
-    if (WifiState != connected) {
-        Serial.println("No WiFi!");
-        DisplayText("NO WiFi!\n", CLRED);
-        StatusConnectivityOk = false;
-        return false;
-    }
+  if (!WiFi.isConnected()) {
+      Serial.println("No WiFi!");
+      DisplayText("NO WiFi!\n", CLRED);
+      StatusConnectivityOk = false;
+      return false;
+  }
 
   StatusDNSvalid = CheckForValidDNSresponses();
 

@@ -12,7 +12,7 @@ bool ShellyGetData(void) {
     bool result = false;
     sTotalPower = "n/a";
     TotalPower = 0;
-    if (WifiState != connected) {
+    if (!WiFi.isConnected()) {
         return false;
     }
         HTTPClient http;

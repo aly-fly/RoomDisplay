@@ -280,13 +280,16 @@ void loop() {
     // images
     String FN;
     uint8_t idx;
-/*
+
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       X2 = (i * Xscaling);
+      Y2 = 0;
+      if ((i % 2) == 1) {Y2 = 32;}
       FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
-      DisplayShowImage(FN.c_str(),  round(X2), 1);
+      DisplayShowImage(FN.c_str(),  round(X2), Y2);
     }
-*/
+
+/*
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8 + 4;
       if (idx >= MTG_NUMPTS) {break;}
@@ -294,6 +297,7 @@ void loop() {
       FN = "/w/" + ArsoMeteogram[idx].WeatherIcon + ".bmp";
       DisplayShowImage(FN.c_str(),  round(X2), 1);
     }
+*/
 
     // vertical lines
     uint32_t X;

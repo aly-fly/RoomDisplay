@@ -10,8 +10,8 @@
 
 WiFiMulti wifiMulti;
 
-WifiState_t WifiState = disconnected;
-uint32_t TimeOfWifiReconnectAttempt = 0;
+//WifiState_t WifiState = disconnected;
+//uint32_t TimeOfWifiReconnectAttempt = 0;
 bool inHomeLAN = false;
 
 
@@ -19,7 +19,7 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info){
   IPAddress myIP;
   switch(event){
     case ARDUINO_EVENT_WIFI_STA_START:
-      WifiState = disconnected;
+      //WifiState = disconnected;
       Serial.println("Station Mode Started");
       break;
     case ARDUINO_EVENT_WIFI_STA_CONNECTED: // IP not yet assigned
@@ -30,10 +30,10 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info){
       Serial.print("Got IP: ");
       Serial.println(myIP);
       inHomeLAN = ((myIP[0] == HomeIP0) && (myIP[1] == HomeIP1));
-      WifiState = connected;
+      //WifiState = connected;
       break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-      WifiState = disconnected;
+      //WifiState = disconnected;
       Serial.print("WiFi lost connection. Reason: ");
       Serial.println(info.wifi_sta_disconnected.reason);
       DisplayClear();
@@ -72,7 +72,7 @@ void WifiInit(void)  {
   Serial.print("My new MAC = ");
   Serial.println(WiFi.macAddress());
 
-  WifiState = disconnected;
+  //WifiState = disconnected;
   DisplayText("WiFi start");
 
   WiFi.mode(WIFI_STA);
@@ -84,10 +84,13 @@ void WifiInit(void)  {
   Serial.println("Multi WiFi start...");
   wifiMulti.addAP(WIFI_SSID1, WIFI_PASSWD1);
   wifiMulti.addAP(WIFI_SSID2, WIFI_PASSWD2);
+#ifdef WIFI_SSID3
+  wifiMulti.addAP(WIFI_SSID3, WIFI_PASSWD3);
+#endif
   if(wifiMulti.run() != WL_CONNECTED) {
     Serial.println("\r\nWiFi connection timeout!");
     DisplayText("\nTIMEOUT!", CLRED);
-    WifiState = disconnected;
+    //WifiState = disconnected;
     return; // exit loop, exit procedure, continue startup
   }
 #else
@@ -101,14 +104,14 @@ void WifiInit(void)  {
     if ((millis() - StartTime) > (WIFI_CONNECT_TIMEOUT_SEC * 1000)) {
       Serial.println("\r\nWiFi connection timeout!");
       DisplayText("\nTIMEOUT!", CLRED);
-      WifiState = disconnected;
+      //WifiState = disconnected;
       return; // exit loop, exit procedure, continue startup
     }
   }
 #endif
 
   
-  WifiState = connected;
+  //WifiState = connected;
 
   DisplayText("\n Connected to: ");
   DisplayText(WiFi.SSID().c_str(), CLCYAN);
@@ -125,12 +128,11 @@ void WifiInit(void)  {
 }
 
 void WifiReconnectIfNeeded(void) {
-  if ((WifiState == disconnected) && ((millis() - TimeOfWifiReconnectAttempt) > WIFI_RETRY_CONNECTION_SEC * 1000)) {
+  if (!WiFi.isConnected()) {
     Serial.println("Attempting WiFi reconnection...");
     DisplayClear();
     DisplayText("WiFi reconnect...", CLYELLOW);
     WiFi.reconnect();
-    TimeOfWifiReconnectAttempt = millis();
   }    
 }
 

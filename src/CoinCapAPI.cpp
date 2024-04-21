@@ -60,7 +60,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
     COINCAP_URL = COINCAP_1H_URL;
   }
   
-  if (WifiState != connected) {
+  if (!WiFi.isConnected()) {
       return false;
   }
 
