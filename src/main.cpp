@@ -259,8 +259,8 @@ void loop() {
     Serial.println("Min T: " + String(Minn));
     Serial.println("Max T: " + String(Maxx));
 
-    Minn = Minn - 6;
-    Maxx = Maxx + 6;
+    Minn = Minn - 10;
+    Maxx = Maxx + 10;
     
     float_t X1, X2, Y1, Y2, Yscaling;
     Yscaling = (float(DspH) / (Maxx - Minn));
@@ -300,7 +300,7 @@ void loop() {
 */
 
     // vertical lines
-    uint32_t X;
+    int32_t X;
     for (uint8_t i = 0; i < 4; i++) {
       idx = MidnightIdx + i * 8;
       X = round((Xscaling / 2) + ((idx) * Xscaling)) - 3;
@@ -317,8 +317,8 @@ void loop() {
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + (i * Xscaling);
 
-      Y1 = ArsoMeteogram[i].RainN * 5;
-      Y2 = ArsoMeteogram[i].SnowN * 5;
+      Y1 = ArsoMeteogram[i].RainN * 8;
+      Y2 = ArsoMeteogram[i].SnowN * 8;
 
       if (Y1 > 0) tft.fillRect(X1, DspH-Y1, 10, Y1, TFT_CYAN);
       if (Y2 > 0) tft.fillRect(X1, DspH-Y1-Y2, 10, Y2, TFT_PINK);
@@ -343,14 +343,19 @@ void loop() {
         break;
       }
     }
-    uint8_t DayIdx;  
+    uint8_t DayIdx;
+    int8_t sidx;  
     for (uint8_t i = 0; i < 3; i++) {
-      idx = MidnightIdx + i * 8;
-      if (idx >= MTG_NUMPTS) {break;}
-      X = round((Xscaling / 2) + ((idx) * Xscaling)) + 33;
+      sidx = MidnightIdx + i * 8;
+      if (MidnightIdx > 0) {sidx -= 8;}
+      if (sidx >= MTG_NUMPTS) {break;}
+      X = round((Xscaling / 2) + (((float_t)sidx) * Xscaling)) + 33;
+      
       DayIdx = CurrDay + i;
       if (DayIdx > 6) DayIdx -=7; // overflow
-      DisplayText(DAYS[DayIdx], 1, X, DspH-55, CLGREY);
+      if (X > 0) {
+        DisplayText(DAYS[DayIdx], 1, X, DspH-55, CLGREY);
+      }
     }
 
 
