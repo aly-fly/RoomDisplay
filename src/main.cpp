@@ -313,6 +313,18 @@ void loop() {
       }
     }
 
+    // plot rain & snow
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      X1 = (Xscaling / 2) + (i * Xscaling);
+
+      Y1 = ArsoMeteogram[i].RainN * 5;
+      Y2 = ArsoMeteogram[i].SnowN * 5;
+
+      if (Y1 > 0) tft.fillRect(X1, DspH-Y1, 10, Y1, TFT_CYAN);
+      if (Y2 > 0) tft.fillRect(X1, DspH-Y1-Y2, 10, Y2, TFT_PINK);
+      delay(20);
+    }
+
 
     float Yoffset = -15; // vertical shift data plot and numbers
 
@@ -335,16 +347,16 @@ void loop() {
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8;
       if (idx >= MTG_NUMPTS) {break;}
-      X = round((Xscaling / 2) + ((idx) * Xscaling)) + 35;
+      X = round((Xscaling / 2) + ((idx) * Xscaling)) + 33;
       DayIdx = CurrDay + i;
       if (DayIdx > 6) DayIdx -=7; // overflow
-      DisplayText(DAYS[DayIdx], 1, X, DspH/2+15-Yoffset, CLGREY);
+      DisplayText(DAYS[DayIdx], 1, X, DspH-55, CLGREY);
     }
 
 
 
 
-
+    // plot temperature graph
     for (uint8_t i = 1; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + ((i-1) * Xscaling);
       X2 = (Xscaling / 2) + ((i  ) * Xscaling);
@@ -358,6 +370,7 @@ void loop() {
       delay(30);
     }
 
+    // temperature low / blue
     tft.loadFont(FONT_SIZE_2);
     tft.setTextColor(CLBLUE, CLWHITE);
     for (uint8_t i = 0; i < 3; i++) {
@@ -370,6 +383,7 @@ void loop() {
       delay(60);
     }
 
+    // temperature high / red
     tft.setTextColor(CLRED, CLWHITE);
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8 + 5;
