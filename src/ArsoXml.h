@@ -6,7 +6,8 @@ bool GetARSOmeteogram(void);
 
 struct ArsoWeather_t
 {
-    String Day;
+    int8_t DayN;
+    String DayName;
     String PartOfDay;
     String Sky;
     String Rain;
@@ -16,6 +17,7 @@ struct ArsoWeather_t
     float TemperatureN;
     float RainN;
     float SnowN;
+    float WindN;
 };
 
 extern ArsoWeather_t ArsoWeather[4];

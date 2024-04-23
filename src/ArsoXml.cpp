@@ -122,10 +122,17 @@ bool GetARSOdata(void) {
     // current  has index 0
     // forecast has index 1..3
     int ParamPos = 0;
-    ArsoWeather[0].Day = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
+    String S1;
+    // Day number for today
+    S1 =  utf8ascii(FindXMLParam(XMLdata, "valid", ParamPos).c_str());
+    S1.remove(S1.indexOf("."));
+    ArsoWeather[0].DayN = atoi(S1.c_str());
+
+    ParamPos = 0;
+    ArsoWeather[0].DayName = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
     // remove text after space
-    ArsoWeather[0].Day.remove(ArsoWeather[0].Day.indexOf(" "));
-    ArsoWeather[0].Day.toUpperCase();
+    ArsoWeather[0].DayName.remove(ArsoWeather[0].DayName.indexOf(" "));
+    ArsoWeather[0].DayName.toUpperCase();
 
     ArsoWeather[0].PartOfDay = "trenutno"; // not existing in this xml
 
@@ -185,11 +192,11 @@ bool GetARSOdata(void) {
     ParamPos = 0;
     for (uint8_t i = 1; i < 4; i++)
     {
-        ArsoWeather[i].Day = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
+        ArsoWeather[i].DayName = utf8ascii(FindXMLParam(XMLdata, "valid_day", ParamPos).c_str());
         // remove text after space
-        ArsoWeather[i].Day.remove(ArsoWeather[i].Day.indexOf(" "));
+        ArsoWeather[i].DayName.remove(ArsoWeather[i].DayName.indexOf(" "));
 //        TrimLogWords(ArsoWeather[i].Day);
-        ArsoWeather[i].Day.toUpperCase();
+        ArsoWeather[i].DayName.toUpperCase();
     }
     ParamPos = 0;
     for (uint8_t i = 1; i < 4; i++)
@@ -237,7 +244,7 @@ bool GetARSOdata(void) {
     for (uint8_t i = 0; i < 4; i++)
     {
       Serial.println("------------");
-      Serial.println(ArsoWeather[i].Day + "  " +ArsoWeather[i].PartOfDay);
+      Serial.println(ArsoWeather[i].DayName + "  " + ArsoWeather[i].PartOfDay + "  (" + ArsoWeather[i].DayN + ")");
       Serial.println(ArsoWeather[i].Sky);
       Serial.println(ArsoWeather[i].Rain);
       Serial.println(ArsoWeather[i].Temperature);
@@ -289,7 +296,10 @@ bool GetARSOmeteogram(void) {
     int ParamPos = 0;
     for (uint8_t i = 0; i < MTG_NUMPTS; i++)
     {
-        ArsoMeteogram[i].Day = utf8ascii(FindXMLParam(XMLdata, "valid", ParamPos).c_str());
+        ArsoMeteogram[i].DayName = utf8ascii(FindXMLParam(XMLdata, "valid", ParamPos).c_str());
+        S1 = ArsoMeteogram[i].DayName;
+        S1.remove(S1.indexOf("."));
+        ArsoMeteogram[i].DayN = atoi(S1.c_str());
     }
 
     ParamPos = 0;
@@ -350,6 +360,14 @@ bool GetARSOmeteogram(void) {
         ArsoMeteogram[i].SnowN = atof(S1.c_str());
     }
 
+    // <ff_val_kmh>19</ff_val_kmh>
+    ParamPos = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++)
+    {
+        S1 = utf8ascii(FindXMLParam(XMLdata, "ff_val_kmh", ParamPos).c_str());
+        ArsoMeteogram[i].WindN = atof(S1.c_str());
+    }
+
     XMLdata = "";  // free memory
 
 
@@ -365,7 +383,7 @@ bool GetARSOmeteogram(void) {
     for (uint8_t i = 0; i < MTG_NUMPTS; i++)
     {
       Serial.println("------------");
-      Serial.println(ArsoMeteogram[i].Day);
+      Serial.println(ArsoMeteogram[i].DayName  + "  (" + ArsoMeteogram[i].DayN + ")");
       Serial.println(ArsoMeteogram[i].Sky);
       Serial.println(ArsoMeteogram[i].Rain);
       Serial.println(ArsoMeteogram[i].WeatherIcon);

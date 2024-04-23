@@ -242,6 +242,7 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
   uint32_t StartTime = millis();
   if ((x >= tft.width()) || (y >= tft.height())) return;
 
+/*
   if (imgScaling == 2) {
     String FN = filename;
     FN.remove(FN.indexOf("."));
@@ -255,6 +256,7 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
       Serial.println("...NOT found");
     }
   }
+*/
 
   if (!SPIFFS.exists(filename)) {
     Serial.print("File not found: ");
