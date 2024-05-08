@@ -51,7 +51,8 @@ String FindJsonParam(String& inStr, String needParam, int& Position)
 
 String FindXMLParam(String& inStr, String needParam, int& Position)
 {
-    int indexStart = inStr.indexOf("<"+needParam+">", Position);
+    String searchString = "<"+needParam+">";
+    int indexStart = inStr.indexOf(searchString, Position);
     Position = -1; // status "not found" until found
     if (indexStart > 0) {
         int indexStop = inStr.indexOf("</"+needParam+">", indexStart);  

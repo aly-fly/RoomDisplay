@@ -245,7 +245,7 @@ void loop() {
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetARSOmeteogram();
     if (ok) ArsoPlotMeteogram();
-    if (ok) delay(14000);
+    if (ok) delay(15000);
   }
 
   // COIN CAP DATA PLOT

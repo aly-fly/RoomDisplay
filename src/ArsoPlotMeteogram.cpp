@@ -27,7 +27,7 @@ void ArsoPlotMeteogram(void) {
     Yscaling = (float(DspH) / (Maxx - Minn));
     Serial.printf("Scaling Y: %f\r\n", Yscaling);
 
-    uint8_t MidnightIdx = 0;
+    int8_t MidnightIdx = 0;
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       if ((ArsoMeteogram[i].DayName.indexOf(" 1:00 ") > 0) ||
           (ArsoMeteogram[i].DayName.indexOf(" 2:00 ") > 0)) {
@@ -78,8 +78,16 @@ void ArsoPlotMeteogram(void) {
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + (i * Xscaling);
 
-      Y1 = ArsoMeteogram[i].RainN * 8;
-      Y2 = ArsoMeteogram[i].SnowN * 8;
+      Y1 = ArsoMeteogram[i].RainN * 10;
+      Y2 = ArsoMeteogram[i].SnowN * 10;
+
+      if ((Y1 + Y2) > DspH) {
+        if (Y1 >= Y2) {
+          Y1 = DspH - Y2; // trim the bigger one
+        } else {
+          Y2 = DspH - Y1; // trim the bigger one
+        }
+      }
 
       if (Y1 > 0) tft.fillRect(X1, DspH-Y1+1, 10, Y1, TFT_CYAN);
       if (Y2 > 0) tft.fillRect(X1, DspH-Y1-Y2, 10, Y2, TFT_PINK);
@@ -90,17 +98,20 @@ void ArsoPlotMeteogram(void) {
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + (i * Xscaling);
 
-      Y1 = ArsoMeteogram[i].WindN * 2;
+      Y1 = (ArsoMeteogram[i].WindN - 10) * 2;  // wind lower than 10 km/h is not plotted.
+
+      if (Y1 > DspH) Y1 = DspH;
 
       if (Y1 > 0) tft.fillRect(X1+9, DspH-Y1, 2, Y1, TFT_GREEN);
       delay(20);
     }
 
 
-    float Yoffset = -15; // vertical shift data plot and numbers
+    float Yoffset = -14; // vertical shift data plot and numbers
 
 
-    // day names
+    // day names:
+    // 1. find out which day number and day name is today.
     uint8_t CurrDay;
     bool Found;
     String sToday = ArsoWeather[0].DayName;
@@ -112,35 +123,39 @@ void ArsoPlotMeteogram(void) {
         CurrDay = i;
         Serial.print("Today is: ");
         Serial.print(iToday);
-        Serial.print(iToday + ", ");
+        Serial.print(", ");
         Serial.println(DAYS[CurrDay]);
         break;
       }
     }
+
+    // 2. Find on which index starts today in meteogram
+    int TodayIdx = 0;
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      if (ArsoMeteogram[i].DayN == iToday) {
+        TodayIdx = i;
+        break;
+      }
+    }
+    Serial.print("Index where Today starts = ");
+    Serial.println(TodayIdx);
+
+    // 3. Align Today with the midnight line
+    int DayShift = 0;
+    if (TodayIdx < MidnightIdx) DayShift = 1;
+
+    // 4. plot day names
     int8_t DayIdx;
-    Found = false;
-    int Day;
-    int iShift = 0;
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8;
       if (idx >= MTG_NUMPTS) {break;}
 
-      Day = ArsoMeteogram[idx].DayN;
-      if (Day == iToday) {
-        Found = true;
-        iShift = i;
-        Serial.print("Day shift idx = ");
-        Serial.println(iShift);
-      }
-
-      X = round((Xscaling / 2) + (((float_t)idx) * Xscaling)) + 33;
+      X = round((Xscaling / 2) + (((float_t)idx) * Xscaling)) + 52;
       
-      DayIdx = CurrDay + i - iShift;
+      DayIdx = CurrDay + i + DayShift;
       if (DayIdx > 6) DayIdx -=7; // overflow
       if (DayIdx < 0) DayIdx +=7; // underflow
-      if (Found && (X > 0)) {
-        DisplayText(DAYS[DayIdx], 1, X, DspH-55, CLGREY);
-      }
+      DisplayText(DAYS[DayIdx], 1, X, DspH-49, CLGREY);
     }
 
 

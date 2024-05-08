@@ -360,11 +360,16 @@ bool GetARSOmeteogram(void) {
         ArsoMeteogram[i].SnowN = atof(S1.c_str());
     }
 
-    // <ff_val_kmh>19</ff_val_kmh>
+/*
+<ff_val>4.9</ff_val>
+<ffmax_val>11.3</ffmax_val>
+<ff_val_kmh>18</ff_val_kmh>
+<ffmax_val_kmh>41</ffmax_val_kmh>
+*/
     ParamPos = 0;
     for (uint8_t i = 0; i < MTG_NUMPTS; i++)
     {
-        S1 = utf8ascii(FindXMLParam(XMLdata, "ff_val_kmh", ParamPos).c_str());
+        S1 = utf8ascii(FindXMLParam(XMLdata, "ffmax_val_kmh", ParamPos).c_str());
         ArsoMeteogram[i].WindN = atof(S1.c_str());
     }
 
@@ -391,6 +396,7 @@ bool GetARSOmeteogram(void) {
       Serial.println(ArsoMeteogram[i].TemperatureN);
       Serial.println(ArsoMeteogram[i].RainN);
       Serial.println(ArsoMeteogram[i].SnowN);
+      Serial.println(ArsoMeteogram[i].WindN);
     }
     Serial.println("------------");
 
