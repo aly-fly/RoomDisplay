@@ -3,4 +3,6 @@
 - ikone za veter
 - lunina faza
 - horizontalne črte za BTC
-- Meteogram graf
+- SD card
+- icons on the SD card
+- Radar .gif download and render

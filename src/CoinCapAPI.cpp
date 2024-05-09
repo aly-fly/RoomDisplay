@@ -13,6 +13,7 @@
 #include "Clock.h"
 #include "CoinCap_https_certificate.h"
 #include "display.h"
+#include "GlobalVariables.h" // gBuff3k
 
 #define MAX_DATA_POINTS_1H (31*24 + 10)
 #define MAX_DATA_POINTS_5M ( 1440 + 10)
@@ -37,10 +38,6 @@ unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
 
 #define COINCAP_1H_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=h1"
 #define COINCAP_5M_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=m5"
-
-
-// create static buffer for reading stream from the server
-uint8_t buff[3000] = { 0 }; // 3 kB
 
 
 bool GetDataFromCoinCapServer(bool Refresh_5M) {
@@ -113,11 +110,11 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
 
                     if (StreamAvailable) {
                         // read up to 3000 bytes
-                        BytesRead = stream->readBytes(buff, ((StreamAvailable > sizeof(buff)) ? sizeof(buff) : StreamAvailable));
+                        BytesRead = stream->readBytes(gBuff3k, ((StreamAvailable > sizeof(gBuff3k)) ? sizeof(gBuff3k) : StreamAvailable));
                         JsonDataSize += BytesRead;
                         #ifdef DEBUG_OUTPUT
                         // write it to Serial
-                        if (firstBuffer) { Serial.write(buff, BytesRead);  Serial.println(); }
+                        if (firstBuffer) { Serial.write(gBuff3k, BytesRead);  Serial.println(); }
                           else { Serial.print("/"); }
                         #endif
                         firstBuffer = false;
@@ -130,7 +127,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                         if (BytesRead > 0) {
                           // covert data to String
                           String sBuf;
-                          sBuf = String(buff, BytesRead);
+                          sBuf = String(gBuff3k, BytesRead);
                           // glue last section of the previous buffer
                           // TO-DO wwwwwwwwwww
 

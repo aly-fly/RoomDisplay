@@ -14,6 +14,7 @@
 #include "CaptivePortalLogin.h"
 #include "CoinCapAPI.h"
 #include "myPing.h"
+#include "Jedilnik_OS_Domzale.h"
 
 uint16_t ScreenNumber = 0;
 int Hour;
@@ -188,6 +189,11 @@ void loop() {
 
 // WEATHER FORECAST  
   if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------    
+
+GetJedilnik();
+delay (5000);
+
+
     ok = GetARSOdata();
 
     String Line;
