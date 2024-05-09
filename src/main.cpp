@@ -101,6 +101,10 @@ void setup() {
   delay(2000);
   DisplayClear();
   Serial.println("INIT FINISHED.");
+
+GetJedilnik();
+sleep (55); // seconds
+
 }
 
 
@@ -189,11 +193,6 @@ void loop() {
 
 // WEATHER FORECAST  
   if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------    
-
-GetJedilnik();
-delay (5000);
-
-
     ok = GetARSOdata();
 
     String Line;

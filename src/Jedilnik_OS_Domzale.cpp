@@ -8,7 +8,8 @@
 #include "Clock.h"
 #include "OsDomzale_https_certificate.h"
 #include "display.h"
-#include "GlobalVariables.h" // gBuff3k
+#include "GlobalVariables.h" // gBuff4k
+#include "Zamzar.h"
 
 /*
  1. Load https://www.os-domzale.si/ (128 kB)
@@ -74,7 +75,7 @@ bool GetPdfLinkFromMainWebsite(void) {
                 WiFiClient * stream = https.getStreamPtr();
 
                 // read all data from server
-                while (https.connected() && (DocumentLength > 0 || DocumentLength == -1)) {
+                while (https.connected() && (DocumentLength > 0 || DocumentLength == -1) && (!Finished)) {
                     yield(); // watchdog reset
                     // get available data size
                     size_t StreamAvailable = stream->available();
@@ -82,7 +83,7 @@ bool GetPdfLinkFromMainWebsite(void) {
 
                     if (StreamAvailable) {
                         // read up to 3000 bytes
-                        BytesRead = stream->readBytes(gBuff3k, ((StreamAvailable > sizeof(gBuff3k)) ? sizeof(gBuff3k) : StreamAvailable));
+                        BytesRead = stream->readBytes(gBuff4k, ((StreamAvailable > sizeof(gBuff4k)) ? sizeof(gBuff4k) : StreamAvailable));
                         Serial.print("/");
                         DisplayText(".");
 
@@ -93,7 +94,7 @@ bool GetPdfLinkFromMainWebsite(void) {
                         if (BytesRead > 0) {
                           // covert data to String
                           String sBuf;
-                          sBuf = String(gBuff3k, BytesRead);
+                          sBuf = String(gBuff4k, BytesRead);
                           // glue last section of the previous buffer
                           // TO-DO wwwwwwwwwww
 
@@ -110,25 +111,27 @@ bool GetPdfLinkFromMainWebsite(void) {
                             String aHref;
                             idx1 = sBuf.indexOf("<a href=", idx);
                             idx2 = sBuf.indexOf("</a>", idx1);
-                            while ((idx1 > 0) && (idx2 > idx1)) {
+                            while ((idx1 > 0) && (idx2 > idx1) && (!Finished)) {
                               aHref = sBuf.substring(idx1, idx2+4);
                               Serial.println(idx1);
                               Serial.println(idx2);
                               Serial.println(aHref);
                               if (aHref.indexOf("Jedilnik") > 0) {
                                 Serial.println("Link found");
+                                DisplayText("Link found.\n", CLGREEN);
 
                                 idx1 = aHref.indexOf("\"");
-                                idx2 = aHref.indexOf("\"", idx1);
+                                idx2 = aHref.indexOf("\"", idx1+1);
                                 if ((idx1 > 0) && (idx2 > idx1)) {
                                   PDF_URL = aHref.substring(idx1+1, idx2);
-                                  Serial.println(PDF_URL);
-                                  DisplayText(PDF_URL.c_str(), CLCYAN);
-                                  DisplayText("\n");
+                                  Serial.println("URL found");
+                                  DisplayText("URL found.\n", CLGREEN);
                                   Finished = true;
+                                } else { // fail
+                                  NoMoreData = 999;
                                 }
-                                if (Finished) {break;}
-                                } // Jedilnik
+                              } // Jedilnik
+                              if (Finished) {break;}
                               // look for next one
                               idx1 = sBuf.indexOf("<a href=", idx2+4);
                               idx2 = sBuf.indexOf("</a>", idx1);
@@ -136,21 +139,23 @@ bool GetPdfLinkFromMainWebsite(void) {
                           } // header found
                         } // process data (BytesRead > 0)
                     } // data available in stream
-                    delay(10);
+                    delay(15);
                     // No more data being received? 10 retries..
                     if (StreamAvailable == 0) {
                       NoMoreData++;
                       delay(150);
+                      Serial.print("+");
+                      DisplayText("+");
                     }
                     else {
                       NoMoreData = 0;
                     }
-                    if (Finished || (NoMoreData > 10)) { break; }
+                    if (Finished || (NoMoreData > 100)) { break; }
                 } // connected or document still has data
                 Serial.println();
-                if (NoMoreData > 10) {
+                if (NoMoreData > 100) {
                   Serial.println("[HTTPS] Timeout.");
-                  DisplayText("Timeout.\n");
+                  DisplayText("\nTimeout.\n", CLRED);
                 } else {
                   Serial.println("[HTTPS] Connection closed or file end.");
                 }
@@ -179,6 +184,9 @@ bool GetPdfLinkFromMainWebsite(void) {
     Serial.println("Unable to create HTTPS client");
   }
     if (result){
+      Serial.println(PDF_URL);
+      DisplayText(PDF_URL.c_str(), CLCYAN);
+      DisplayText("\n");
       Serial.println("OK");
       DisplayText("OK\n", CLGREEN);
     }
@@ -187,5 +195,10 @@ bool GetPdfLinkFromMainWebsite(void) {
 
 
 void GetJedilnik(void){
-  GetPdfLinkFromMainWebsite();
+  DisplayClear();
+  if (GetPdfLinkFromMainWebsite()) {
+    if (ConvertPdfToTxt(PDF_URL)) {
+      Serial.println("Yay!");
+    }
+  }
 }
