@@ -52,7 +52,7 @@
   void DisplayClear(uint16_t Color = TFT_BLACK);
   void DisplayText(const char Text[]);
   void DisplayText(const char Text[], uint16_t color);
-  void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = 0xFFFF, bool Show=true);
+  void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color = 0xFFFF, bool Wrap=false);
   void DisplayUpdate(void);
 
   void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgScaling = 1);

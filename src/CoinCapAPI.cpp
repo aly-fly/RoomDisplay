@@ -13,7 +13,7 @@
 #include "Clock.h"
 #include "CoinCap_https_certificate.h"
 #include "display.h"
-#include "GlobalVariables.h" // gBuff3k
+#include "GlobalVariables.h"
 
 #define MAX_DATA_POINTS_1H (31*24 + 10)
 #define MAX_DATA_POINTS_5M ( 1440 + 10)
@@ -110,11 +110,11 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
 
                     if (StreamAvailable) {
                         // read up to 3000 bytes
-                        BytesRead = stream->readBytes(gBuff3k, ((StreamAvailable > sizeof(gBuff3k)) ? sizeof(gBuff3k) : StreamAvailable));
+                        BytesRead = stream->readBytes(gBuffer, ((StreamAvailable > sizeof(gBuffer)) ? sizeof(gBuffer) : StreamAvailable));
                         JsonDataSize += BytesRead;
                         #ifdef DEBUG_OUTPUT
                         // write it to Serial
-                        if (firstBuffer) { Serial.write(gBuff3k, BytesRead);  Serial.println(); }
+                        if (firstBuffer) { Serial.write(gBuffer, BytesRead);  Serial.println(); }
                           else { Serial.print("/"); }
                         #endif
                         firstBuffer = false;
@@ -127,7 +127,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                         if (BytesRead > 0) {
                           // covert data to String
                           String sBuf;
-                          sBuf = String(gBuff3k, BytesRead);
+                          sBuf = String(gBuffer, BytesRead);
                           // glue last section of the previous buffer
                           // TO-DO wwwwwwwwwww
 

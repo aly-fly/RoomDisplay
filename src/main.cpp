@@ -101,10 +101,6 @@ void setup() {
   delay(2000);
   DisplayClear();
   Serial.println("INIT FINISHED.");
-
-GetJedilnik();
-sleep (55); // seconds
-
 }
 
 
@@ -267,9 +263,25 @@ void loop() {
     if (ok) delay(3000);
   }
 
+  // JEDILNIK OŠ DOMŽALE
+  if (ScreenNumber == 5) {  // -------------------------------------------------------------------------------------------------------------------------
+    GetJedilnikOsDomzale();
+    DrawJedilnikOsDomzale();
+    delay(13000);
+  }
+
+  // JEDILNIK FENIKS
+  if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
+/*    
+    ok = GetFeniks();
+    PlotFeniks();
+    if (ok) delay(3000);
+*/    
+  }
+
 
   ScreenNumber++;
-  if (ScreenNumber >= 5) { // housekeeping at the end of display cycles
+  if (ScreenNumber >= 6) { // housekeeping at the end of display cycles
     if (inHomeLAN)
       ScreenNumber = 0; else
       ScreenNumber = 1;   // skip heat pump

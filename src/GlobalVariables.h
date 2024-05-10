@@ -5,6 +5,6 @@
 #include <stdint.h>
 
 // create static buffer for reading stream from the server
-extern uint8_t gBuff3k[3000]; // 3 kB
+extern uint8_t gBuffer[3000]; // 3 kB
 
 #endif //__GLOBALVARIABLES_H_

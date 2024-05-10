@@ -30,6 +30,26 @@ void TrimAlfaNum (String& Str) {
   }  
 }
 
+void TrimDoubleSpaces (String& Str) {
+  if (Str.length() < 2) return;
+  bool Found;
+  Str.trim();
+  char c1, c2;
+  unsigned int i = 0;
+  unsigned int len = Str.length()-1;
+  while (i < len) {
+    c1 = Str.charAt(i);
+    c2 = Str.charAt(i+1);
+    Found = ((c1 == ' ') && (c2 == ' '));
+    i++;
+    if (Found) {
+      Str.remove(i, 1);
+      i--;
+      len--;
+      }
+  }  
+}
+
 
 String FindJsonParam(String& inStr, String needParam, int& Position)
 {

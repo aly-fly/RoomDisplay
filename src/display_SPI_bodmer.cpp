@@ -108,7 +108,7 @@ void DisplayText(const char Text[], uint16_t color) {
   Font size 1 = 24 px
   Font size 2 = 36 px
   */
-void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Show) {
+void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Wrap) {
 /* 
 // font size mapping
 uint8_t FontSize1;
@@ -125,7 +125,7 @@ uint8_t FontSize1;
   tft.drawString(Text, X, Y, FontSize1);
   */
 
-  tft.setTextWrap(false, false);
+  tft.setTextWrap(Wrap, false);
   switch (FontSize)  {
   case 1:  tft.loadFont(FONT_SIZE_1);
     break;

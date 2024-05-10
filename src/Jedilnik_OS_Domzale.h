@@ -1,2 +1,4 @@
 
-void GetJedilnik(void);
+void GetJedilnikOsDomzale(void);
+void DrawJedilnikOsDomzale(void);
+

@@ -6,7 +6,7 @@
 #include <utils.h>
 #include "Clock.h"
 #include "display.h"
-#include "GlobalVariables.h" // gBuff4k
+#include "GlobalVariables.h"
 #include "Zamzar_htps_certificate.h"  // rootCACertificate_Zamzar
 
 
@@ -39,9 +39,9 @@ esp_http_client_config_t config = {
 };
 */
 
-String ReturnData;
+String ZamzarData;
 
-bool HTTPSconnect(const String URL, const bool PostRequest, const String PostData) {
+bool HTTPSconnect(const String URL, const bool PostRequest, const String PostData, const bool PrintZamzarData) {
   bool result = false;
   
     if (!WiFi.isConnected()) {
@@ -76,13 +76,13 @@ bool HTTPSconnect(const String URL, const bool PostRequest, const String PostDat
   
           // file found at server
           if ((httpCode == HTTP_CODE_OK) || (httpCode == HTTP_CODE_CREATED) || (httpCode == HTTP_CODE_ACCEPTED) || (httpCode == HTTP_CODE_MOVED_PERMANENTLY)) {
-            ReturnData = https.getString();
+            ZamzarData = https.getString();
             result = true;
-
-            Serial.println("--- data begin ---");
-            Serial.println(ReturnData);
-            Serial.println("--- data end ---");
-
+            if (PrintZamzarData) {
+              Serial.println("--- data begin ---");
+              Serial.println(ZamzarData);
+              Serial.println("--- data end ---");
+            }
           }
         } else {
           Serial.printf("[HTTPS] GET... failed, error: %s\r\n", https.errorToString(httpCode).c_str());
@@ -136,85 +136,131 @@ bool HTTPSconnect(const String URL, const bool PostRequest, const String PostDat
 
 bool ConvertPdfToTxt(const String PdfUrl) { 
     bool ok;
-    ReturnData.clear();
+
+    Serial.println("Sending file for online conversion");
+    DisplayText("Sending file for online conversion\n");
+
+    ZamzarData.clear();
     String URL = "https://" + apiKey + ":@" + JobEndpointTest;
     String POSTdata = "source_file=" + PdfUrl + "&target_format=txt";
     Serial.print("URL: ");
     Serial.println(URL);    
     Serial.print("POST data: ");
     Serial.println(POSTdata);    
-    ok = HTTPSconnect(URL, true, POSTdata);
+    ok = HTTPSconnect(URL, true, POSTdata, true);
     if (!ok) {
       Serial.println("Fail Zamzar step 1: POST");
       DisplayText("Fail Zamzar step 1: POST\n", CLRED);
+      DisplayText(ZamzarData.c_str(), CLYELLOW);
+      delay(8000);
       return false;    
     }
     POSTdata.clear(); // free mem
     ok = false;
     int idx1, idx2;
-    idx1 = ReturnData.indexOf("{\"id\":");
-    idx2 = ReturnData.indexOf(",");
+    idx1 = ZamzarData.indexOf("{\"id\":");
+    idx2 = ZamzarData.indexOf(",");
     if ((idx1 >= 0) && (idx2 > idx1)) {
-      JobID = ReturnData.substring(idx1+6, idx2);
+      JobID = ZamzarData.substring(idx1+6, idx2);
       Serial.print ("Job ID: ");
       Serial.println(JobID);
+      DisplayText("\nJob ID:");
+      DisplayText(JobID.c_str(), CLCYAN);
+      DisplayText("\n");
       ok = true;
     }
     if (!ok) {
       Serial.println("Fail Zamzar step 1b: Finding Job ID");
       DisplayText("Fail Zamzar step 1b: Finding Job ID\n", CLRED);
+      DisplayText(ZamzarData.c_str(), CLYELLOW);
+      delay(8000);
       return false;    
     }
+    Serial.println("OK");
+    DisplayText("OK\n", CLGREEN);
     // =========================================================
-    ReturnData.clear();
     URL = "https://" + apiKey + ":@" + JobEndpointTest + "/" + JobID;
     Serial.print("URL: ");
     Serial.println(URL);    
-    ok = HTTPSconnect(URL, false, "");
-    if (!ok) {
-      Serial.println("Fail Zamzar step 2: GET job status");
-      DisplayText("Fail Zamzar step 2: GET job status\n", CLRED);
-      return false;    
-    }
+    bool Finished = false;
+    Serial.println("Waiting for online conversion to be completed");
+    DisplayText("Waiting for online conversion to be completed");
 
-    "status":"initialising"
+    int RetryCont = 0;
+    int p = 0;
+    while (!Finished) {
+      DisplayText(".");
+      RetryCont++;
+      ZamzarData.clear();
+      delay(2000);
+      ok = HTTPSconnect(URL, false, "", true);
+      if (!ok) {
+        Serial.println("Fail Zamzar step 2: GET job status");
+        DisplayText("\nFail Zamzar step 2: GET job status\n", CLRED);
+        DisplayText(ZamzarData.c_str(), CLYELLOW);
+        delay(8000);
+        return false;    
+      }
+   
+      p = ZamzarData.indexOf("\"status\":\"successful\"");
+      Finished = (p > 0) && (p < 130); // job finished, not import finished
+      ok = ((ZamzarData.indexOf("\"status\":\"initialising\"") > 0) || Finished);
 
-    
-    ok = (ReturnData.indexOf("\"status\":\"successful\"") > 0);
-    if (!ok) {
-      Serial.println("Fail Zamzar step 2b: job not successful");
-      DisplayText("Fail Zamzar step 2b: job not successful\n", CLRED);
-      return false;    
-    }
-    idx1 = ReturnData.indexOf("\"target_files\":[{\"id\":");
-    idx2 = ReturnData.indexOf(",");
-    if ((idx1 = 0) && (idx2 > idx1)) {
-      FileID = ReturnData.substring(idx1+22, idx2);
-      Serial.print ("File ID: ");
-      Serial.println(FileID);
-      ok = true;
-    }
-    if (!ok) {
-      Serial.println("Fail Zamzar step 2c: Finding File ID");
-      DisplayText("Fail Zamzar step 2c: Finding File ID\n", CLRED);
-      return false;    
-    }
+      if (!ok) {
+        Serial.println("Fail Zamzar step 2b: job not successful");
+        DisplayText("\nFail Zamzar step 2b: job not successful\n", CLRED);
+        DisplayText(ZamzarData.c_str(), CLYELLOW);
+        delay(8000);
+        return false;    
+      }
+
+      if (Finished) {
+        ok = false;
+        idx1 = ZamzarData.indexOf("\"target_files\":[{\"id\":");
+        idx2 = ZamzarData.indexOf(",", idx1+1);
+        Serial.println(idx1);
+        Serial.println(idx2);
+        if ((idx1 > 0) && (idx2 > (idx1+22))) {
+          FileID = ZamzarData.substring(idx1+22, idx2);
+          Serial.print ("File ID: ");
+          Serial.println(FileID);
+          DisplayText("\nFile ID:");
+          DisplayText(FileID.c_str(), CLCYAN);
+          DisplayText("\n");
+          ok = true;
+        }
+        if (!ok) {
+          Serial.println("Fail Zamzar step 2c: Finding File ID");
+          DisplayText("\nFail Zamzar step 2c: Finding File ID\n", CLRED);
+          delay(8000);
+          return false;    
+        }
+      }
+      if (RetryCont > 7) {
+        Serial.println("Fail Zamzar step 2d: Too many retries");
+        DisplayText("\nFail Zamzar step 2d: Too many retries\n", CLRED);
+        DisplayText(ZamzarData.c_str(), CLYELLOW);
+        delay(8000);
+        return false;    
+      }
+    } // while in progress
+    Serial.println("OK");
+    DisplayText("OK\n", CLGREEN);
     // =========================================================
-    ReturnData.clear();
+    Serial.println("Downloading the file");
+    DisplayText("Downloading the file\n");
+    ZamzarData.clear();
     URL = "https://" + apiKey + ":@" + FileEndpointTest + "/" + FileID + "/" + "content";
     Serial.print("URL: ");
     Serial.println(URL);    
-    ok = HTTPSconnect(URL, false, "");
+    ok = HTTPSconnect(URL, false, "", false);
     if (!ok) {
       Serial.println("Fail Zamzar step 3: GET file");
       DisplayText("Fail Zamzar step 3: GET file\n", CLRED);
       return false;    
     }
-
-    
-
-
-
+    Serial.println("OK");
+    DisplayText("OK\n", CLGREEN);
     return true;
 }
 
