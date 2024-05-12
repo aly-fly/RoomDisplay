@@ -2,8 +2,21 @@
 #include "Arduino.h"
 #include "utils.h"
 
+void TrimOnlyPrintable (String& Str) {
+  Str.trim(); // remove leading and trailing spaces
+  for (int16_t i = 0; i < Str.length(); i++)
+  {
+    char c = Str.charAt(i);
+    if ((c < 32) || (c > 126)) {
+      Str.remove(i, 1);
+      i--;
+      }
+  }  
+}
+
 void TrimNumDot (String& Str) {
-  Str.trim();
+  Str.trim(); // remove leading and trailing spaces
+  TrimOnlyPrintable(Str);
   for (int16_t i = 0; i < Str.length(); i++)
   {
     char c = Str.charAt(i);
@@ -16,7 +29,8 @@ void TrimNumDot (String& Str) {
 
 void TrimAlfaNum (String& Str) {
   bool validChar;
-  Str.trim();
+  Str.trim(); // remove leading and trailing spaces
+  TrimOnlyPrintable(Str);
   for (uint16_t i = 0; i < Str.length(); i++)
   {
     char c = Str.charAt(i);
@@ -33,7 +47,8 @@ void TrimAlfaNum (String& Str) {
 void TrimDoubleSpaces (String& Str) {
   if (Str.length() < 2) return;
   bool Found;
-  Str.trim();
+  Str.trim(); // remove leading and trailing spaces
+  TrimOnlyPrintable(Str);
   char c1, c2;
   unsigned int i = 0;
   unsigned int len = Str.length()-1;

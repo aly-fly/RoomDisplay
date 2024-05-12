@@ -15,7 +15,8 @@
 #include "ArsoXml.h"
 
 #define FileName "/jOsDom.txt"
-String Pon, Tor, Sre, Cet, Pet;
+String Jedilnik[5];
+String JedilnikDatum;
 
 unsigned long LastTimeJedilnikRefreshed = 0; // data is not valid
 
@@ -214,7 +215,7 @@ bool GetPdfLinkFromMainWebsite(void) {
 
 
 bool ReadSavedFile(void){
-  Serial.println("Reading local file");
+  Serial.println("Opening local file");
   DisplayText("Opening local file...");
 
   fs::File file = SPIFFS.open(FileName);
@@ -225,40 +226,38 @@ bool ReadSavedFile(void){
   }
 
   DisplayText(" Reading...");
-  Serial.println("- reading from file");
+  Serial.println("Reading from file");
   Saved_PDF_URL = file.readStringUntil(13);
-  Pon = file.readStringUntil(13);
-  Tor = file.readStringUntil(13);
-  Sre = file.readStringUntil(13);
-  Cet = file.readStringUntil(13);
-  Pet = file.readStringUntil(13);
+  JedilnikDatum = file.readStringUntil(13);
+  TrimOnlyPrintable(JedilnikDatum);
+  for (int i = 0; i < 5; i++)
+  {
+    Jedilnik[i] = file.readStringUntil(13);
+    TrimOnlyPrintable(Jedilnik[i]);
+  }
   file.close();
-
-  Pon.trim();
-  Tor.trim();
-  Sre.trim();
-  Cet.trim();
-  Pet.trim();
 
   Serial.println("-------------------");
   Serial.println(Saved_PDF_URL);
-  Serial.println(Pon);
-  Serial.println(Tor);
-  Serial.println(Sre);
-  Serial.println(Cet);
-  Serial.println(Pet);
+  Serial.println("-------------------");
+  Serial.println(JedilnikDatum);
+  Serial.println("-------------------");
+  for (int i = 0; i < 5; i++)
+  {
+    Serial.println(Jedilnik[i]);
+  }
   Serial.println("-------------------");
 
   
   bool ok;
-  ok = (Saved_PDF_URL.length() > 0) && (Pon.length() > 0) && (Tor.length() > 0) && (Sre.length() > 0) && (Cet.length() > 0) && (Pet.length() > 0);
+  ok = (Saved_PDF_URL.length() > 0) && (JedilnikDatum.length() > 0) && (Jedilnik[0].length() > 0) && (Jedilnik[1].length() > 0) && (Jedilnik[2].length() > 0) && (Jedilnik[3].length() > 0) && (Jedilnik[4].length() > 0);
 
   if (ok){
-    Serial.println("OK");
-    DisplayText("OK\n", CLGREEN);
+    Serial.println("File read OK");
+    DisplayText("File read OK\n", CLGREEN);
   } else {
-    Serial.println("FAIL");
-    DisplayText("FAIL\n", CLRED);
+    Serial.println("File read FAIL");
+    DisplayText("File read FAIL\n", CLRED);
   }
 
   return ok;  
@@ -302,63 +301,76 @@ void GetJedilnikOsDomzale(void){
       Serial.println("Conversion finished OK");
       DisplayText("Conversion finished OK\n", CLGREEN);
       //Serial.println(ZamzarData);
-      String Jedilnik = utf8ascii(ZamzarData.c_str());
+      String CelJedilnik = utf8ascii(ZamzarData.c_str());
       ZamzarData.clear(); // free mem
       //Serial.println(Jedilnik);
+
+      JedilnikDatum.clear();
+      int idx = CelJedilnik.indexOf("2024");
+      if (idx > 0) {
+        JedilnikDatum = CelJedilnik.substring(idx-15, idx+4);
+        TrimDoubleSpaces(JedilnikDatum);
+      }
+
       // remove footer
-      Jedilnik.remove(Jedilnik.indexOf("Pridruzujemo"));
+      CelJedilnik.remove(CelJedilnik.indexOf("Pridruzujemo"));
       // remove header
-      Jedilnik.remove(0, Jedilnik.indexOf("PETEK") + 6);
-      Serial.println(Jedilnik);
+      CelJedilnik.remove(0, CelJedilnik.indexOf("PETEK") + 6);
+      Serial.println(CelJedilnik);
 
       // try fixed width
       unsigned int column = 0;
       char chr;
-      for (unsigned int i = 0; i < Jedilnik.length(); i++)
+      for (unsigned int i = 0; i < CelJedilnik.length(); i++)
       {
-        chr = Jedilnik.charAt(i);
+        chr = CelJedilnik.charAt(i);
         if ((chr == 13) || (chr == 10)) column = 0; // new line
         if (column < 24) {
           // obrok
         } else 
         if (column < 54) {
-          Pon.concat(chr);
+          Jedilnik[0].concat(chr);
         } else 
         if (column < 83) {
-          Tor.concat(chr);
+          Jedilnik[1].concat(chr);
         } else 
         if (column < 109) {
-          Sre.concat(chr);
+          Jedilnik[2].concat(chr);
         } else 
         if (column < 149) {
-          Cet.concat(chr);
+          Jedilnik[3].concat(chr);
         } else {
-          Pet.concat(chr);
+          Jedilnik[4].concat(chr);
         }
         column++;
       }
       Serial.println();
 
-      Jedilnik.clear(); // free mem    
-      
-      TrimDoubleSpaces(Pon);
-      TrimDoubleSpaces(Tor);
-      TrimDoubleSpaces(Sre);
-      TrimDoubleSpaces(Cet);
-      TrimDoubleSpaces(Pet);
+      CelJedilnik.clear(); // free mem    
 
-      Serial.println("-------------------");
-      Serial.println(Pon);
-      Serial.println("-------------------");
-      Serial.println(Tor);
-      Serial.println("-------------------");
-      Serial.println(Sre);
-      Serial.println("-------------------");
-      Serial.println(Cet);
-      Serial.println("-------------------");
-      Serial.println(Pet);
-      Serial.println("-------------------");
+      // clean unneeded words
+      for (int i = 0; i < 5; i++)
+      {
+        int idx = Jedilnik[i].indexOf("SSSZ:");
+        if (idx > 0) Jedilnik[i].remove(idx, 5);
+        idx = Jedilnik[i].indexOf("*");
+        if (idx > 0) Jedilnik[i].remove(idx, 1);
+        idx = Jedilnik[i].indexOf("1");
+        if (idx > 0) Jedilnik[i].remove(idx, 1);
+      }
 
+      // list extracted data
+      Serial.println("-------------------");
+      Serial.println(PDF_URL);
+      Serial.println("-------------------");
+      Serial.println(JedilnikDatum);
+      Serial.println("-------------------");
+      for (int i = 0; i < 5; i++)
+      {
+        TrimDoubleSpaces(Jedilnik[i]);
+        Serial.println(Jedilnik[i]);
+      }
+      Serial.println("-------------------");
 
       fs::File file = SPIFFS.open(FileName, FILE_WRITE);
       if(!file){
@@ -370,30 +382,19 @@ void GetJedilnikOsDomzale(void){
       } else {
           Serial.println("- write failed");
       }
-      if(file.println(Pon)){
+      if(file.println(JedilnikDatum)){
           Serial.println("- file written");
       } else {
           Serial.println("- write failed");
       }
-      if(file.println(Tor)){
-          Serial.println("- file written");
-      } else {
-          Serial.println("- write failed");
-      }
-      if(file.println(Sre)){
-          Serial.println("- file written");
-      } else {
-          Serial.println("- write failed");
-      }
-      if(file.println(Cet)){
-          Serial.println("- file written");
-      } else {
-          Serial.println("- write failed");
-      }
-      if(file.println(Pet)){
-          Serial.println("- file written");
-      } else {
-          Serial.println("- write failed");
+
+      for (int i = 0; i < 5; i++)
+      {
+        if(file.println(Jedilnik[i])){
+            Serial.println("- file written");
+        } else {
+            Serial.println("- write failed");
+        }
       }
       file.close();
 
@@ -404,24 +405,69 @@ void GetJedilnikOsDomzale(void){
 }
 
 
+
+int FindUppercaseChar(String &Str, const int StartAt = 0) {
+  char chr;
+  for (unsigned int i = StartAt; i < Str.length(); i++)
+  {
+    chr = Str.charAt(i);
+    if ((chr >= 65) && (chr <= 90)) // A..Z
+    {
+      return i;
+    }    
+  }
+  return -1;  
+}
+
+
+const char* DAYS1[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
+
 void DrawJedilnikOsDomzale(void) {
   DisplayClear();
   String sToday = ArsoWeather[0].DayName;
   sToday.toUpperCase();
   sToday.remove(3);
-
-  DisplayText(sToday.c_str(), 1, 50, 5, CLBLUE);
-  if (sToday == "PON") DisplayText(Pon.c_str(), 1, 1, 30, CLYELLOW, true); else
-  if (sToday == "TOR") DisplayText(Tor.c_str(), 1, 1, 30, CLYELLOW, true); else
-  if (sToday == "SRE") DisplayText(Sre.c_str(), 1, 1, 30, CLYELLOW, true); else
-  if (sToday == "CET") DisplayText(Cet.c_str(), 1, 1, 30, CLYELLOW, true); else
-  if (sToday == "PET") DisplayText(Pet.c_str(), 1, 1, 30, CLYELLOW, true); else {
-    DisplayText(Pon.c_str(), CLYELLOW);
-    DisplayText("\n");
-    DisplayText(Tor.c_str(), CLGREEN);
-    DisplayText("\n");
-    DisplayText(Sre.c_str(), CLCYAN);
-    DisplayText("\n");
+  DisplayText(JedilnikDatum.c_str(), 1, 110, 1, CLBLUE);
+  
+  int idx1, idx2;
+  String Jed[4];
+  bool Workday = false;
+  for (int dan = 0; dan < 5; dan++) { // pon..pet
+    if (sToday.indexOf(DAYS1[dan]) == 0) 
+    {
+      Workday = true;
+      Serial.println("----------------------");
+      // split to separate items
+      idx1 = 0;
+      idx2 = 0;
+      for (int jed = 0; jed < 4; jed++)
+      {
+        Jed[jed].clear();
+        idx2 = FindUppercaseChar(Jedilnik[dan], idx1+1);
+        Serial.println(idx2);
+        if (idx2 < idx1) idx2 = Jedilnik[dan].length();
+        Jed[jed] = Jedilnik[dan].substring(idx1, idx2);
+        idx1 = idx2;
+        Serial.println(Jed[jed]);
+        Serial.println("----------------------");
+      }
+      // backup
+      if ((Jed[1].length() < 5) || (Jed[2].length() < 5)) {
+        Jed[1] = Jedilnik[dan];
+        Jed[2].clear();
+      }
+    }
   }
-
+  if (Workday) {
+    DisplayText(sToday.c_str(), 1, 20, 15, CLGREY);
+    DisplayText(Jed[1].c_str(), 1, 1,  70, CLYELLOW, true);
+    DisplayText(Jed[2].c_str(), 1, 1, 150, CLCYAN, true);
+  } else { // weekend
+    DisplayText("\n\n\n======================================\n", CLGREY);
+    for (int i = 0; i < 5; i++) {
+      DisplayText(Jedilnik[i].c_str(), CLYELLOW);
+      DisplayText("\n======================================\n", CLGREY);
+    }
+    delay(1500);
+  }
 }

@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+void TrimOnlyPrintable (String& Str);
 void TrimNumDot (String& Str);
 void TrimAlfaNum (String& Str);
 void TrimDoubleSpaces (String& Str);
