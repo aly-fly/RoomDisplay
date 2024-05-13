@@ -267,7 +267,7 @@ bool ReadSavedFile(void){
 void GetJedilnikOsDomzale(void){
   bool PdfOk, FileOk, NeedFreshData;
 
-  if ((millis() < (LastTimeJedilnikRefreshed + 60*60*1000)) && (LastTimeJedilnikRefreshed != 0)) {  // check server every hour
+  if ((millis() < (LastTimeJedilnikRefreshed + 2*60*60*1000)) && (LastTimeJedilnikRefreshed != 0)) {  // check server every 2 hours
     Serial.println("Jedilnik OS: Data is valid.");
     return;  // data is already valid
   }
@@ -427,7 +427,6 @@ void DrawJedilnikOsDomzale(void) {
   String sToday = ArsoWeather[0].DayName;
   sToday.toUpperCase();
   sToday.remove(3);
-  DisplayText(JedilnikDatum.c_str(), 1, 110, 1, CLBLUE);
   
   int idx1, idx2;
   String Jed[4];
@@ -459,10 +458,12 @@ void DrawJedilnikOsDomzale(void) {
     }
   }
   if (Workday) {
+    DisplayText(JedilnikDatum.c_str(), 1, 110, 15, CLBLUE);
     DisplayText(sToday.c_str(), 1, 20, 15, CLGREY);
-    DisplayText(Jed[1].c_str(), 1, 1,  70, CLYELLOW, true);
-    DisplayText(Jed[2].c_str(), 1, 1, 150, CLCYAN, true);
+    DisplayText(Jed[1].c_str(), 1, 1,  60, CLYELLOW, true);
+    DisplayText(Jed[2].c_str(), 1, 1, 130, CLCYAN, true);
   } else { // weekend
+    DisplayText(JedilnikDatum.c_str(), 1, 10, 1, CLBLUE);
     DisplayText("\n\n\n======================================\n", CLGREY);
     for (int i = 0; i < 5; i++) {
       DisplayText(Jedilnik[i].c_str(), CLYELLOW);

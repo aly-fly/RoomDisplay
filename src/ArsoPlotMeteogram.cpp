@@ -150,7 +150,7 @@ void ArsoPlotMeteogram(void) {
       idx = MidnightIdx + i * 8;
       if (idx >= MTG_NUMPTS) {break;}
 
-      X = round((Xscaling / 2) + (((float_t)idx) * Xscaling)) + 52;
+      X = round((Xscaling / 2) + (((float_t)idx) * Xscaling)) + 50;
       
       DayIdx = CurrDay + i + DayShift;
       if (DayIdx > 6) DayIdx -=7; // overflow
