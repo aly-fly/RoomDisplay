@@ -1,17 +1,3 @@
-HTTP/1.1 200 OK
-Cache-Control: no-cache, private
-Content-Disposition: attachment; filename="jedilnik-2024-5-1.txt"
-Content-Type: text/plain; charset=utf-8
-Date: Thu, 09 May 2024 13:09:36 GMT
-Server: Apache
-Vary: Authorization,Accept-Encoding
-X-RateLimit-Limit: 180
-X-RateLimit-Remaining: 179
-Zamzar-Credits-Remaining: 98
-Zamzar-Test-Credits-Remaining: 100
-Content-Length: 3500
-Connection: keep-alive
-
                                  OŠ DOMŽALE
 
 

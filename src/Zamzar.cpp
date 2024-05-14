@@ -42,6 +42,7 @@ esp_http_client_config_t config = {
 String ZamzarData;
 
 bool HTTPSconnect(const String URL, const bool PostRequest, const String PostData, const bool PrintZamzarData) {
+  Serial.println("Zamzar: HTTPSconnect()");
   bool result = false;
   
     if (!WiFi.isConnected()) {
@@ -135,6 +136,7 @@ bool HTTPSconnect(const String URL, const bool PostRequest, const String PostDat
 */
 
 bool ConvertPdfToTxt(const String PdfUrl) { 
+    Serial.println("Zamzar: ConvertPdfToTxt()");
     bool ok;
 
     Serial.println("Sending file for online conversion");

@@ -37,6 +37,7 @@ String PDF_URL, Saved_PDF_URL;
 
 
 bool GetPdfLinkFromMainWebsite(void) {
+  Serial.println("GetPdfLinkFromMainWebsite()");
   bool result = false;
   bool Finished = false;
   unsigned int NoMoreData = 0;
@@ -215,7 +216,7 @@ bool GetPdfLinkFromMainWebsite(void) {
 
 
 bool ReadSavedFile(void){
-  Serial.println("Opening local file");
+  Serial.println("ReadSavedFile()");
   DisplayText("Opening local file...");
 
   fs::File file = SPIFFS.open(FileName);
@@ -265,6 +266,7 @@ bool ReadSavedFile(void){
 
 
 void GetJedilnikOsDomzale(void){
+  Serial.println("GetJedilnikOsDomzale()");
   bool PdfOk, FileOk, NeedFreshData;
 
   if ((millis() < (LastTimeJedilnikRefreshed + 2*60*60*1000)) && (LastTimeJedilnikRefreshed != 0)) {  // check server every 2 hours
@@ -316,9 +318,15 @@ void GetJedilnikOsDomzale(void){
       CelJedilnik.remove(CelJedilnik.indexOf("Pridruzujemo"));
       // remove header
       CelJedilnik.remove(0, CelJedilnik.indexOf("PETEK") + 6);
+      Serial.println("===== File contents ==========================================");
       Serial.println(CelJedilnik);
+      Serial.println("==============================================================");
 
-      // try fixed width
+      for (int i = 0; i < 5; i++)
+      {
+        Jedilnik[i].clear();
+      }
+      // try extraction with fixed width
       unsigned int column = 0;
       char chr;
       for (unsigned int i = 0; i < CelJedilnik.length(); i++)
@@ -348,7 +356,7 @@ void GetJedilnikOsDomzale(void){
 
       CelJedilnik.clear(); // free mem    
 
-      // clean unneeded words
+      // clean un-wanted words and chars
       for (int i = 0; i < 5; i++)
       {
         int idx = Jedilnik[i].indexOf("SSSZ:");
@@ -372,31 +380,51 @@ void GetJedilnikOsDomzale(void){
       }
       Serial.println("-------------------");
 
+      Serial.println("Saving data into local file...");
+      DisplayText("Saving data into local file...");
       fs::File file = SPIFFS.open(FileName, FILE_WRITE);
       if(!file){
           Serial.println("- failed to open file for writing");
+          DisplayText("FAIL\n", CLRED);
+          delay(1500);
           return;
       }
+      bool ok = true;
       if(file.println(PDF_URL)){
           Serial.println("- file written");
+          DisplayText(".");
       } else {
           Serial.println("- write failed");
+          ok = false;         
       }
       if(file.println(JedilnikDatum)){
           Serial.println("- file written");
+          DisplayText(".");
       } else {
           Serial.println("- write failed");
+          ok = false;         
       }
 
       for (int i = 0; i < 5; i++)
       {
         if(file.println(Jedilnik[i])){
             Serial.println("- file written");
+            DisplayText(".");
         } else {
             Serial.println("- write failed");
+            ok = false;         
         }
       }
       file.close();
+      if(ok) {
+          Serial.println("File write OK");
+          DisplayText("OK\n", CLGREEN);
+      } else {
+          Serial.println("File write FAIL");
+          DisplayText("FAIL\n", CLRED);
+          delay(1500);
+          return;
+      }
 
     } else { // ConvertPdfToTxt OK
       return;
@@ -423,26 +451,30 @@ int FindUppercaseChar(String &Str, const int StartAt = 0) {
 const char* DAYS1[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
 
 void DrawJedilnikOsDomzale(void) {
+  Serial.println("DrawJedilnikOsDomzale()");
   DisplayClear();
   String sToday = ArsoWeather[0].DayName;
   sToday.toUpperCase();
   sToday.remove(3);
+  Serial.print("Today = ");
+  Serial.println(sToday);
   
   int idx1, idx2;
   String Jed[4];
   bool Workday = false;
-  for (int dan = 0; dan < 5; dan++) { // pon..pet
+  for (int dan = 0; dan < 5; dan++) { // PON..PET
     if (sToday.indexOf(DAYS1[dan]) == 0) 
     {
       Workday = true;
       Serial.println("----------------------");
-      // split to separate items
+      // split to separate meals
       idx1 = 0;
       idx2 = 0;
-      for (int jed = 0; jed < 4; jed++)
+      for (int jed = 0; jed < 4; jed++)  // ZAJTRK, DOP. MALICA, KOSILO, POP. MALICA
       {
         Jed[jed].clear();
         idx2 = FindUppercaseChar(Jedilnik[dan], idx1+1);
+        Serial.print("idx2 = ");
         Serial.println(idx2);
         if (idx2 < idx1) idx2 = Jedilnik[dan].length();
         Jed[jed] = Jedilnik[dan].substring(idx1, idx2);
@@ -450,7 +482,7 @@ void DrawJedilnikOsDomzale(void) {
         Serial.println(Jed[jed]);
         Serial.println("----------------------");
       }
-      // backup
+      // backup, if splitting does not work correctly
       if ((Jed[1].length() < 5) || (Jed[2].length() < 5)) {
         Jed[1] = Jedilnik[dan];
         Jed[2].clear();
