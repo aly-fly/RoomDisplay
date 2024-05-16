@@ -44,6 +44,7 @@ void TrimAlfaNum (String& Str) {
   }  
 }
 
+// remove non-printable chars and double spaces
 void TrimDoubleSpaces (String& Str) {
   if (Str.length() < 2) return;
   bool Found;

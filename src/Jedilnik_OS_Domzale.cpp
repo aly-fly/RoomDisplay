@@ -462,10 +462,19 @@ void DrawJedilnikOsDomzale(void) {
   int idx1, idx2;
   String Jed[4];
   bool Workday = false;
+  int Hr;
   for (int dan = 0; dan < 5; dan++) { // PON..PET
     if (sToday.indexOf(DAYS1[dan]) == 0) 
     {
       Workday = true;
+      // show next day
+      if (CurrentHour(Hr)) {
+        if ((Hr > 17) && (dan < 4)) {
+          dan++;
+          sToday = DAYS1[dan];
+        }
+      }
+
       Serial.println("----------------------");
       // split to separate meals
       idx1 = 0;

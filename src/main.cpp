@@ -15,6 +15,7 @@
 #include "CoinCapAPI.h"
 #include "myPing.h"
 #include "Jedilnik_OS_Domzale.h"
+#include "Jedilnik_Feniks.h"
 
 uint16_t ScreenNumber = 0;
 int Hour;
@@ -272,16 +273,15 @@ void loop() {
 
   // JEDILNIK FENIKS
   if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
-/*    
-    ok = GetFeniks();
-    PlotFeniks();
-    if (ok) delay(3000);
-*/    
+    
+    GetFeniks();
+    DrawFeniks();
+    delay(13000);  
   }
 
 
   ScreenNumber++;
-  if (ScreenNumber >= 6) { // housekeeping at the end of display cycles
+  if (ScreenNumber >= 7) { // housekeeping at the end of display cycles
     if (inHomeLAN)
       ScreenNumber = 0; else
       ScreenNumber = 1;   // skip heat pump
