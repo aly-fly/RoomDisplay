@@ -200,17 +200,18 @@ bool GetPdfLinkFromMainWebsite(void) {
   } else {
     Serial.println("Unable to create HTTPS client");
   }
-    if (result){
-      Serial.println(PDF_URL);
-      DisplayText(PDF_URL.c_str(), CLCYAN);
-      DisplayText("\n");
-      Serial.println("Website read OK");
-      DisplayText("Website read OK\n", CLGREEN);
-    } else {
-      Serial.println("Website read & PDF search FAILED");
-      DisplayText("Website read & PDF search FAILED\n", CLRED);
-    }
-    return result;
+  sBufOld.clear(); // free mem
+  if (result){
+    Serial.println(PDF_URL);
+    DisplayText(PDF_URL.c_str(), CLCYAN);
+    DisplayText("\n");
+    Serial.println("Website read OK");
+    DisplayText("Website read OK\n", CLGREEN);
+  } else {
+    Serial.println("Website read & PDF search FAILED");
+    DisplayText("Website read & PDF search FAILED\n", CLRED);
+  }
+  return result;
 }
 
 
@@ -467,11 +468,12 @@ void DrawJedilnikOsDomzale(void) {
     if (sToday.indexOf(DAYS1[dan]) == 0) 
     {
       Workday = true;
-      // show next day
-      if (CurrentHour(Hr)) {
-        if ((Hr > 17) && (dan < 4)) {
-          dan++;
-          sToday = DAYS1[dan];
+      // show next day, if clock is available
+      if (inHomeLAN) {
+        if (CurrentHour(Hr)) {
+          if ((Hr > 17) && (dan < 4)) {
+            dan++;
+          }
         }
       }
 
@@ -501,7 +503,7 @@ void DrawJedilnikOsDomzale(void) {
   if (Workday) {
     DisplayText(JedilnikDatum.c_str(), 1, 110, 15, CLBLUE);
     DisplayText(sToday.c_str(), 1, 20, 15, CLGREY);
-    DisplayText(Jed[1].c_str(), 1, 1,  60, CLYELLOW, true);
+    DisplayText(Jed[1].c_str(), 1, 1,  50, CLYELLOW, true);
     DisplayText(Jed[2].c_str(), 1, 1, 130, CLCYAN, true);
   } else { // weekend
     DisplayText(JedilnikDatum.c_str(), 1, 10, 1, CLBLUE);
