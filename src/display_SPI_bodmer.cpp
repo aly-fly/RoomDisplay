@@ -83,6 +83,7 @@ void DisplayClear(uint16_t Color) {
   uint16_t TxtColor = TFT_WHITE;
   if (DspBgColor == TFT_WHITE) TxtColor = TFT_BLACK;
   tft.setTextColor(TxtColor, DspBgColor);
+  tft.setTextDatum(TL_DATUM); // top left (default)
 }
 
 void DisplayText(const char Text[]) {
