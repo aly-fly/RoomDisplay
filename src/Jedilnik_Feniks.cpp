@@ -167,14 +167,16 @@ bool ReadFeniksWebsite(void) {
   } else {
     Serial.println("Unable to create HTTPS client");
   }
-    if (result){
-      Serial.println("Website read OK");
-      DisplayText("Website read OK\n", CLGREEN);
-    } else {
-      Serial.println("Website read FAILED");
-      DisplayText("Website read FAILED\n", CLRED);
-    }
-    return result;
+
+  sBufOld.clear(); // free mem
+  if (result){
+    Serial.println("Website read OK");
+    DisplayText("Website read OK\n", CLGREEN);
+  } else {
+    Serial.println("Website read FAILED");
+    DisplayText("Website read FAILED\n", CLRED);
+  }
+  return result;
 }
 
 
@@ -205,7 +207,7 @@ void GetFeniks(void){
 
     // remove all sections "<...>"
     bool Found = true;
-    unsigned int idx1 = 0, idx2 = 0;
+    int idx1 = 0, idx2 = 0;
     while (Found) {
       idx1 = JedilnikCeloten.indexOf('<', idx2);
       idx2 = JedilnikCeloten.indexOf('>', idx1+1);
@@ -234,6 +236,16 @@ void GetFeniks(void){
       JedilnikF[i] = JedilnikCeloten.substring(idx1, idx2-2);
     }
     JedilnikCeloten.clear(); // free mem
+    // remove price for all lines
+    for (int i = 0; i < 5; i++)
+    {
+      idx1 = JedilnikF[i].indexOf("0 e");
+      while (idx1 > 4) {
+        JedilnikF[i].remove(idx1 - 4, 7);
+        idx1 = JedilnikF[i].indexOf("0 e");
+        if (idx1 < 0) idx1 = JedilnikF[i].indexOf("0e");
+      }
+    }
 
     // list extracted data
     Serial.println("-------------------");
@@ -268,13 +280,15 @@ void DrawFeniks(void) {
     if (sToday.indexOf(DAYS2[dan]) == 0) 
     {
       Workday = true;
-      // show next day
-      if (CurrentHour(Hr)) {
-        if ((Hr > 17) && (dan < 4)) {
-          dan++;
+      // show next day, if clock is available
+      if (inHomeLAN) {
+        if (CurrentHour(Hr)) {
+          if ((Hr > 17) && (dan < 4)) {
+            dan++;
+          }
         }
       }
-      DisplayText("Feniks", 1, 130, 2, CLCYAN, true);
+      DisplayText("Feniks", 1, 150, 2, CLCYAN, true);
       DisplayText(JedilnikF[dan].c_str(), 1, 0, 12, CLWHITE, true);
     }
   }

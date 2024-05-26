@@ -91,7 +91,7 @@ void ArsoPlotMeteogram(void) {
 
       if (Y1 > 0) tft.fillRect(X1, DspH-Y1+1, 10, Y1, TFT_CYAN);
       if (Y2 > 0) tft.fillRect(X1, DspH-Y1-Y2, 10, Y2, TFT_PINK);
-      delay(20);
+      delay(5);
     }
 
     // plot wind
@@ -103,7 +103,7 @@ void ArsoPlotMeteogram(void) {
       if (Y1 > DspH) Y1 = DspH;
 
       if (Y1 > 0) tft.fillRect(X1+9, DspH-Y1, 2, Y1, TFT_GREEN);
-      delay(20);
+      delay(5);
     }
 
 
@@ -185,7 +185,7 @@ void ArsoPlotMeteogram(void) {
       Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling + Yoffset;
       Y2 = DspH - Y2;
       tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 10, Y2 + 5, 2);
-      delay(60);
+      delay(50);
     }
 
     // temperature high / red
