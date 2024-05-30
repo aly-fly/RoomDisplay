@@ -27,6 +27,7 @@
   #define CLLIGHTBLUE     0x33FF
   #define CLDARKBLUE  0x000F         // 0x001F -> 0F
   #define CLDARKGREEN TFT_DARKGREEN
+  #define CLDARKGREY  0x18E3 // 32,32,32 //   0x39E7 // 64,64,64
 
 //  The fonts used are in the data folder.
 

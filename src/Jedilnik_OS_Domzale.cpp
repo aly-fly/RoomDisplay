@@ -468,11 +468,16 @@ void DrawJedilnikOsDomzale(void) {
     if (sToday.indexOf(DAYS1[dan]) == 0) 
     {
       Workday = true;
+      Serial.println("Workday = true");
       // show next day, if clock is available
       if (inHomeLAN) {
+        Serial.println("inHomeLAN");
         if (CurrentHour(Hr)) {
+          Serial.println("CurrentHour ok");
           if ((Hr > 16) && (dan < 4)) {
+            Serial.println("dan++");
             dan++;
+            sToday = DAYS1[dan]; // update string
           }
         }
       }
@@ -498,8 +503,9 @@ void DrawJedilnikOsDomzale(void) {
         Jed[1] = Jedilnik[dan];
         Jed[2].clear();
       }
-    }
-  }
+      break; // day matched, data processed
+    } // day matched
+  } // for
   if (Workday) {
     DisplayText(JedilnikDatum.c_str(), 1, 110, 15, CLBLUE);
     DisplayText(sToday.c_str(), 1, 20, 15, CLGREY);

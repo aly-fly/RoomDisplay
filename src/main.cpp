@@ -193,13 +193,13 @@ void loop() {
 
       uint32_t clr = CLBLACK;
       if (ShellyGetSwitch1()) {
-        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLGREY;}
+        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLDARKGREY;}
       }
-      tft.fillSmoothCircle(190, 210, 8, clr, CLDARKGREEN);
+      tft.fillSmoothCircle(200, 210, 8, clr, CLDARKGREEN);
       if (ShellyGetSwitch2()) {
-        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLGREY;}
+        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLDARKGREY;}
       }
-      tft.fillSmoothCircle(220, 210, 8, clr, CLDARKGREEN);
+      tft.fillSmoothCircle(230, 210, 8, clr, CLDARKGREEN);
       delay(7000);
     }
   }
