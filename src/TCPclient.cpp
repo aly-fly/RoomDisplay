@@ -12,6 +12,7 @@ WiFiClient client;
 String TCPresponse;
 
 bool TCPclientConnect(void) {
+    Serial.println("TCPclientConnect()");
     bool result = false;
     if (!WiFi.isConnected()) {
         return false;
@@ -50,8 +51,9 @@ bool TCPclientConnect(void) {
 }
 
 bool TCPclientRequest(const char Text[]) {
+    Serial.println("TCPclientRequest()");
     if (!client.connected()) {
-        DisplayClear();
+        //DisplayClear();
         if (!TCPclientConnect()) {
             return false;
         }

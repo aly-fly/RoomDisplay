@@ -243,6 +243,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
 
 
 bool GetCoinCapData_1H(void) {
+    Serial.println("GetCoinCapData_1H()");
     bool result = false;
 
     if ((millis() < (LastTimeCoinCapRefreshed_1H + 30*60*1000)) && (LastTimeCoinCapRefreshed_1H != 0)) {  // check server every 1/2 hour
@@ -282,6 +283,7 @@ bool GetCoinCapData_1H(void) {
 
 
 bool GetCoinCapData_5M(void) {
+    Serial.println("GetCoinCapData_5M()");
     bool result = false;
 
     if ((millis() < (LastTimeCoinCapRefreshed_5M + 5*60*1000)) && (LastTimeCoinCapRefreshed_5M != 0)) {  // check server every 1/2 hour
@@ -339,6 +341,7 @@ bool GetCoinCapData_5M(void) {
   #include <TFT_eSPI.h>
 
 void PlotCoinCapData(const float *DataArray, const int DataLen, const int LineSpacing, const char BgImage) {
+  Serial.println("PlotCoinCapData()");
   DisplayClear();
 
   if (DataLen < DspW) {

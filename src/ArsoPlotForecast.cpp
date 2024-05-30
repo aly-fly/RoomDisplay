@@ -3,6 +3,7 @@
 #include "ArsoXml.h"
 
 void ArsoPlotForecast(void) {
+    Serial.println("ArsoPlotForecast()");
     String Line;
 
     DisplayClear(CLWHITE);

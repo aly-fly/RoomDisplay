@@ -5,20 +5,18 @@
 #include "__CONFIG.h"
 #include "myWiFi.h"
 
-String sTotalPower;
-float TotalPower;
+String ShellyJsonResponse;
+String sTotalPower, sShellyTemperature;
+float ShellyTotalPower; //, ShellyTemperature;
+bool Shelly1ON = false, Shelly2ON = false;
 
-bool ShellyGetData(void) {
+bool ShellyReadServer(String URL) {
     bool result = false;
-    sTotalPower = "n/a";
-    TotalPower = 0;
     if (!WiFi.isConnected()) {
         return false;
     }
         HTTPClient http;
-
         Serial.println("Shelly connect...");
-        String URL = "http://" + (String)SHELLY_3EM_HOST + (String)"/status";  // DOC: https://shelly-api-docs.shelly.cloud/gen1/#shelly-3em-settings-emeter-index
         if (http.begin(URL)) {
             Serial.println("[HTTP] GET...");
             // start connection and send HTTP header
@@ -26,25 +24,8 @@ bool ShellyGetData(void) {
             // HTTP header has been send and Server response header has been handled
             Serial.printf("[HTTP] GET... code: %d\n", httpCode);
             if (httpCode == HTTP_CODE_OK) {
-                String JsonData = http.getString();
-                // Serial.println(JsonData);
-                // do nout use JSON parser, as we are only interested in one segment ("total_power":74.62,)
-                int idx = JsonData.indexOf("total_power");
-                if (idx > 0) {
-                    unsigned int idxBegin = ((unsigned int) idx) + 13;
-                    unsigned int idxEnd = JsonData.indexOf(",", idxBegin);
-                    sTotalPower = JsonData.substring(idxBegin, idxEnd);
-                    TrimNumDot(sTotalPower);
-                    TotalPower = sTotalPower.toFloat();
-                    Serial.print("Data: ");
-                    Serial.print(sTotalPower);
-                    Serial.print(" = ");
-                    Serial.print(TotalPower);
-                    Serial.println();
-                    result = true;
-                    Serial.println("[SHELLY] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
-                }
-               JsonData = "";  // free memory
+                ShellyJsonResponse = http.getString();
+                result = (ShellyJsonResponse.length() > 10);
             } else {
                 Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
             }
@@ -54,3 +35,102 @@ bool ShellyGetData(void) {
         http.end();
         return result;
     }
+
+
+bool ShellyGetPower(void) {
+    Serial.println("ShellyGetPower()");
+    bool result = false;
+    sTotalPower = "n/a";
+    ShellyTotalPower = 0;
+    if (ShellyReadServer(SHELLY_3EM_URL)) {
+        // Serial.println(JsonData);
+        // do nout use JSON parser, as we are only interested in one segment ("total_power":74.62,)
+        int idx = ShellyJsonResponse.indexOf("total_power");
+        if (idx > 0) {
+            unsigned int idxBegin = ((unsigned int) idx) + 13;
+            unsigned int idxEnd = ShellyJsonResponse.indexOf(",", idxBegin);
+            sTotalPower = ShellyJsonResponse.substring(idxBegin, idxEnd);
+            TrimNumDot(sTotalPower);
+            ShellyTotalPower = sTotalPower.toFloat();
+            Serial.print("Data: ");
+            Serial.print(sTotalPower);
+            Serial.print(" = ");
+            Serial.print(ShellyTotalPower);
+            Serial.println();
+            result = true;
+        }
+    }
+    ShellyJsonResponse.clear();  // free memory
+    return result;
+}
+
+bool ShellyGetTemperature(void) {
+    Serial.println("ShellyGetTemperature()");
+    bool result = false;
+    //sShellyTemperature = "- - C";
+    //ShellyTemperature = 0;
+    if (ShellyReadServer(SHELLY_1PM_ADDON_URL)) {
+        // Serial.println(JsonData);
+        // {"id": 101,"tC":25.2, "tF":77.3}
+        // do nout use JSON parser, as we are only interested in one segment ("tC":25.2,)
+        int idx = ShellyJsonResponse.indexOf("tC");
+        if (idx > 0) {
+            unsigned int idxBegin = ((unsigned int) idx) + 4;
+            unsigned int idxEnd = ShellyJsonResponse.indexOf(",", idxBegin);
+            sShellyTemperature = ShellyJsonResponse.substring(idxBegin, idxEnd);
+            TrimNumDot(sShellyTemperature);
+            // ShellyTemperature = sShellyTemperature.toFloat();
+            sShellyTemperature.concat (" C");
+            Serial.print("Data: ");
+            Serial.print(sShellyTemperature);
+            /*
+            Serial.print(" = ");
+            Serial.print(ShellyTemperature);
+            */
+            Serial.println();
+            result = true;
+        }
+    }
+    ShellyJsonResponse.clear();  // free memory
+    return result;
+}
+
+bool ShellyGetSwitch1(void) {
+    Serial.println("ShellyGetSwitch1()");
+    bool result = false;
+    if (ShellyReadServer(SHELLY_1PM_SW1_URL)) {
+        // {"id":0, "source":"SHC", "output":true, "timer_started_at":1716815065.93, "timer_duration":10800.00, "apower":177.8, "voltage":225.9, "current":0.797, .........
+        int idx = ShellyJsonResponse.indexOf("output");
+        if (idx > 0) {
+            ShellyJsonResponse.remove(0, idx + 8);
+            idx = ShellyJsonResponse.indexOf(",");
+            ShellyJsonResponse.remove(idx);
+            Serial.print("Data: ");
+            Serial.println(ShellyJsonResponse);
+            Shelly1ON = (ShellyJsonResponse == "true");
+            result = true;
+        }
+    }
+    ShellyJsonResponse.clear();  // free memory
+    return result;
+}
+
+bool ShellyGetSwitch2(void) {
+    Serial.println("ShellyGetSwitch2()");
+    bool result = false;
+    if (ShellyReadServer(SHELLY_1PM_SW2_URL)) {
+        // {"id":0, "source":"SHC", "output":true, "timer_started_at":1716815065.93, "timer_duration":10800.00, "apower":177.8, "voltage":225.9, "current":0.797, .........
+        int idx = ShellyJsonResponse.indexOf("output");
+        if (idx > 0) {
+            ShellyJsonResponse.remove(0, idx + 8);
+            idx = ShellyJsonResponse.indexOf(",");
+            ShellyJsonResponse.remove(idx);
+            Serial.print("Data: ");
+            Serial.println(ShellyJsonResponse);
+            Shelly2ON = (ShellyJsonResponse == "true");
+            result = true;
+        }
+    }
+    ShellyJsonResponse.clear();  // free memory
+    return result;
+}

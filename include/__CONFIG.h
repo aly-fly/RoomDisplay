@@ -38,7 +38,14 @@
 #define CLIENT1_PORT  21212
 
 // Shelly
-#define SHELLY_3EM_HOST "10.38.22.111" // Poraba TC
+// DOC: https://shelly-api-docs.shelly.cloud/gen1/#shelly-3em-settings-emeter-index
+#define SHELLY_3EM_URL "http://10.38.22.111/status"  // Poraba TC
+// DOC: https://shelly-api-docs.shelly.cloud/gen2/Addons/ShellySensorAddon#sensoraddongetperipherals-example
+// DOC: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Temperature#temperaturegetstatus-example
+#define SHELLY_1PM_ADDON_URL "http://10.38.22.112/rpc/Temperature.GetStatus?id=101" // Bazen temperatura
+// DOC: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchgetstatus-example
+#define SHELLY_1PM_SW1_URL "http://10.38.22.112/rpc/Switch.GetStatus?id=0" // Bazen pumpa
+#define SHELLY_1PM_SW2_URL "http://10.38.22.113/rpc/Switch.GetStatus?id=0" // Bazen ogrevanje
 
 // ARSO:
 #define ARSO_SERVER_CURRENT_XML_URL   "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
@@ -78,9 +85,9 @@
 
 #else
 
-  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
+  #define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
   //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
-  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+  //#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
   //#define ST7796_DRIVER   // 4 inch LCD
 
   #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin

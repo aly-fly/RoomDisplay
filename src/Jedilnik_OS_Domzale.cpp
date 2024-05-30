@@ -471,7 +471,7 @@ void DrawJedilnikOsDomzale(void) {
       // show next day, if clock is available
       if (inHomeLAN) {
         if (CurrentHour(Hr)) {
-          if ((Hr > 17) && (dan < 4)) {
+          if ((Hr > 16) && (dan < 4)) {
             dan++;
           }
         }

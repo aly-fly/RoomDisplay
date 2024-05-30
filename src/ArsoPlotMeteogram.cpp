@@ -6,6 +6,7 @@ const char* DAYS[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
 
 
 void ArsoPlotMeteogram(void) {
+    Serial.println("ArsoPlotMeteogram()");
     DisplayClear(CLWHITE);
     float_t Xscaling = (float_t) DspW / (float_t)MTG_NUMPTS;
     Serial.printf("Scaling X: %f\r\n", Xscaling);

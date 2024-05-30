@@ -2,9 +2,13 @@
 #ifndef __SHELLYHTTPCLIENT_H_
 #define __SHELLYHTTPCLIENT_H_
 
-bool ShellyGetData(void);
+bool ShellyGetPower(void);
+bool ShellyGetTemperature(void);
+bool ShellyGetSwitch1(void);
+bool ShellyGetSwitch2(void);
 
-extern String sTotalPower;
-extern float TotalPower;
+extern float ShellyTotalPower;
+extern String sShellyTemperature;
+extern bool Shelly1ON, Shelly2ON;
 
 #endif // __SHELLYHTTPCLIENT_H_

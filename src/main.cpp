@@ -141,12 +141,23 @@ void loop() {
   
   //  HEAT PUMP DATA
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
-    TempOutdoor1 = "- - -";
-    TempOutdoor2 = "- - -";
-    char ShellyTxt[10];
-    sprintf(ShellyTxt, "---");
+    if (!inHomeLAN) {
+      ScreenNumber++;
+    } else {
+      DisplayClear(CLBLACK);
+      char FileName[30];
+      sprintf(FileName, "/bg_grass_%dx%d.bmp", DspW, DspH);
+      DisplayShowImage(FileName,   0, 0);
+      DisplayText("Temperatura pred hiso", 1,  20,   8, CLWHITE);
+      DisplayText(SunRiseTime.c_str(), 1,   5+3,       240-45-26-3+3, CLBLACK);  // shadow
+      DisplayText(SunRiseTime.c_str(), 1,   5,         240-45-26-3,   CLYELLOW);
+      DisplayText(SunSetTime.c_str(),  1,  320 - 75+3, 240-45-26-3+3, CLBLACK);  // shadow
+      DisplayText(SunSetTime.c_str(),  1,  320 - 75,   240-45-26-3,   CLYELLOW);
 
-    if (inHomeLAN) {
+      DisplayShowImage("/sunrise.bmp",  0,      240-45);
+      DisplayShowImage("/sunset.bmp",   320-53, 240-45);
+
+      TempOutdoor1 = "- - -";
       if (TCPclientRequest("Outdoor HP")) {
         TCPresponse.replace(",", ".");
         // remove trailing "0"
@@ -154,6 +165,10 @@ void loop() {
         TCPresponse.concat(" C");
         TempOutdoor1 = TCPresponse;
       }
+      DisplayText(TempOutdoor1.c_str(),    2,  92,  46, CLBLACK); // shadow
+      DisplayText(TempOutdoor1.c_str(),    2,  90,  44, CLORANGE);
+
+      TempOutdoor2 = "- - -";
       if (TCPclientRequest("Outdoor")) {
         TCPresponse.replace(",", ".");
         // remove trailing "0"
@@ -161,32 +176,32 @@ void loop() {
         TCPresponse.concat(" C");
         TempOutdoor2 = TCPresponse;
       }
-      if (ShellyGetData()) {
-        //DisplayText(sTotalPower.c_str(), 1, 60, 107, CLRED, false);
-        sprintf(ShellyTxt, "%.2f kW", TotalPower/1000);
+      DisplayText(TempOutdoor2.c_str(),    2,  92, 102, CLBLACK); // shadow
+      DisplayText(TempOutdoor2.c_str(),    2,  90, 100, CLCYAN);
+
+      char ShellyTxt[10];
+      sprintf(ShellyTxt, "- - - kW");
+      if (ShellyGetPower()) {
+        sprintf(ShellyTxt, "%.2f kW", ShellyTotalPower/1000);
       }
-    } // inHomeLAN
+      DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
+      DisplayText(ShellyTxt,               1, 100, 160, CLRED);
 
-    DisplayClear(CLBLACK);
-    char FileName[30];
-    sprintf(FileName, "/bg_grass_%dx%d.bmp", DspW, DspH);
-    DisplayShowImage(FileName,   0, 0);
-    DisplayText("Temperatura pred hiso", 1,  20,   8, CLWHITE);
-    DisplayText(TempOutdoor1.c_str(),    2,  92,  46, CLBLACK); // shadow
-    DisplayText(TempOutdoor1.c_str(),    2,  90,  44, CLORANGE);
-    DisplayText(TempOutdoor2.c_str(),    2,  92, 102, CLBLACK); // shadow
-    DisplayText(TempOutdoor2.c_str(),    2,  90, 100, CLCYAN);
-    DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
-    DisplayText(ShellyTxt,               1, 100, 160, CLRED);
+      if (ShellyGetTemperature()) {}
+      DisplayText(sShellyTemperature.c_str(), 1, 102, 202, CLBLACK); // shadow
+      DisplayText(sShellyTemperature.c_str(), 1, 100, 200, CLLIGHTBLUE);
 
-    DisplayText(SunRiseTime.c_str(), 1,   5+3,       240-45-26-3+3, CLBLACK);  // shadow
-    DisplayText(SunRiseTime.c_str(), 1,   5,         240-45-26-3,   CLYELLOW);
-    DisplayText(SunSetTime.c_str(),  1,  320 - 75+3, 240-45-26-3+3, CLBLACK);  // shadow
-    DisplayText(SunSetTime.c_str(),  1,  320 - 75,   240-45-26-3,   CLYELLOW);
-
-    DisplayShowImage("/sunrise.bmp",  0,      240-45);
-    DisplayShowImage("/sunset.bmp",   320-53, 240-45);
-    delay(6000);
+      uint32_t clr = CLBLACK;
+      if (ShellyGetSwitch1()) {
+        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLGREY;}
+      }
+      tft.fillSmoothCircle(190, 210, 8, clr, CLDARKGREEN);
+      if (ShellyGetSwitch2()) {
+        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLGREY;}
+      }
+      tft.fillSmoothCircle(220, 210, 8, clr, CLDARKGREEN);
+      delay(7000);
+    }
   }
 
 // WEATHER FORECAST  
@@ -200,14 +215,14 @@ void loop() {
   if (ScreenNumber == 2) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetARSOmeteogram();
     if (ok) ArsoPlotMeteogram();
-    if (ok) delay(15000);
+    if (ok) delay(13000);
   }
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
     ok = GetCoinCapData_1H();
     PlotCoinCapData_1H();
-    if (ok) delay(5000);
+    if (ok) delay(4000);
   }
 
   // COIN CAP DATA PLOT
@@ -215,7 +230,7 @@ void loop() {
       if (NightMode) {
       ok = GetCoinCapData_5M();
       PlotCoinCapData_5M();
-      if (ok) delay(3000);
+      if (ok) delay(4000);
       } else ScreenNumber++;
   }
 

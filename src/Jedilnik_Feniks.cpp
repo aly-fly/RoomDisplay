@@ -16,7 +16,7 @@ String JedilnikF[5];
 
 unsigned long LastTimeFeniksRefreshed = 0; // data is not valid
 
-const char* DAYS2[] = { "pon", "tor", "sre", "cet", "pet", "sob", "ned" };
+const char* DAYS2[] = { "ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja" };
 
 const String Feniks_URL = "https://www.gostilnafeniks.si/";
 
@@ -265,7 +265,7 @@ void GetFeniks(void){
 
 
 void DrawFeniks(void) {
-  Serial.println("DrawJedilnikFeniks()");
+  Serial.println("DrawFeniks()");
   DisplayClear();
   String sToday = ArsoWeather[0].DayName;
   sToday.toLowerCase();
@@ -276,14 +276,17 @@ void DrawFeniks(void) {
 
   bool Workday = false;
   int Hr;
+  String Day3;
   for (int dan = 0; dan < 5; dan++) { // PON..PET
-    if (sToday.indexOf(DAYS2[dan]) == 0) 
+    Day3 = DAYS2[dan];
+    Day3.remove(3);
+    if (sToday.indexOf(Day3) == 0) 
     {
       Workday = true;
       // show next day, if clock is available
       if (inHomeLAN) {
         if (CurrentHour(Hr)) {
-          if ((Hr > 17) && (dan < 4)) {
+          if ((Hr > 16) && (dan < 4)) {
             dan++;
           }
         }

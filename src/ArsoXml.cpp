@@ -97,6 +97,7 @@ String SunRiseTime, SunSetTime;
 // ###############################################################################################################################################
 
 bool GetARSOdata(void) {
+    Serial.println("GetARSOdata()");
     bool result = false;
 
     if ((millis() < (LastTimeArsoRefreshed + 60*60*1000)) && (LastTimeArsoRefreshed != 0)) {  // check server every hour
@@ -267,6 +268,7 @@ bool GetARSOdata(void) {
 // ###############################################################################################################################################
 
 bool GetARSOmeteogram(void) {
+    Serial.println("GetARSOmeteogram()");
     bool result = false;
 
     if ((millis() < (LastTimeArsoMeteogramRefreshed + 60*60*1000)) && (LastTimeArsoMeteogramRefreshed != 0)) {  // check server every hour

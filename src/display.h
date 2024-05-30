@@ -24,6 +24,7 @@
   #define CLCYAN     TFT_CYAN
   #define CLGREY     TFT_DARKGREY
   #define CLBLACK    TFT_BLACK
+  #define CLLIGHTBLUE     0x33FF
   #define CLDARKBLUE  0x000F         // 0x001F -> 0F
   #define CLDARKGREEN TFT_DARKGREEN
 
