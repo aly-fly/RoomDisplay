@@ -193,7 +193,6 @@ void GetFeniks(void){
   if (ReadFeniksWebsite()) {
     LastTimeFeniksRefreshed = millis();
 
-    TrimDoubleSpaces(JedilnikCeloten);
     /*
     Serial.println("==========================================");
     Serial.println(JedilnikCeloten);
@@ -202,8 +201,15 @@ void GetFeniks(void){
 
     // parse data:
 
+    // replace Newline with Space
+    JedilnikCeloten.replace("\r", " ");
+    JedilnikCeloten.replace("\n", " ");
+    // remove visual formatting
+    TrimOnlyPrintable(JedilnikCeloten);
     // replace </p> with CRLF
     JedilnikCeloten.replace("</p>", "\r\n");
+    // replace space in the beginning of the line
+    JedilnikCeloten.replace(" \r", "\r");
 
     // remove all sections "<...>"
     bool Found = true;
@@ -218,7 +224,7 @@ void GetFeniks(void){
         idx2 = idx2 - len;
         }
     }  
-    JedilnikCeloten.trim(); // remove leading and trailing spaces
+    TrimDoubleSpaces(JedilnikCeloten);
     JedilnikCeloten.toLowerCase();
     Serial.println("==========================================");
     Serial.println(JedilnikCeloten);
@@ -241,9 +247,13 @@ void GetFeniks(void){
     {
       idx1 = JedilnikF[i].indexOf("0 e");
       while (idx1 > 4) {
-        JedilnikF[i].remove(idx1 - 4, 7);
+        JedilnikF[i].remove(idx1 - 3, 7);
         idx1 = JedilnikF[i].indexOf("0 e");
-        if (idx1 < 0) idx1 = JedilnikF[i].indexOf("0e");
+      }
+      idx1 = JedilnikF[i].indexOf("0e");
+      while (idx1 > 4) {
+        JedilnikF[i].remove(idx1 - 3, 6);
+        idx1 = JedilnikF[i].indexOf("0e");
       }
     }
 
@@ -283,12 +293,10 @@ void DrawFeniks(void) {
     if (sToday.indexOf(Day3) == 0) 
     {
       Workday = true;
-      // show next day, if clock is available
-      if (inHomeLAN) {
-        if (CurrentHour(Hr)) {
-          if ((Hr > 16) && (dan < 4)) {
-            dan++;
-          }
+      // show next day
+      if (CurrentHour(Hr)) {
+        if ((Hr > 16) && (dan < 4)) {
+          dan++;
         }
       }
       DisplayText("Feniks", 1, 150, 2, CLCYAN, true);

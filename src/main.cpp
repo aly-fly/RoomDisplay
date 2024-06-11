@@ -109,14 +109,12 @@ void setup() {
 // ===============================================================================================================================================================
 
 void loop() {
-  if (inHomeLAN) {
-    if(CurrentHour(Hour)) {
-      Serial.println("Hour: " + String(Hour));
-      NightMode = ((Hour >= NIGHT_TIME) || (Hour < DAY_TIME));
-    } else {
-      Serial.println("Getting current time failed!");
-      NightMode = false;
-    }
+  if(CurrentHour(Hour)) {
+    Serial.println("Hour: " + String(Hour));
+    NightMode = ((Hour >= NIGHT_TIME) || (Hour < DAY_TIME));
+  } else {
+    Serial.println("Getting current time failed!");
+    NightMode = false;
   }
 
 #ifdef LDR_PIN
@@ -193,11 +191,12 @@ void loop() {
 
       uint32_t clr = CLBLACK;
       if (ShellyGetSwitch1()) {
-        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLGREY;}
+        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLDARKGREY;}
       }
       tft.fillSmoothCircle(190, 210, 8, clr, CLDARKGREEN);
       if (ShellyGetSwitch2()) {
-        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLGREY;}
+        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLDARKGREY;}
+        if (Shelly2Power > 100) {clr = CLRED;}
       }
       tft.fillSmoothCircle(220, 210, 8, clr, CLDARKGREEN);
       delay(7000);
@@ -227,7 +226,7 @@ void loop() {
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 4) {  // -------------------------------------------------------------------------------------------------------------------------
-      if (NightMode) {
+      if (!NightMode) {
       ok = GetCoinCapData_5M();
       PlotCoinCapData_5M();
       if (ok) delay(4000);

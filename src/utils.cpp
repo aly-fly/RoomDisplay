@@ -49,7 +49,6 @@ void TrimDoubleSpaces (String& Str) {
   if (Str.length() < 2) return;
   bool Found;
   Str.trim(); // remove leading and trailing spaces
-  TrimOnlyPrintable(Str);
   char c1, c2;
   unsigned int i = 0;
   unsigned int len = Str.length()-1;

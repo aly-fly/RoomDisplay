@@ -376,6 +376,7 @@ void GetJedilnikOsDomzale(void){
       Serial.println("-------------------");
       for (int i = 0; i < 5; i++)
       {
+        TrimOnlyPrintable(Jedilnik[i]);
         TrimDoubleSpaces(Jedilnik[i]);
         Serial.println(Jedilnik[i]);
       }
@@ -468,12 +469,11 @@ void DrawJedilnikOsDomzale(void) {
     if (sToday.indexOf(DAYS1[dan]) == 0) 
     {
       Workday = true;
-      // show next day, if clock is available
-      if (inHomeLAN) {
-        if (CurrentHour(Hr)) {
-          if ((Hr > 16) && (dan < 4)) {
-            dan++;
-          }
+      // show next day
+      if (CurrentHour(Hr)) {
+        if ((Hr > 16) && (dan < 4)) {
+          dan++;
+          sToday = DAYS1[dan];
         }
       }
 

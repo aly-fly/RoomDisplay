@@ -9,6 +9,7 @@ String ShellyJsonResponse;
 String sTotalPower, sShellyTemperature;
 float ShellyTotalPower; //, ShellyTemperature;
 bool Shelly1ON = false, Shelly2ON = false;
+float Shelly2Power = 0;
 
 bool ShellyReadServer(String URL) {
     bool result = false;
@@ -105,7 +106,7 @@ bool ShellyGetSwitch1(void) {
             ShellyJsonResponse.remove(0, idx + 8);
             idx = ShellyJsonResponse.indexOf(",");
             ShellyJsonResponse.remove(idx);
-            Serial.print("Data: ");
+            Serial.print("Output 1: ");
             Serial.println(ShellyJsonResponse);
             Shelly1ON = (ShellyJsonResponse == "true");
             result = true;
@@ -118,16 +119,33 @@ bool ShellyGetSwitch1(void) {
 bool ShellyGetSwitch2(void) {
     Serial.println("ShellyGetSwitch2()");
     bool result = false;
+    int idx;
+    unsigned int idxBegin, idxEnd;
+    String tempStr;
     if (ShellyReadServer(SHELLY_1PM_SW2_URL)) {
-        // {"id":0, "source":"SHC", "output":true, "timer_started_at":1716815065.93, "timer_duration":10800.00, "apower":177.8, "voltage":225.9, "current":0.797, .........
-        int idx = ShellyJsonResponse.indexOf("output");
+        // {"id":0, "source":"loopback", "output":false, "apower":0.0, "voltage":228.5, "current":0.000, "aenergy":{"total":68729.347,"by_minute":[0.000,0.000,0.000],"minute_ts":1718004720},"temperature":{"tC":50.3, "tF":122.5}}
+        idx = ShellyJsonResponse.indexOf("output");
         if (idx > 0) {
-            ShellyJsonResponse.remove(0, idx + 8);
-            idx = ShellyJsonResponse.indexOf(",");
-            ShellyJsonResponse.remove(idx);
-            Serial.print("Data: ");
-            Serial.println(ShellyJsonResponse);
-            Shelly2ON = (ShellyJsonResponse == "true");
+            idxBegin = ((unsigned int) idx) + 8;
+            idxEnd = ShellyJsonResponse.indexOf(",", idxBegin);
+            tempStr = ShellyJsonResponse.substring(idxBegin, idxEnd);
+            Serial.print("Output 2: ");
+            Serial.println(tempStr);
+            Shelly2ON = (tempStr == "true");
+            result = true;
+        }
+        idx = ShellyJsonResponse.indexOf("apower");
+        if (idx > 0) {
+            idxBegin = ((unsigned int) idx) + 8;
+            idxEnd = ShellyJsonResponse.indexOf(",", idxBegin);
+            tempStr = ShellyJsonResponse.substring(idxBegin, idxEnd);
+            TrimNumDot(tempStr);
+            Shelly2Power = tempStr.toFloat();
+            Serial.print("Power 2: ");
+            Serial.print(tempStr);
+            Serial.print(" = ");
+            Serial.print(Shelly2Power);
+            Serial.println();
             result = true;
         }
     }

@@ -256,7 +256,7 @@ bool GetCoinCapData_1H(void) {
     DisplayText("Contacting COINCAP server (1H)\n", CLYELLOW);
     if (!GetDataFromCoinCapServer(false)) {
         DisplayText("FAILED!\n", CLRED);
-        delay (500);
+        delay (1500);
         return false;
     }
     Serial.println("Number of data points: " + String(CoinCapDataLength_1H));
@@ -296,7 +296,7 @@ bool GetCoinCapData_5M(void) {
     DisplayText("Contacting COINCAP server (5M)\n", CLYELLOW);
     if (!GetDataFromCoinCapServer(true)) {
         DisplayText("FAILED!\n", CLRED);
-        delay (500);
+        delay (1500);
         return false;
     }
     Serial.println("Number of data points: " + String(CoinCapDataLength_5M));

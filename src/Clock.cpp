@@ -12,20 +12,16 @@ unsigned long LastTimeClockSynced = 0; // data is not valid
 // Required for WiFiClientSecure and for checks the validity date of the certificate. 
 // Setting clock for CA authorization...
 void setClock(void) {
+  Serial.println("setClock()");
 
+  /*
   if (!inHomeLAN) {
-
-    return;    // SNTP configTime does not work. Fortunately HTTPS functions also without the clock.
-
-
     sntp_servermode_dhcp(1); //try to get the ntp server from dhcp
     sntp_setservername(1, TIME_SERVER); //fallback server
     sntp_init();
 
-    /*
-    test sntp server
-    https://github.com/esp8266/Arduino/blob/master/libraries/esp8266/examples/NTP-TZ-DST/NTP-TZ-DST.ino
-    */
+    // test sntp server
+    // https://github.com/esp8266/Arduino/blob/master/libraries/esp8266/examples/NTP-TZ-DST/NTP-TZ-DST.ino
 
     // lwIP v2 is able to list more details about the currently configured SNTP servers
     for (int i = 0; i < SNTP_MAX_SERVERS; i++) {
@@ -49,10 +45,8 @@ void setClock(void) {
 
   // Serial.println ("Manually setting the internal clock...");
   // https://github.com/fbiego/ESP32Time
-
-      return;    // SNTP configTime does not work
     }
-
+    */
 
   if ((millis() < (LastTimeClockSynced + 60*60*1000)) && (LastTimeClockSynced != 0)) {  // check every hour
     return;  // clock is already synced
