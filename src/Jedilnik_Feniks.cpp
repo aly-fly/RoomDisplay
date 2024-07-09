@@ -209,7 +209,7 @@ void GetFeniks(void){
     // replace </p> with CRLF
     JedilnikCeloten.replace("</p>", "\r\n");
     // replace space in the beginning of the line
-    JedilnikCeloten.replace(" \r", "\r");
+    JedilnikCeloten.replace("\r ", "\r");
 
     // remove all sections "<...>"
     bool Found = true;
