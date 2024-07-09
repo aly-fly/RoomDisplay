@@ -19,7 +19,7 @@
 #include "Jedilnik_Feniks.h"
 
 uint16_t ScreenNumber = 0;
-int Hour;
+int Month, Day, Hour;
 bool NightMode = false;
 uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
@@ -109,7 +109,9 @@ void setup() {
 // ===============================================================================================================================================================
 
 void loop() {
-  if(CurrentHour(Hour)) {
+  if(GetCurrentTime(Month, Day, Hour)) {
+    Serial.println("Month: " + String(Month));
+    Serial.println("Day: " + String(Day));
     Serial.println("Hour: " + String(Hour));
     NightMode = ((Hour >= NIGHT_TIME) || (Hour < DAY_TIME));
   } else {
@@ -192,9 +194,9 @@ void loop() {
       uint32_t clr = CLBLACK;
       if (ShellyGetSwitch1()) {
         if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLDARKGREY;}
-        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLDARKGREY;}
       }
       tft.fillSmoothCircle(200, 210, 8, clr, CLDARKGREEN);
+      clr = CLBLACK;
       if (ShellyGetSwitch2()) {
         if (Shelly2ON) {clr = CLORANGE;} else {clr = CLDARKGREY;}
         if (Shelly2Power > 100) {clr = CLRED;}
@@ -237,9 +239,11 @@ void loop() {
   // JEDILNIK OŠ DOMŽALE
   if (ScreenNumber == 5) {  // -------------------------------------------------------------------------------------------------------------------------
     if (inHomeLAN) {
-      GetJedilnikOsDomzale();
-      DrawJedilnikOsDomzale();
-      delay(13000);
+      if ((Month < 7) || (Month > 8)) {
+        GetJedilnikOsDomzale();
+        DrawJedilnikOsDomzale();
+        delay(13000);
+      }
     } else ScreenNumber++;
   }
 

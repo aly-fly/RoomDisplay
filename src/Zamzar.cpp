@@ -8,13 +8,13 @@
 #include "display.h"
 #include "GlobalVariables.h"
 #include "Zamzar_htps_certificate.h"  // rootCACertificate_Zamzar
+#include "___CONFIG_SECRETS.h"
 
 
-  const String apiKey = "eed6d139dc0b59597bce6d5c598b735da678d496";
   const String JobEndpointTest = "sandbox.zamzar.com/v1/jobs";
+  const String FileEndpointTest = "sandbox.zamzar.com/v1/files";
   const String JobEndpoint = "api.zamzar.com/v1/jobs";
   const String FileEndpoint = "api.zamzar.com/v1/files";
-  const String FileEndpointTest = "sandbox.zamzar.com/v1/files";
 
   String JobID, FileID;
 
@@ -143,7 +143,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
     DisplayText("Sending file for online conversion\n");
 
     ZamzarData.clear();
-    String URL = "https://" + apiKey + ":@" + JobEndpointTest;
+    String URL = "https://" + ZamzarApiKey1 + ":@" + JobEndpoint;
     String POSTdata = "source_file=" + PdfUrl + "&target_format=txt";
     Serial.print("URL: ");
     Serial.println(URL);    
@@ -181,7 +181,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
     Serial.println("OK");
     DisplayText("OK\n", CLGREEN);
     // =========================================================
-    URL = "https://" + apiKey + ":@" + JobEndpointTest + "/" + JobID;
+    URL = "https://" + ZamzarApiKey1 + ":@" + JobEndpoint + "/" + JobID;
     Serial.print("URL: ");
     Serial.println(URL);    
     bool Finished = false;
@@ -252,7 +252,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
     Serial.println("Downloading the file");
     DisplayText("Downloading the file\n");
     ZamzarData.clear();
-    URL = "https://" + apiKey + ":@" + FileEndpointTest + "/" + FileID + "/" + "content";
+    URL = "https://" + ZamzarApiKey1 + ":@" + FileEndpoint + "/" + FileID + "/" + "content";
     Serial.print("URL: ");
     Serial.println(URL);    
     ok = HTTPSconnect(URL, false, "", false);

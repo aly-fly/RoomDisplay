@@ -294,7 +294,7 @@ void DrawFeniks(void) {
     {
       Workday = true;
       // show next day
-      if (CurrentHour(Hr)) {
+      if (GetCurrentHour(Hr)) {
         if ((Hr > 16) && (dan < 4)) {
           dan++;
         }

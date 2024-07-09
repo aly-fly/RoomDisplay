@@ -378,6 +378,8 @@ void GetJedilnikOsDomzale(void){
       {
         TrimOnlyPrintable(Jedilnik[i]);
         TrimDoubleSpaces(Jedilnik[i]);
+        // if no data is found, add a sad face, so that file load works normally
+        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
         Serial.println(Jedilnik[i]);
       }
       Serial.println("-------------------");
@@ -471,7 +473,7 @@ void DrawJedilnikOsDomzale(void) {
       Workday = true;
       Serial.println("Workday = true");
       // show next day
-      if (CurrentHour(Hr)) {
+      if (GetCurrentHour(Hr)) {
         if ((Hr > 16) && (dan < 4)) {
           dan++;
           sToday = DAYS1[dan];
