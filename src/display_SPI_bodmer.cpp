@@ -16,7 +16,7 @@ uint16_t DspBgColor = TFT_BLACK;
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
  
   // PWM backlight
-  const int freq = 1234;  // 1 kHz
+  const int freq = 567;  // Hz
   const int ledChannel = 9;  // channel < 8 -> speed_mode = 0 = LEDC_HIGH_SPEED_MODE
   const int resolution = 8; 
 

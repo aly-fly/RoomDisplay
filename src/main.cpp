@@ -132,7 +132,7 @@ void loop() {
 
 #else
   if (NightMode) {
-    DisplaySetBrightness(30);
+    DisplaySetBrightness(20);
   } else { // lower brightness at night
     DisplaySetBrightness(); // full power
   }
@@ -229,11 +229,14 @@ void loop() {
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 4) {  // -------------------------------------------------------------------------------------------------------------------------
+    ScreenNumber++;
+/*    
       if (!NightMode) {
       ok = GetCoinCapData_5M();
       PlotCoinCapData_5M();
       if (ok) delay(4000);
       } else ScreenNumber++;
+*/      
   }
 
   // JEDILNIK OŠ DOMŽALE
