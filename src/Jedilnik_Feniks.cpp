@@ -140,6 +140,7 @@ bool ReadFeniksWebsite(void) {
                 if (NoMoreData > 100) {
                   Serial.println("[HTTPS] Timeout.");
                   DisplayText("\nTimeout.\n", CLRED);
+                  delay(2000);
                 } else {
                   Serial.println("[HTTPS] Connection closed or file end.");
                 }
@@ -175,6 +176,7 @@ bool ReadFeniksWebsite(void) {
   } else {
     Serial.println("Website read FAILED");
     DisplayText("Website read FAILED\n", CLRED);
+    delay(2000);
   }
   return result;
 }

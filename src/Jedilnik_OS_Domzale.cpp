@@ -173,6 +173,7 @@ bool GetPdfLinkFromMainWebsite(void) {
                 if (NoMoreData > 100) {
                   Serial.println("[HTTPS] Timeout.");
                   DisplayText("\nTimeout.\n", CLRED);
+                  delay(2000);
                 } else {
                   Serial.println("[HTTPS] Connection closed or file end.");
                 }
@@ -210,6 +211,7 @@ bool GetPdfLinkFromMainWebsite(void) {
   } else {
     Serial.println("Website read & PDF search FAILED");
     DisplayText("Website read & PDF search FAILED\n", CLRED);
+    delay(2000);
   }
   return result;
 }
@@ -224,6 +226,7 @@ bool ReadSavedFile(void){
   if(!file || file.isDirectory()){
     Serial.println("- failed to open file for reading");
     DisplayText("Fail\n", CLRED);
+    delay(2000);
     return false;
   }
 
@@ -260,6 +263,7 @@ bool ReadSavedFile(void){
   } else {
     Serial.println("File read FAIL");
     DisplayText("File read FAIL\n", CLRED);
+    delay(2000);
   }
 
   return ok;  
@@ -290,7 +294,7 @@ void GetJedilnikOsDomzale(void){
 
     if (NeedFreshData){
       Serial.println("NO match");
-      DisplayText("NO match\n", CLRED);
+      DisplayText("NO match\n", CLORANGE);
     } else {
       Serial.println("match");
       DisplayText("match\n", CLGREEN);
@@ -390,7 +394,7 @@ void GetJedilnikOsDomzale(void){
       if(!file){
           Serial.println("- failed to open file for writing");
           DisplayText("FAIL\n", CLRED);
-          delay(1500);
+          delay(2000);
           return;
       }
       bool ok = true;
@@ -426,7 +430,7 @@ void GetJedilnikOsDomzale(void){
       } else {
           Serial.println("File write FAIL");
           DisplayText("FAIL\n", CLRED);
-          delay(1500);
+          delay(2000);
           return;
       }
 

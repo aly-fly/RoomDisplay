@@ -90,6 +90,7 @@ void WifiInit(void)  {
   if(wifiMulti.run() != WL_CONNECTED) {
     Serial.println("\r\nWiFi connection timeout!");
     DisplayText("\nTIMEOUT!", CLRED);
+    delay(2000);
     //WifiState = disconnected;
     return; // exit loop, exit procedure, continue startup
   }
@@ -104,6 +105,7 @@ void WifiInit(void)  {
     if ((millis() - StartTime) > (WIFI_CONNECT_TIMEOUT_SEC * 1000)) {
       Serial.println("\r\nWiFi connection timeout!");
       DisplayText("\nTIMEOUT!", CLRED);
+      delay(2000);
       //WifiState = disconnected;
       return; // exit loop, exit procedure, continue startup
     }

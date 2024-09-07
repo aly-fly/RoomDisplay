@@ -112,6 +112,7 @@ bool GetARSOdata(void) {
     if (!GetXmlDataFromServer(ARSO_SERVER_CURRENT_XML_URL)) {
         XMLdata = "";  // free memory
         DisplayText("FAILED!\n", CLRED);
+        delay(2000);
         return false;
     }
 
@@ -180,6 +181,7 @@ bool GetARSOdata(void) {
     if (!GetXmlDataFromServer(ARSO_SERVER_FORECAST_XML_URL)) {
         XMLdata = "";  // free memory
         DisplayText("FAILED!\n", CLRED);
+        delay(2000);
         return false;
     }
 
@@ -283,6 +285,7 @@ bool GetARSOmeteogram(void) {
     if (!GetXmlDataFromServer(ARSO_SERVER_METEOGRAM_XML_URL)) {
         XMLdata = "";  // free memory
         DisplayText("FAILED!\n", CLRED);
+        delay(2000);
         return false;
     }
 

@@ -32,6 +32,7 @@ bool CheckForValidDNSresponses(void) {
     if (!WiFi.isConnected()) {
         Serial.println("NO WiFi!");
         DisplayText("NO WiFi!\n", CLRED);
+        delay(2000);
         return false;
     }
 
@@ -72,6 +73,7 @@ bool CheckForValidDNSresponses(void) {
 
     Serial.println("DNS test failed!");
     DisplayText("DNS test failed!\n", CLRED);
+    delay(500);
     return false;
 }
 

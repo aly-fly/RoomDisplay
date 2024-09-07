@@ -43,6 +43,7 @@ bool TCPclientConnect(void) {
         result = true;
     } else {
         DisplayText("FAIL!\n", CLRED);
+        delay(2000);
         Serial.println("Connection failed.");
         result = false;
     }
