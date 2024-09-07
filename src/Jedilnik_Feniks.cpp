@@ -226,7 +226,7 @@ void GetFeniks(void){
         idx2 = idx2 - len;
         }
     }  
-    TrimDoubleSpaces(JedilnikCeloten);
+    TrimDoubleChars(JedilnikCeloten, ' ');
     JedilnikCeloten.toLowerCase();
     Serial.println("==========================================");
     Serial.println(JedilnikCeloten);

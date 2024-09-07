@@ -4,7 +4,7 @@
 void TrimOnlyPrintable (String& Str);
 void TrimNumDot (String& Str);
 void TrimAlfaNum (String& Str);
-void TrimDoubleSpaces (String& Str);
+void TrimDoubleChars (String& Str, char cc);
 
 String FindJsonParam(String& inStr, String needParam, int& Position);
 

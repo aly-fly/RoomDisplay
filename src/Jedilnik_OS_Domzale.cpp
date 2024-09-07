@@ -15,6 +15,7 @@
 #include "ArsoXml.h"
 
 #define FileName "/jOsDom.txt"
+#define DEVEL_FileNameDbg "/celJed.txt"
 String Jedilnik[5];
 String JedilnikDatum;
 
@@ -269,6 +270,7 @@ bool ReadSavedFile(void){
   return ok;  
 }  
 
+#if DEVEL_JEDILNIK_OS != 2  // off or save
 
 void GetJedilnikOsDomzale(void){
   Serial.println("GetJedilnikOsDomzale()");
@@ -313,10 +315,10 @@ void GetJedilnikOsDomzale(void){
       //Serial.println(Jedilnik);
 
       JedilnikDatum.clear();
-      int idx = CelJedilnik.indexOf("2024");
-      if (idx > 0) {
-        JedilnikDatum = CelJedilnik.substring(idx-15, idx+4);
-        TrimDoubleSpaces(JedilnikDatum);
+      int idxx = CelJedilnik.indexOf("202"); // 2024, 2025, ...
+      if (idxx > 0) {
+        JedilnikDatum = CelJedilnik.substring(idxx-15, idxx+4);
+        TrimDoubleChars(JedilnikDatum, ' ');
       }
 
       // remove footer
@@ -327,6 +329,32 @@ void GetJedilnikOsDomzale(void){
       Serial.println(CelJedilnik);
       Serial.println("==============================================================");
 
+#if DEVEL_JEDILNIK_OS == 1 // save to file
+
+      Serial.println("Saving downloaded data into DEVEL file...");
+      DisplayText("Saving into DEVEL file...");
+      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg, FILE_WRITE);
+      if(!file1){
+          Serial.println("- failed to open file DEVEL for writing");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          return;
+      }
+      if(file1.print(CelJedilnik)){
+          Serial.println("- file written");
+          DisplayText("OK\n", CLGREEN);
+      } else {
+          Serial.println("- write failed");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          file1.close();
+          return;
+      }
+      file1.close();
+
+#endif // DEVEL_JEDILNIK_OS == 1 // save to file
+
+/*
       for (int i = 0; i < 5; i++)
       {
         Jedilnik[i].clear();
@@ -360,6 +388,136 @@ void GetJedilnikOsDomzale(void){
       Serial.println();
 
       CelJedilnik.clear(); // free mem    
+      */
+
+
+// NEW ALGORYTHM START
+
+      // remove CR
+      int p = CelJedilnik.indexOf(13);
+      while (p >= 0)
+      {
+        CelJedilnik.remove(p, 1);
+        p = CelJedilnik.indexOf(13);
+      }
+      // replace LF with '#' (this is a new line break symbol)
+      p = CelJedilnik.indexOf(10);
+      while (p >= 0)
+      {
+        CelJedilnik.setCharAt(p, '#');
+        p = CelJedilnik.indexOf(10);
+      }
+      
+      // remove empty lines
+      TrimDoubleChars(CelJedilnik, '#');
+      // remove first line break
+      if (CelJedilnik.charAt(0) == '#') CelJedilnik.remove(0, 1);
+
+      Serial.println("===== DEVEL 2 - fixed line endings ===========================");
+      Serial.println(CelJedilnik);
+      Serial.println("==============================================================");
+
+      // buffer with separate lines
+      String Line[25];
+      int p1, p2, i, j;
+      p1 = 0;
+      p2 = CelJedilnik.indexOf('#');
+      for (i = 0; i < 25; i++)
+      {
+        Line[i] = CelJedilnik.substring(p1, p2);
+        p1 = p2+1;
+        p2 = CelJedilnik.indexOf('#', p1);
+        if (p2 == -1) { break; } // end of data        
+      }
+      CelJedilnik.clear();
+
+      Serial.println("===== DEVEL 3 - separate lines ================================");
+      for (i = 0; i < 25; i++)
+        Serial.println(Line[i]);
+      Serial.println("==============================================================");
+
+      int LongestLine = 0, Len;
+      for (i = 0; i < 25; i++) {
+        Len = Line[i].length();
+        if (Len > LongestLine) { LongestLine = Len; }
+      }
+      Serial.print("Longest line = ");
+      Serial.println(LongestLine);
+
+      // make all lines same length - add spaces at the end
+      for (i = 0; i < 25; i++) {
+        Len = Line[i].length();
+        for (j = 0; j < (LongestLine - Len); j++)
+        {
+          Line[i].concat(' ');
+        }
+      }
+
+      Serial.println("===== DEVEL 4 - all lines same lenghth =======================");
+      for (i = 0; i < 25; i++)
+        Serial.println(Line[i]);
+      Serial.println("==============================================================");
+
+      // search for empty columns
+      Serial.print("Empty columns at: ");
+      DisplayText("Columns: ");
+      int idx, col;
+      int colEndIdx[6];
+      bool colEmpty, prevColEmpty;
+      for (i = 0; i < 6; i++)
+      {
+        colEndIdx[i] = 999; // if column is not found, this will prevent copying all data for remaining days
+      }
+      
+      col = 0;
+      prevColEmpty = true;
+      for (idx = 0; idx < LongestLine; idx++)
+      {
+        colEmpty = true;
+        for (i = 0; i < 25; i++)
+        {
+          if (Line[i].charAt(idx) != ' ') { colEmpty = false; }
+        }
+        if (colEmpty && !prevColEmpty) { // skip consecutive spaces, collect first space(s)
+          Serial.print(idx);
+          Serial.print("   ");
+          DisplayText(String(idx).c_str());
+          DisplayText(" ");
+          colEndIdx[col] = idx;
+          col++;
+          if (col >= 6) {
+            Serial.println("Too many columns found! Dunno what to do. Exiting.");
+            DisplayText("\nToo many columns!\n", CLRED);
+            delay(2000);
+            break; // return;
+          }
+        }
+        prevColEmpty = colEmpty;        
+      }
+      Serial.println();
+      DisplayText("\n");
+      
+      // copy data from columns to days
+
+      for (int i = 0; i < 5; i++)
+      {
+        Jedilnik[i].clear();
+      }
+
+      for (i = 0; i < 25; i++) {
+        Jedilnik[0].concat(Line[i].substring(colEndIdx[0], colEndIdx[1]));
+        Jedilnik[1].concat(Line[i].substring(colEndIdx[1], colEndIdx[2]));
+        Jedilnik[2].concat(Line[i].substring(colEndIdx[2], colEndIdx[3]));
+        Jedilnik[3].concat(Line[i].substring(colEndIdx[3], colEndIdx[4]));
+        Jedilnik[4].concat(Line[i].substring(colEndIdx[4])); // to the end
+      }
+
+      Serial.println("===== DEVEL 5 - text in columns ==============================");
+      for (i = 0; i < 5; i++)
+        Serial.println(Jedilnik[i]);
+      Serial.println("==============================================================");
+
+// NEW ALGORYTHM END
 
       // clean un-wanted words and chars
       for (int i = 0; i < 5; i++)
@@ -381,7 +539,7 @@ void GetJedilnikOsDomzale(void){
       for (int i = 0; i < 5; i++)
       {
         TrimOnlyPrintable(Jedilnik[i]);
-        TrimDoubleSpaces(Jedilnik[i]);
+        TrimDoubleChars(Jedilnik[i], ' ');
         // if no data is found, add a sad face, so that file load works normally
         if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
         Serial.println(Jedilnik[i]);
@@ -440,6 +598,254 @@ void GetJedilnikOsDomzale(void){
   } // (NeedFreshData && PdfOk)
 }
 
+#endif // DEVEL_JEDILNIK_OS != 2  // off or load&test
+
+#if DEVEL_JEDILNIK_OS == 2  // load & test
+
+void GetJedilnikOsDomzale(void){
+  Serial.println("GetJedilnikOsDomzale() DEVEL");
+
+
+
+  DisplayClear();
+  if (true) {
+    if (true) {
+
+
+      String CelJedilnik;
+
+      if (!SPIFFS.exists(DEVEL_FileNameDbg)) {
+        Serial.println("File doesn't exist!");
+        DisplayText("File doesn't exist!\n", CLRED);
+        delay(2000);        
+        return;
+      }
+
+      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg);
+      if(!file1){
+        Serial.println("- failed to open file DEVEL for reading");
+        DisplayText("Fail DEVEL file open\n", CLRED);
+        delay(2000);
+        return;
+      }
+
+      DisplayText(" Reading...");
+      Serial.println("Reading from file DEVEL");
+      CelJedilnik = file1.readString();
+      file1.close();
+
+
+      Serial.println("===== DEVEL File contents ====================================");
+      Serial.println(CelJedilnik);
+      Serial.println("==============================================================");
+
+// NEW ALGORYTHM START
+
+      // remove CR
+      int p = CelJedilnik.indexOf(13);
+      while (p >= 0)
+      {
+        CelJedilnik.remove(p, 1);
+        p = CelJedilnik.indexOf(13);
+      }
+      // replace LF with '#' (this is a new line break symbol)
+      p = CelJedilnik.indexOf(10);
+      while (p >= 0)
+      {
+        CelJedilnik.setCharAt(p, '#');
+        p = CelJedilnik.indexOf(10);
+      }
+      
+      // remove empty lines
+      TrimDoubleChars(CelJedilnik, '#');
+      // remove first line break
+      if (CelJedilnik.charAt(0) == '#') CelJedilnik.remove(0, 1);
+
+      Serial.println("===== DEVEL 2 - fixed line endings ===========================");
+      Serial.println(CelJedilnik);
+      Serial.println("==============================================================");
+
+      // buffer with separate lines
+      String Line[25];
+      int p1, p2, i, j;
+      p1 = 0;
+      p2 = CelJedilnik.indexOf('#');
+      for (i = 0; i < 25; i++)
+      {
+        Line[i] = CelJedilnik.substring(p1, p2);
+        p1 = p2+1;
+        p2 = CelJedilnik.indexOf('#', p1);
+        if (p2 == -1) { break; } // end of data        
+      }
+      CelJedilnik.clear();
+
+      Serial.println("===== DEVEL 3 - separate lines ================================");
+      for (i = 0; i < 25; i++)
+        Serial.println(Line[i]);
+      Serial.println("==============================================================");
+
+      int LongestLine = 0, Len;
+      for (i = 0; i < 25; i++) {
+        Len = Line[i].length();
+        if (Len > LongestLine) { LongestLine = Len; }
+      }
+      Serial.print("Longest line = ");
+      Serial.println(LongestLine);
+
+      // make all lines same length - add spaces at the end
+      for (i = 0; i < 25; i++) {
+        Len = Line[i].length();
+        for (j = 0; j < (LongestLine - Len); j++)
+        {
+          Line[i].concat(' ');
+        }
+      }
+
+      Serial.println("===== DEVEL 4 - all lines same lenghth =======================");
+      for (i = 0; i < 25; i++)
+        Serial.println(Line[i]);
+      Serial.println("==============================================================");
+
+      // search for empty columns
+      Serial.print("Empty columns at: ");
+      DisplayText("Columns: ");
+      int idx, col;
+      int colEndIdx[6];
+      bool colEmpty, prevColEmpty;
+      for (i = 0; i < 6; i++)
+      {
+        colEndIdx[i] = 999; // if column is not found, this will prevent copying all data for remaining days
+      }
+      
+      col = 0;
+      for (idx = 0; idx < LongestLine; idx++)
+      {
+        colEmpty = true;
+        for (i = 0; i < 25; i++)
+        {
+          if (Line[i].charAt(idx) != ' ') { colEmpty = false; }
+        }
+        if (colEmpty && !prevColEmpty) { // skip consecutive spaces, collect first space(s)
+          Serial.print(idx);
+          Serial.print("   ");
+          DisplayText(String(idx).c_str());
+          DisplayText(" ");
+          colEndIdx[col] = idx;
+          col++;
+          if (col >= 6) {
+            Serial.println("Too many columns found! Dunno what to do. Exiting.");
+            DisplayText("\nToo many columns!\n", CLRED);
+            delay(2000);
+            return;
+          }
+        }
+        prevColEmpty = colEmpty;        
+      }
+      Serial.println();
+      DisplayText("\n");
+      
+      // copy data from columns to days
+
+      for (int i = 0; i < 5; i++)
+      {
+        Jedilnik[i].clear();
+      }
+
+      for (i = 0; i < 25; i++) {
+        Jedilnik[0].concat(Line[i].substring(colEndIdx[0], colEndIdx[1]));
+        Jedilnik[1].concat(Line[i].substring(colEndIdx[1], colEndIdx[2]));
+        Jedilnik[2].concat(Line[i].substring(colEndIdx[2], colEndIdx[3]));
+        Jedilnik[3].concat(Line[i].substring(colEndIdx[3], colEndIdx[4]));
+        Jedilnik[4].concat(Line[i].substring(colEndIdx[4])); // to the end
+      }
+
+      Serial.println("===== DEVEL 5 - text in columns ==============================");
+      for (i = 0; i < 5; i++)
+        Serial.println(Jedilnik[i]);
+      Serial.println("==============================================================");
+
+// NEW ALGORYTHM END
+
+      // clean un-wanted words and chars
+      for (int i = 0; i < 5; i++)
+      {
+        int idx = Jedilnik[i].indexOf("SSSZ:");
+        if (idx > 0) Jedilnik[i].remove(idx, 5);
+        idx = Jedilnik[i].indexOf("*");
+        if (idx > 0) Jedilnik[i].remove(idx, 1);
+        idx = Jedilnik[i].indexOf("1");
+        if (idx > 0) Jedilnik[i].remove(idx, 1);
+      }
+
+      // list extracted data
+      Serial.println("-------------------");
+      Serial.println(PDF_URL);
+      Serial.println("-------------------");
+      Serial.println(JedilnikDatum);
+      Serial.println("-------------------");
+      for (int i = 0; i < 5; i++)
+      {
+        TrimOnlyPrintable(Jedilnik[i]);
+        TrimDoubleChars(Jedilnik[i], ' ');
+        // if no data is found, add a sad face, so that file load works normally
+        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
+        Serial.println(Jedilnik[i]);
+      }
+      Serial.println("-------------------");
+
+      Serial.println("Saving data into local file...");
+      DisplayText("Saving data into local file...");
+      fs::File file = SPIFFS.open(FileName, FILE_WRITE);
+      if(!file){
+          Serial.println("- failed to open file for writing");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          return;
+      }
+      bool ok = true;
+      if(file.println(PDF_URL)){
+          Serial.println("- file written");
+          DisplayText(".");
+      } else {
+          Serial.println("- write failed");
+          ok = false;         
+      }
+      if(file.println(JedilnikDatum)){
+          Serial.println("- file written");
+          DisplayText(".");
+      } else {
+          Serial.println("- write failed");
+          ok = false;         
+      }
+
+      for (int i = 0; i < 5; i++)
+      {
+        if(file.println(Jedilnik[i])){
+            Serial.println("- file written");
+            DisplayText(".");
+        } else {
+            Serial.println("- write failed");
+            ok = false;         
+        }
+      }
+      file.close();
+      if(ok) {
+          Serial.println("File write OK");
+          DisplayText("OK\n", CLGREEN);
+      } else {
+          Serial.println("File write FAIL");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          return;
+      }
+
+    } else { // ConvertPdfToTxt OK
+      return;
+    }
+  } // (NeedFreshData && PdfOk)
+}
+
+#endif // DEVEL_JEDILNIK_OS
 
 
 int FindUppercaseChar(String &Str, const int StartAt = 0) {

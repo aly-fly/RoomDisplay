@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "utils.h"
 
+// remove non-printable chars
 void TrimOnlyPrintable (String& Str) {
   Str.trim(); // remove leading and trailing spaces
   for (int16_t i = 0; i < Str.length(); i++)
@@ -44,8 +45,8 @@ void TrimAlfaNum (String& Str) {
   }  
 }
 
-// remove non-printable chars and double spaces
-void TrimDoubleSpaces (String& Str) {
+// remove double chars
+void TrimDoubleChars (String& Str, char cc) {
   if (Str.length() < 2) return;
   bool Found;
   Str.trim(); // remove leading and trailing spaces
@@ -55,7 +56,7 @@ void TrimDoubleSpaces (String& Str) {
   while (i < len) {
     c1 = Str.charAt(i);
     c2 = Str.charAt(i+1);
-    Found = ((c1 == ' ') && (c2 == ' '));
+    Found = ((c1 == cc) && (c2 == cc));
     i++;
     if (Found) {
       Str.remove(i, 1);

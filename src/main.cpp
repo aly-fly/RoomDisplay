@@ -97,6 +97,10 @@ void setup() {
     ScreenNumber = 1;   // skip heat pump display
   }
 
+#if DEVEL_JEDILNIK_OS != 0 // DEVEL mode
+  ScreenNumber = 5;
+#endif
+
   DisplayInitFonts();
 
   DisplayText("Init finished.", CLGREEN)    ;
