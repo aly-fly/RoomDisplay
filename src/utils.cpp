@@ -66,6 +66,22 @@ void TrimDoubleChars (String& Str, char cc) {
   }  
 }
 
+bool IsUppercaseChar(char chr) {
+  return ((chr >= 65) && (chr <= 90));  
+}
+
+int FindUppercaseChar(String &Str, const int StartAt = 0) {
+  char chr;
+  for (unsigned int i = StartAt; i < Str.length(); i++)
+  {
+    chr = Str.charAt(i);
+    if ((chr >= 65) && (chr <= 90)) // A..Z
+    {
+      return i;
+    }    
+  }
+  return -1;  
+}
 
 String FindJsonParam(String& inStr, String needParam, int& Position)
 {

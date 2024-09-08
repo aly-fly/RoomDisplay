@@ -270,6 +270,11 @@ bool ReadSavedFile(void){
   return ok;  
 }  
 
+
+//#############################################################################################################################
+//#############################################################################################################################
+//#############################################################################################################################
+
 #if DEVEL_JEDILNIK_OS != 2  // off or save
 
 void GetJedilnikOsDomzale(void){
@@ -310,6 +315,32 @@ void GetJedilnikOsDomzale(void){
       Serial.println("Conversion finished OK");
       DisplayText("Conversion finished OK\n", CLGREEN);
       //Serial.println(ZamzarData);
+
+#if DEVEL_JEDILNIK_OS == 1 // save to file
+
+      Serial.println("Saving downloaded data into DEVEL file...");
+      DisplayText("Saving into DEVEL file...");
+      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg, FILE_WRITE);
+      if(!file1){
+          Serial.println("- failed to open file DEVEL for writing");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          return;
+      }
+      if(file1.print(ZamzarData)){
+          Serial.println("- file written");
+          DisplayText("OK\n", CLGREEN);
+      } else {
+          Serial.println("- write failed");
+          DisplayText("FAIL\n", CLRED);
+          delay(2000);
+          file1.close();
+          return;
+      }
+      file1.close();
+
+#endif // DEVEL_JEDILNIK_OS == 1 // save to file
+
       String CelJedilnik = utf8ascii(ZamzarData.c_str());
       ZamzarData.clear(); // free mem
       //Serial.println(Jedilnik);
@@ -324,71 +355,18 @@ void GetJedilnikOsDomzale(void){
       // remove footer
       CelJedilnik.remove(CelJedilnik.indexOf("Pridruzujemo"));
       // remove header
-      CelJedilnik.remove(0, CelJedilnik.indexOf("PETEK") + 6);
+      int headerEnd;
+      headerEnd = CelJedilnik.indexOf("PETEK");
+      // other days too, of week is shorter
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("CETRTEK"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("SREDA"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("TOREK"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("PONEDELJEK"); }
+
+      CelJedilnik.remove(0, headerEnd + 6);
       Serial.println("===== File contents ==========================================");
       Serial.println(CelJedilnik);
       Serial.println("==============================================================");
-
-#if DEVEL_JEDILNIK_OS == 1 // save to file
-
-      Serial.println("Saving downloaded data into DEVEL file...");
-      DisplayText("Saving into DEVEL file...");
-      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg, FILE_WRITE);
-      if(!file1){
-          Serial.println("- failed to open file DEVEL for writing");
-          DisplayText("FAIL\n", CLRED);
-          delay(2000);
-          return;
-      }
-      if(file1.print(CelJedilnik)){
-          Serial.println("- file written");
-          DisplayText("OK\n", CLGREEN);
-      } else {
-          Serial.println("- write failed");
-          DisplayText("FAIL\n", CLRED);
-          delay(2000);
-          file1.close();
-          return;
-      }
-      file1.close();
-
-#endif // DEVEL_JEDILNIK_OS == 1 // save to file
-
-/*
-      for (int i = 0; i < 5; i++)
-      {
-        Jedilnik[i].clear();
-      }
-      // try extraction with fixed width
-      unsigned int column = 0;
-      char chr;
-      for (unsigned int i = 0; i < CelJedilnik.length(); i++)
-      {
-        chr = CelJedilnik.charAt(i);
-        if ((chr == 13) || (chr == 10)) column = 0; // new line
-        if (column < 24) {
-          // obrok
-        } else 
-        if (column < 54) {
-          Jedilnik[0].concat(chr);
-        } else 
-        if (column < 83) {
-          Jedilnik[1].concat(chr);
-        } else 
-        if (column < 109) {
-          Jedilnik[2].concat(chr);
-        } else 
-        if (column < 149) {
-          Jedilnik[3].concat(chr);
-        } else {
-          Jedilnik[4].concat(chr);
-        }
-        column++;
-      }
-      Serial.println();
-
-      CelJedilnik.clear(); // free mem    
-      */
 
 
 // NEW ALGORYTHM START
@@ -432,8 +410,11 @@ void GetJedilnikOsDomzale(void){
       CelJedilnik.clear();
 
       Serial.println("===== DEVEL 3 - separate lines ================================");
-      for (i = 0; i < 25; i++)
+      for (i = 0; i < 25; i++) {
+        Serial.print(i);
+        Serial.print(": ");
         Serial.println(Line[i]);
+      }
       Serial.println("==============================================================");
 
       int LongestLine = 0, Len;
@@ -458,44 +439,72 @@ void GetJedilnikOsDomzale(void){
         Serial.println(Line[i]);
       Serial.println("==============================================================");
 
-      // search for empty columns
-      Serial.print("Empty columns at: ");
-      DisplayText("Columns: ");
-      int idx, col;
-      int colEndIdx[6];
-      bool colEmpty, prevColEmpty;
-      for (i = 0; i < 6; i++)
+      // search for data in the first column (and ignore it)
+      int namesPosition = 0;
+      int ignoreFirstCols = 0;
+      for (i = 0; i < 25; i++) {
+        namesPosition = Line[i].indexOf("MALICA");
+        if (namesPosition > 0) {
+          ignoreFirstCols = namesPosition + 9;
+          break;
+        }
+      }
+      Serial.print("Ignore first columns: ");
+      Serial.println(ignoreFirstCols);
+
+      // search for empty columns & ignoring section on the left
+      String dbgTxt1, dbgTxt2;
+      Serial.print("Sections starting at: ");
+      DisplayText("Sections: ");
+      int idx, sectionNum;
+      int colEndIdx[8];
+      int colNumChars, prevColNumChars, colNumCapitals;
+      for (i = 0; i < 8; i++)
       {
         colEndIdx[i] = 999; // if column is not found, this will prevent copying all data for remaining days
       }
       
-      col = 0;
-      prevColEmpty = true;
-      for (idx = 0; idx < LongestLine; idx++)
+      sectionNum = 0;
+      prevColNumChars = 0;
+      for (idx = ignoreFirstCols; idx < LongestLine; idx++)
       {
-        colEmpty = true;
+        colNumChars = 0;
+        colNumCapitals = 0;
         for (i = 0; i < 25; i++)
         {
-          if (Line[i].charAt(idx) != ' ') { colEmpty = false; }
+          if (Line[i].charAt(idx) != ' ') { colNumChars++; }
+          if (IsUppercaseChar(Line[i].charAt(idx))) { colNumCapitals++; }
         }
-        if (colEmpty && !prevColEmpty) { // skip consecutive spaces, collect first space(s)
+
+        dbgTxt1.concat(String(colNumChars) + ';');
+        dbgTxt2.concat(String(colNumCapitals) + ';');
+
+        if ((prevColNumChars < 2) && (colNumCapitals > 0)) { // look for spaces followed by capital(s)
           Serial.print(idx);
-          Serial.print("   ");
+          Serial.print(' ');
           DisplayText(String(idx).c_str());
           DisplayText(" ");
-          colEndIdx[col] = idx;
-          col++;
-          if (col >= 6) {
-            Serial.println("Too many columns found! Dunno what to do. Exiting.");
-            DisplayText("\nToo many columns!\n", CLRED);
+          colEndIdx[sectionNum] = idx;
+          sectionNum++;
+          if (sectionNum >= 8) {
+            Serial.println("\nToo many sections found!");
+            DisplayText("\nToo many sections!\n", CLRED);
+            Serial.println(dbgTxt1);
+            dbgTxt1.clear();
+            Serial.println(dbgTxt2);
+            dbgTxt2.clear();
             delay(2000);
-            break; // return;
+            break;
           }
         }
-        prevColEmpty = colEmpty;        
+        prevColNumChars = colNumChars;
       }
-      Serial.println();
       DisplayText("\n");
+      Serial.println();
+      Serial.println(dbgTxt1);
+      dbgTxt1.clear();
+      Serial.println(dbgTxt2);
+      dbgTxt2.clear();
       
       // copy data from columns to days
 
@@ -510,6 +519,10 @@ void GetJedilnikOsDomzale(void){
         Jedilnik[2].concat(Line[i].substring(colEndIdx[2], colEndIdx[3]));
         Jedilnik[3].concat(Line[i].substring(colEndIdx[3], colEndIdx[4]));
         Jedilnik[4].concat(Line[i].substring(colEndIdx[4])); // to the end
+      }
+      // free mem
+      for (i = 0; i < 25; i++) {
+        Line[i].clear();
       }
 
       Serial.println("===== DEVEL 5 - text in columns ==============================");
@@ -600,6 +613,10 @@ void GetJedilnikOsDomzale(void){
 
 #endif // DEVEL_JEDILNIK_OS != 2  // off or load&test
 
+//#############################################################################################################################
+//#############################################################################################################################
+//#############################################################################################################################
+
 #if DEVEL_JEDILNIK_OS == 2  // load & test
 
 void GetJedilnikOsDomzale(void){
@@ -610,9 +627,6 @@ void GetJedilnikOsDomzale(void){
   DisplayClear();
   if (true) {
     if (true) {
-
-
-      String CelJedilnik;
 
       if (!SPIFFS.exists(DEVEL_FileNameDbg)) {
         Serial.println("File doesn't exist!");
@@ -631,13 +645,37 @@ void GetJedilnikOsDomzale(void){
 
       DisplayText(" Reading...");
       Serial.println("Reading from file DEVEL");
-      CelJedilnik = file1.readString();
+      ZamzarData = file1.readString();
       file1.close();
 
 
-      Serial.println("===== DEVEL File contents ====================================");
+      String CelJedilnik = utf8ascii(ZamzarData.c_str());
+      ZamzarData.clear(); // free mem
+      //Serial.println(Jedilnik);
+
+      JedilnikDatum.clear();
+      int idxx = CelJedilnik.indexOf("202"); // 2024, 2025, ...
+      if (idxx > 0) {
+        JedilnikDatum = CelJedilnik.substring(idxx-15, idxx+4);
+        TrimDoubleChars(JedilnikDatum, ' ');
+      }
+
+      // remove footer
+      CelJedilnik.remove(CelJedilnik.indexOf("Pridruzujemo"));
+      // remove header
+      int headerEnd;
+      headerEnd = CelJedilnik.indexOf("PETEK");
+      // other days too, of week is shorter
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("CETRTEK"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("SREDA"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("TOREK"); }
+      if (headerEnd < 0) { headerEnd = CelJedilnik.indexOf("PONEDELJEK"); }
+
+      CelJedilnik.remove(0, headerEnd + 6);
+      Serial.println("===== File contents ==========================================");
       Serial.println(CelJedilnik);
       Serial.println("==============================================================");
+
 
 // NEW ALGORYTHM START
 
@@ -680,8 +718,11 @@ void GetJedilnikOsDomzale(void){
       CelJedilnik.clear();
 
       Serial.println("===== DEVEL 3 - separate lines ================================");
-      for (i = 0; i < 25; i++)
+      for (i = 0; i < 25; i++) {
+        Serial.print(i);
+        Serial.print(": ");
         Serial.println(Line[i]);
+      }
       Serial.println("==============================================================");
 
       int LongestLine = 0, Len;
@@ -706,43 +747,72 @@ void GetJedilnikOsDomzale(void){
         Serial.println(Line[i]);
       Serial.println("==============================================================");
 
-      // search for empty columns
-      Serial.print("Empty columns at: ");
-      DisplayText("Columns: ");
-      int idx, col;
-      int colEndIdx[6];
-      bool colEmpty, prevColEmpty;
-      for (i = 0; i < 6; i++)
+      // search for data in the first column (and ignore it)
+      int namesPosition = 0;
+      int ignoreFirstCols = 0;
+      for (i = 0; i < 25; i++) {
+        namesPosition = Line[i].indexOf("MALICA");
+        if (namesPosition > 0) {
+          ignoreFirstCols = namesPosition + 9;
+          break;
+        }
+      }
+      Serial.print("Ignore first columns: ");
+      Serial.println(ignoreFirstCols);
+
+      // search for empty columns & ignoring section on the left
+      String dbgTxt1, dbgTxt2;
+      Serial.print("Sections starting at: ");
+      DisplayText("Sections: ");
+      int idx, sectionNum;
+      int colEndIdx[8];
+      int colNumChars, prevColNumChars, colNumCapitals;
+      for (i = 0; i < 8; i++)
       {
         colEndIdx[i] = 999; // if column is not found, this will prevent copying all data for remaining days
       }
       
-      col = 0;
-      for (idx = 0; idx < LongestLine; idx++)
+      sectionNum = 0;
+      prevColNumChars = 0;
+      for (idx = ignoreFirstCols; idx < LongestLine; idx++)
       {
-        colEmpty = true;
+        colNumChars = 0;
+        colNumCapitals = 0;
         for (i = 0; i < 25; i++)
         {
-          if (Line[i].charAt(idx) != ' ') { colEmpty = false; }
+          if (Line[i].charAt(idx) != ' ') { colNumChars++; }
+          if (IsUppercaseChar(Line[i].charAt(idx))) { colNumCapitals++; }
         }
-        if (colEmpty && !prevColEmpty) { // skip consecutive spaces, collect first space(s)
+
+        dbgTxt1.concat(String(colNumChars) + ';');
+        dbgTxt2.concat(String(colNumCapitals) + ';');
+
+        if ((prevColNumChars < 2) && (colNumCapitals > 0)) { // look for spaces followed by capital(s)
           Serial.print(idx);
-          Serial.print("   ");
+          Serial.print(' ');
           DisplayText(String(idx).c_str());
           DisplayText(" ");
-          colEndIdx[col] = idx;
-          col++;
-          if (col >= 6) {
-            Serial.println("Too many columns found! Dunno what to do. Exiting.");
-            DisplayText("\nToo many columns!\n", CLRED);
+          colEndIdx[sectionNum] = idx;
+          sectionNum++;
+          if (sectionNum >= 8) {
+            Serial.println("\nToo many sections found!");
+            DisplayText("\nToo many sections!\n", CLRED);
+            Serial.println(dbgTxt1);
+            dbgTxt1.clear();
+            Serial.println(dbgTxt2);
+            dbgTxt2.clear();
             delay(2000);
-            return;
+            break;
           }
         }
-        prevColEmpty = colEmpty;        
+        prevColNumChars = colNumChars;
       }
-      Serial.println();
       DisplayText("\n");
+      Serial.println();
+      Serial.println(dbgTxt1);
+      dbgTxt1.clear();
+      Serial.println(dbgTxt2);
+      dbgTxt2.clear();
       
       // copy data from columns to days
 
@@ -757,6 +827,10 @@ void GetJedilnikOsDomzale(void){
         Jedilnik[2].concat(Line[i].substring(colEndIdx[2], colEndIdx[3]));
         Jedilnik[3].concat(Line[i].substring(colEndIdx[3], colEndIdx[4]));
         Jedilnik[4].concat(Line[i].substring(colEndIdx[4])); // to the end
+      }
+      // free mem
+      for (i = 0; i < 25; i++) {
+        Line[i].clear();
       }
 
       Serial.println("===== DEVEL 5 - text in columns ==============================");
@@ -847,19 +921,6 @@ void GetJedilnikOsDomzale(void){
 
 #endif // DEVEL_JEDILNIK_OS
 
-
-int FindUppercaseChar(String &Str, const int StartAt = 0) {
-  char chr;
-  for (unsigned int i = StartAt; i < Str.length(); i++)
-  {
-    chr = Str.charAt(i);
-    if ((chr >= 65) && (chr <= 90)) // A..Z
-    {
-      return i;
-    }    
-  }
-  return -1;  
-}
 
 
 const char* DAYS1[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };

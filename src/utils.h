@@ -6,6 +6,9 @@ void TrimNumDot (String& Str);
 void TrimAlfaNum (String& Str);
 void TrimDoubleChars (String& Str, char cc);
 
+bool IsUppercaseChar(char chr);
+int FindUppercaseChar(String &Str, const int StartAt);
+
 String FindJsonParam(String& inStr, String needParam, int& Position);
 
 String FindXMLParam(String& inStr, String needParam, int& Position);
