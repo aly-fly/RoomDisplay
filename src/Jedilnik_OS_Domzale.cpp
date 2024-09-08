@@ -936,47 +936,66 @@ void DrawJedilnikOsDomzale(void) {
   
   int idx1, idx2;
   String Jed[4];
-  bool Workday = false;
+  int processSingleDay = -1;
   int Hr;
-  for (int dan = 0; dan < 5; dan++) { // PON..PET
-    if (sToday.indexOf(DAYS1[dan]) == 0) 
-    {
-      Workday = true;
+  // Monday .. Friday
+  for (int day = 0; day < 5; day++) {
+    if (sToday.indexOf(DAYS1[day]) == 0) {
+      processSingleDay = day;
       Serial.println("Workday = true");
       // show next day
       if (GetCurrentHour(Hr)) {
-        if ((Hr > 16) && (dan < 4)) {
-          dan++;
-          sToday = DAYS1[dan];
-          Serial.println("dan++");
+        if ((Hr > 16) && (day < 4)) {
+          day++;
+          sToday = DAYS1[day];
+          Serial.println("day++");
         }
       }
-
-      Serial.println("----------------------");
-      // split to separate meals
-      idx1 = 0;
-      idx2 = 0;
-      for (int jed = 0; jed < 4; jed++)  // ZAJTRK, DOP. MALICA, KOSILO, POP. MALICA
-      {
-        Jed[jed].clear();
-        idx2 = FindUppercaseChar(Jedilnik[dan], idx1+1);
-        Serial.print("idx2 = ");
-        Serial.println(idx2);
-        if (idx2 < idx1) idx2 = Jedilnik[dan].length();
-        Jed[jed] = Jedilnik[dan].substring(idx1, idx2);
-        idx1 = idx2;
-        Serial.println(Jed[jed]);
-        Serial.println("----------------------");
-      }
-      // backup, if splitting does not work correctly
-      if ((Jed[1].length() < 5) || (Jed[2].length() < 5)) {
-        Jed[1] = Jedilnik[dan];
-        Jed[2].clear();
-      }
-      break; // day matched, data processed
+      break; // day matched
     } // day matched
   } // for
-  if (Workday) {
+
+  // Sunday
+  if (sToday.indexOf(DAYS1[6]) == 0) {
+    Serial.print("Today is Sunday");
+    // show next day
+    if (GetCurrentHour(Hr)) {
+      if (Hr > 16) {
+        processSingleDay = 0; // Monday
+        sToday = DAYS1[0]; // Monday
+        Serial.print(" -> show Monday");
+      }
+      Serial.println();
+    }
+  }
+
+  // process data for that day
+  if (processSingleDay > -1) {
+    Serial.println("----------------------");
+    // split to separate meals
+    idx1 = 0;
+    idx2 = 0;
+    for (int jed = 0; jed < 4; jed++)  // ZAJTRK, DOP. MALICA, KOSILO, POP. MALICA
+    {
+      Jed[jed].clear();
+      idx2 = FindUppercaseChar(Jedilnik[processSingleDay], idx1+1);
+      Serial.print("idx2 = ");
+      Serial.println(idx2);
+      if (idx2 < idx1) idx2 = Jedilnik[processSingleDay].length();
+      Jed[jed] = Jedilnik[processSingleDay].substring(idx1, idx2);
+      idx1 = idx2;
+      Serial.println(Jed[jed]);
+      Serial.println("----------------------");
+    }
+    // backup, if splitting does not work correctly
+    if ((Jed[1].length() < 5) || (Jed[2].length() < 5)) {
+      Jed[1] = Jedilnik[processSingleDay];
+      Jed[2].clear();
+    }
+  }
+
+  // display
+  if (processSingleDay > -1) {
     DisplayText(JedilnikDatum.c_str(), 1, 110, 15, CLBLUE);
     DisplayText(sToday.c_str(), 1, 20, 15, CLGREY);
     DisplayText(Jed[1].c_str(), 1, 1,  50, CLYELLOW, true);

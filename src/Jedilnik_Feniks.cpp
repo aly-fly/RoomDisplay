@@ -286,33 +286,52 @@ void DrawFeniks(void) {
   Serial.println(sToday);
 
 
-  bool Workday = false;
+  int processSingleDay = -1;
   int Hr;
   String Day3;
-  for (int dan = 0; dan < 5; dan++) { // PON..PET
-    Day3 = DAYS2[dan];
+  // Monday .. Friday
+  for (int day = 0; day < 5; day++) { // PON..PET
+    Day3 = DAYS2[day];
     Day3.remove(3);
     if (sToday.indexOf(Day3) == 0) 
     {
-      Workday = true;
+      processSingleDay = day;
       // show next day
       if (GetCurrentHour(Hr)) {
-        if ((Hr > 16) && (dan < 4)) {
-          dan++;
+        if ((Hr > 16) && (day < 4)) {
+          day++;
         }
       }
-      DisplayText("Feniks", 1, 150, 2, CLCYAN, true);
-      DisplayText(JedilnikF[dan].c_str(), 1, 0, 12, CLWHITE, true);
+      break; // day matched
     }
   }
 
-  if (!Workday) { // weekend
-    DisplayText("\n\n\n======================================\n", CLGREY);
-    for (int i = 0; i < 3; i++) {
-      DisplayText(JedilnikF[i].c_str(), CLYELLOW);
-      DisplayText("\n======================================\n", CLGREY);
+  // Sunday
+  Day3 = DAYS2[6];
+  Day3.remove(3);  
+  if (sToday.indexOf(Day3) == 0) {
+    Serial.print("Today is Sunday");
+    // show next day
+    if (GetCurrentHour(Hr)) {
+      if (Hr > 16) {
+        processSingleDay = 0; // Monday
+        Serial.print(" -> show Monday");
+      }
+      Serial.println();
     }
-    delay(1500);
   }
+
+  // process data for that day
+  if (processSingleDay > -1) {
+      DisplayText("Feniks", 1, 150, 2, CLCYAN, true);
+      DisplayText(JedilnikF[processSingleDay].c_str(), 1, 0, 12, CLWHITE, true);
+    } else { // weekend
+      DisplayText("\n\n\n======================================\n", CLGREY);
+      for (int i = 0; i < 3; i++) {
+        DisplayText(JedilnikF[i].c_str(), CLYELLOW);
+        DisplayText("\n======================================\n", CLGREY);
+      }
+  }
+    delay(1500);
 }
 
