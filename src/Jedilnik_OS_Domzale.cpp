@@ -525,9 +525,11 @@ void GetJedilnikOsDomzale(void){
         Line[i].clear();
       }
 
-      Serial.println("===== DEVEL 5 - text in columns ==============================");
-      for (i = 0; i < 5; i++)
+      Serial.println("===== DEVEL 5 - text in columns with spaces ==================");
+      for (i = 0; i < 5; i++) {
         Serial.println(Jedilnik[i]);
+        Serial.println("---------------");
+      }
       Serial.println("==============================================================");
 
 // NEW ALGORYTHM END
@@ -543,6 +545,18 @@ void GetJedilnikOsDomzale(void){
         if (idx > 0) Jedilnik[i].remove(idx, 1);
       }
 
+      for (int i = 0; i < 5; i++)
+      {
+        TrimOnlyPrintable(Jedilnik[i]);
+        TrimDoubleChars(Jedilnik[i], ' ');
+        // if no data is found, add a sad face, so that file load works normally
+        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
+      }
+      // clean un-wanted words #2
+      for (int i = 0; i < 5; i++)
+      {
+        Jedilnik[i].replace("Dodatno iz EU Solske sheme:", ",");
+      }
       // list extracted data
       Serial.println("-------------------");
       Serial.println(PDF_URL);
@@ -551,10 +565,6 @@ void GetJedilnikOsDomzale(void){
       Serial.println("-------------------");
       for (int i = 0; i < 5; i++)
       {
-        TrimOnlyPrintable(Jedilnik[i]);
-        TrimDoubleChars(Jedilnik[i], ' ');
-        // if no data is found, add a sad face, so that file load works normally
-        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
         Serial.println(Jedilnik[i]);
       }
       Serial.println("-------------------");
@@ -833,9 +843,11 @@ void GetJedilnikOsDomzale(void){
         Line[i].clear();
       }
 
-      Serial.println("===== DEVEL 5 - text in columns ==============================");
-      for (i = 0; i < 5; i++)
+      Serial.println("===== DEVEL 5 - text in columns with spaces ==================");
+      for (i = 0; i < 5; i++) {
         Serial.println(Jedilnik[i]);
+        Serial.println("---------------");
+      }
       Serial.println("==============================================================");
 
 // NEW ALGORYTHM END
@@ -851,6 +863,18 @@ void GetJedilnikOsDomzale(void){
         if (idx > 0) Jedilnik[i].remove(idx, 1);
       }
 
+      for (int i = 0; i < 5; i++)
+      {
+        TrimOnlyPrintable(Jedilnik[i]);
+        TrimDoubleChars(Jedilnik[i], ' ');
+        // if no data is found, add a sad face, so that file load works normally
+        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
+      }
+      // clean un-wanted words #2
+      for (int i = 0; i < 5; i++)
+      {
+        Jedilnik[i].replace("Dodatno iz EU Solske sheme:", ",");
+      }
       // list extracted data
       Serial.println("-------------------");
       Serial.println(PDF_URL);
@@ -859,10 +883,6 @@ void GetJedilnikOsDomzale(void){
       Serial.println("-------------------");
       for (int i = 0; i < 5; i++)
       {
-        TrimOnlyPrintable(Jedilnik[i]);
-        TrimDoubleChars(Jedilnik[i], ' ');
-        // if no data is found, add a sad face, so that file load works normally
-        if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
         Serial.println(Jedilnik[i]);
       }
       Serial.println("-------------------");
