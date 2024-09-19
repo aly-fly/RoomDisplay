@@ -288,34 +288,38 @@ void DrawFeniks(void) {
 
   int processSingleDay = -1;
   int Hr;
-  String Day3;
+  String DayF;
   // Monday .. Friday
   for (int day = 0; day < 5; day++) { // PON..PET
-    Day3 = DAYS2[day];
-    Day3.remove(3);
-    if (sToday.indexOf(Day3) == 0) 
+    DayF = DAYS2[day];
+    DayF.remove(3);
+    if (sToday.indexOf(DayF) == 0) 
     {
-      processSingleDay = day;
       // show next day
       if (GetCurrentHour(Hr)) {
         if ((Hr > 16) && (day < 4)) {
           day++;
         }
+      } else {
+        Serial.println("Error getting current hour!");
       }
+      processSingleDay = day;
       break; // day matched
     }
   }
 
   // Sunday
-  Day3 = DAYS2[6];
-  Day3.remove(3);  
-  if (sToday.indexOf(Day3) == 0) {
+  DayF = DAYS2[6];
+  DayF.remove(3);  
+  if (sToday.indexOf(DayF) == 0) {
     Serial.print("Today is Sunday");
     // show next day
     if (GetCurrentHour(Hr)) {
       if (Hr > 16) {
         processSingleDay = 0; // Monday
         Serial.print(" -> show Monday");
+      } else {
+        Serial.println("Error getting current hour!");
       }
       Serial.println();
     }

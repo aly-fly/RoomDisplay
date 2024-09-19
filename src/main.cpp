@@ -136,7 +136,7 @@ void loop() {
 
 #else
   if (NightMode) {
-    DisplaySetBrightness(20);
+    DisplaySetBrightness(12);
   } else { // lower brightness at night
     DisplaySetBrightness(); // full power
   }
@@ -191,21 +191,24 @@ void loop() {
       DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
       DisplayText(ShellyTxt,               1, 100, 160, CLRED);
 
-      if (ShellyGetTemperature()) {}
-      DisplayText(sShellyTemperature.c_str(), 1, 102, 202, CLBLACK); // shadow
-      DisplayText(sShellyTemperature.c_str(), 1, 100, 200, CLLIGHTBLUE);
+      // bazen
+      if ((Month >= 5) && (Month <= 9)) {
+        if (ShellyGetTemperature()) {}
+        DisplayText(sShellyTemperature.c_str(), 1, 102, 202, CLBLACK); // shadow
+        DisplayText(sShellyTemperature.c_str(), 1, 100, 200, CLLIGHTBLUE);
 
-      uint32_t clr = CLBLACK;
-      if (ShellyGetSwitch1()) {
-        if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLDARKGREY;}
-      }
-      tft.fillSmoothCircle(200, 210, 8, clr, CLDARKGREEN);
-      clr = CLBLACK;
-      if (ShellyGetSwitch2()) {
-        if (Shelly2ON) {clr = CLORANGE;} else {clr = CLDARKGREY;}
-        if (Shelly2Power > 100) {clr = CLRED;}
-      }
-      tft.fillSmoothCircle(230, 210, 8, clr, CLDARKGREEN);
+        uint32_t clr = CLDARKGREY;
+        if (ShellyGetSwitch1()) {
+          if (Shelly1ON) {clr = CLLIGHTBLUE;} else {clr = CLBLACK;}
+        }
+        tft.fillSmoothCircle(200, 210, 8, clr, CLDARKGREEN);
+        clr = CLDARKGREY;
+        if (ShellyGetSwitch2()) {
+          if (Shelly2ON) {clr = CLORANGE;} else {clr = CLBLACK;}
+          if (Shelly2Power > 100) {clr = CLRED;}
+        }
+        tft.fillSmoothCircle(230, 210, 8, clr, CLDARKGREEN);
+      } // month
       delay(7000);
     }
   }

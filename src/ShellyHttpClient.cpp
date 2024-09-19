@@ -18,6 +18,8 @@ bool ShellyReadServer(String URL) {
     }
         HTTPClient http;
         Serial.println("Shelly connect...");
+        http.setTimeout(1000); // ms?      (default HTTPCLIENT_DEFAULT_TCP_TIMEOUT = 5000)
+        http.setConnectTimeout(1000); // ms (default HTTPCLIENT_DEFAULT_TCP_TIMEOUT = 5000)
         if (http.begin(URL)) {
             Serial.println("[HTTP] GET...");
             // start connection and send HTTP header
@@ -68,7 +70,7 @@ bool ShellyGetPower(void) {
 bool ShellyGetTemperature(void) {
     Serial.println("ShellyGetTemperature()");
     bool result = false;
-    //sShellyTemperature = "- - C";
+    sShellyTemperature = "----";
     //ShellyTemperature = 0;
     if (ShellyReadServer(SHELLY_1PM_ADDON_URL)) {
         // Serial.println(JsonData);

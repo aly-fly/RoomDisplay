@@ -99,7 +99,7 @@ void ArsoPlotMeteogram(void) {
     for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
       X1 = (Xscaling / 2) + (i * Xscaling);
 
-      Y1 = (ArsoMeteogram[i].WindN - 10) * 2;  // wind lower than 10 km/h is not plotted.
+      Y1 = (ArsoMeteogram[i].WindN - 10) * 3;  // wind lower than 10 km/h is not plotted.
 
       if (Y1 > DspH) Y1 = DspH;
 

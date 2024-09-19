@@ -961,7 +961,6 @@ void DrawJedilnikOsDomzale(void) {
   // Monday .. Friday
   for (int day = 0; day < 5; day++) {
     if (sToday.indexOf(DAYS1[day]) == 0) {
-      processSingleDay = day;
       Serial.println("Workday = true");
       // show next day
       if (GetCurrentHour(Hr)) {
@@ -970,7 +969,10 @@ void DrawJedilnikOsDomzale(void) {
           sToday = DAYS1[day];
           Serial.println("day++");
         }
+      } else {
+        Serial.println("Error getting current hour!");
       }
+      processSingleDay = day;
       break; // day matched
     } // day matched
   } // for
@@ -986,6 +988,8 @@ void DrawJedilnikOsDomzale(void) {
         Serial.print(" -> show Monday");
       }
       Serial.println();
+    } else {
+      Serial.println("Error getting current hour!");
     }
   }
 
