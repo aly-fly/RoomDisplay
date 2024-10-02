@@ -299,6 +299,7 @@ void DrawFeniks(void) {
       if (GetCurrentHour(Hr)) {
         if ((Hr > 16) && (day < 4)) {
           day++;
+          Serial.println("day++");
         }
       } else {
         Serial.println("Error getting current hour!");

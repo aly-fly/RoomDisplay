@@ -47,7 +47,7 @@ void ArsoPlotMeteogram(void) {
       X2 = (i * Xscaling);
       Y2 = 0;
       if ((i % 2) == 1) {Y2 = 32;}
-      FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
+      FN = "/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
       DisplayShowImage(FN.c_str(),  round(X2), Y2);
     }
 

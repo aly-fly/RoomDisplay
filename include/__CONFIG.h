@@ -83,7 +83,14 @@
   #define TFT_MOSI      13
   #define TFT_BL        21
 
-  #define LDR_PINx       34  
+  #define LDR_PINx      34  
+
+  #define SD_MOSI       23
+  #define SD_MISO       19
+  #define SD_SCK        18
+  #define SD_CS          5
+
+  #define IMAGES_ON_SD_CARD
 
 #else
 
@@ -125,5 +132,9 @@
 
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #define USER_SETUP_LOADED
+
+// ************ SD CARD CONFIG *********************
+#define SPI_FREQ_SDCARD 20000000  // default 4 MHz; max 25 MHz
+#define SPI_DMA_MAX 4095 
 
 #endif /* __CONFIG_H_ */

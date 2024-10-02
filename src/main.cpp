@@ -7,6 +7,7 @@
 #include "display.h"
 #include "myWiFi.h"
 #include "Clock.h"
+#include "SD_Card.h"
 #include "TCPclient.h"
 #include "ArsoXml.h"
 #include "ArsoPlotMeteogram.h"
@@ -27,6 +28,8 @@ bool ok;
 
 void setup() {
   Serial.begin(115200);
+  pinMode(GPIO_NUM_0, INPUT_PULLUP);
+
   // delay 2 sec on the start to connect from programmer to serial terminal
   int i;
   for (i=0; i<10; i++){
@@ -42,8 +45,13 @@ void setup() {
   Serial.println(BUILD_TIMESTAMP);
 
   DisplayInit();
-//      DisplayTest();
-//      DisplayFontTest();
+  /*
+  // TEST
+  if (!digitalRead(GPIO_NUM_0)) {
+      DisplayTest();
+      DisplayFontTest();
+  }
+  */
   DisplayClear();
 
   DisplayText("Init...\n", CLYELLOW);
@@ -61,14 +69,31 @@ void setup() {
   analogSetAttenuation(ADC_0db);
 #endif
 
+  Serial.println("SPIFFS start...");
   DisplayText("SPIFFS start...");
   if (!SPIFFS.begin()) {
     Serial.println("SPIFFS initialisation failed!");
     DisplayText("FAILED!\n", CLRED);
     while (1) yield(); // Stay here twiddling thumbs waiting
   }
-  Serial.println("\r\nSPIFFS available!");
+  Serial.println("SPIFFS available!");
   DisplayText("OK\n", CLGREEN);
+
+  Serial.println("SD Card start...");
+  DisplayText("SD Card start...");
+  if (!SDcardInit()) {
+    Serial.println("SD Card initialisation failed!");
+    DisplayText("FAILED!\n", CLRED);
+    while (1) yield(); // Stay here twiddling thumbs waiting
+  }
+  Serial.println("SD Card available!");
+  DisplayText("OK\n", CLGREEN);
+  // TEST
+  if (!digitalRead(GPIO_NUM_0)) {
+    Serial.println("SD Card TEST!");
+      SD_TEST();
+  }
+
 
   WifiInit();
 

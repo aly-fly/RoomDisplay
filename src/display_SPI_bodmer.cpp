@@ -7,6 +7,8 @@
 #include "display.h"
 // Font files are stored in SPIFFS, so load the library
 #include <SPIFFS.h>
+#include <FS.h>
+#include <SD.h>
 
 signed int DspH;
 signed int DspW;
@@ -239,6 +241,12 @@ void DisplayShowImage_24bpp_only(const char *filename, int16_t x, int16_t y) {
 }
 */
 
+#ifdef IMAGES_ON_SD_CARD
+  #define FILESYS  SD
+#else
+  #define FILESYS  SPIFFS
+#endif
+
 void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgScaling) {
   uint32_t StartTime = millis();
   if ((x >= tft.width()) || (y >= tft.height())) return;
@@ -258,17 +266,17 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
     }
   }
 */
-
-  if (!SPIFFS.exists(filename)) {
+/*
+  if (!FILESYS.exists(filename)) {
     Serial.print("File not found: ");
     Serial.println(filename);
     return;
   }
-
+*/
   fs::File bmpFS;
 
   // Open requested file
-  bmpFS = SPIFFS.open(filename, "r");
+  bmpFS = FILESYS.open(filename, "r");
 
   if (!bmpFS)
   {
@@ -279,6 +287,11 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
 
   Serial.print("Loading: ");
   Serial.println(filename);
+
+#ifdef DEBUG_OUTPUT
+  Serial.print("img file open time: ");
+  Serial.println(millis() - StartTime);  
+#endif
 
   uint32_t seekOffset, headerSize, paletteSize = 0;
   int16_t imgW, imgH, row, col, outW, outY;
@@ -347,6 +360,11 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
   }
 
   bmpFS.seek(seekOffset);
+
+#ifdef DEBUG_OUTPUT
+  Serial.print("img header processing time: ");
+  Serial.println(millis() - StartTime);  
+#endif
 
   uint32_t lineSize = ((bitDepth * imgW +31) >> 5) * 4;
   uint8_t FileLineBuffer[lineSize];

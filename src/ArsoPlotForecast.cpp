@@ -23,16 +23,16 @@ void ArsoPlotForecast(void) {
 
     // na sredini so slikce (original 32x32, povečane x2)
     String FN;
-    FN = "/w/" + ArsoWeather[0].WeatherIcon + ".bmp";
+    FN = "/" + ArsoWeather[0].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),   6, 44, 2);
 
-    FN = "/w/" + ArsoWeather[1].WeatherIcon + ".bmp";
+    FN = "/" + ArsoWeather[1].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  82, 44, 2);
 
-    FN = "/w/" + ArsoWeather[2].WeatherIcon + ".bmp";
+    FN = "/" + ArsoWeather[2].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  174, 44, 2);
 
-    FN = "/w/" + ArsoWeather[3].WeatherIcon + ".bmp";
+    FN = "/" + ArsoWeather[3].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  249, 44, 2);
 
     // wind data
