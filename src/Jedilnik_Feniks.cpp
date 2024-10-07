@@ -9,14 +9,12 @@
 #include "Feniks_https_certificate.h"
 #include "display.h"
 #include "GlobalVariables.h"
-#include "ArsoXml.h"
+#include "ArsoXml.h"  // current day
 
 String JedilnikCeloten;
 String JedilnikF[5];
 
 unsigned long LastTimeFeniksRefreshed = 0; // data is not valid
-
-const char* DAYS2[] = { "ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja" };
 
 const String Feniks_URL = "https://www.gostilnafeniks.si/";
 
@@ -238,8 +236,8 @@ void GetFeniks(void){
     for (int i = 0; i < 5; i++)
     {
       JedilnikF[i].clear();
-      idx1 = JedilnikCeloten.indexOf(DAYS2[i]);
-      idx2 = JedilnikCeloten.indexOf(DAYS2[i+1]);
+      idx1 = JedilnikCeloten.indexOf(DAYSF[i]);
+      idx2 = JedilnikCeloten.indexOf(DAYSF[i+1]);
       if (idx2 < 0) idx2 = JedilnikCeloten.length()-2;
       JedilnikF[i] = JedilnikCeloten.substring(idx1, idx2-2);
     }
@@ -291,7 +289,7 @@ void DrawFeniks(void) {
   String DayF;
   // Monday .. Friday
   for (int day = 0; day < 5; day++) { // PON..PET
-    DayF = DAYS2[day];
+    DayF = DAYSF[day];
     DayF.remove(3);
     if (sToday.indexOf(DayF) == 0) 
     {
@@ -310,7 +308,7 @@ void DrawFeniks(void) {
   }
 
   // Sunday
-  DayF = DAYS2[6];
+  DayF = DAYSF[6];
   DayF.remove(3);  
   if (sToday.indexOf(DayF) == 0) {
     Serial.print("Today is Sunday");

@@ -18,6 +18,7 @@
 #include "myPing.h"
 #include "Jedilnik_OS_Domzale.h"
 #include "Jedilnik_Feniks.h"
+#include "eAsistentUrnik.h"
 
 uint16_t ScreenNumber = 0;
 int Month, Day, Hour;
@@ -96,6 +97,23 @@ void setup() {
 
 
   WifiInit();
+
+
+  
+DisplaySetBrightness(50);
+for (;;) {
+    GetEAsistent();
+
+  DrawEAsistent(0);
+  delay (7000);
+  DrawEAsistent(1);
+  delay (7000);
+
+
+};
+
+
+
 
   if (!inHomeLAN) {
    bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();

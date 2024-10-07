@@ -2,6 +2,9 @@
 #include "Arduino.h"
 #include "utils.h"
 
+const char* DAYS3[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
+const char* DAYSF[] = { "ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja" };
+
 // remove non-printable chars
 void TrimOnlyPrintable (String& Str) {
   Str.trim(); // remove leading and trailing spaces

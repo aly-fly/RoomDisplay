@@ -1,6 +1,12 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define TAB  9
+#define SPACE 32
+
+extern const char* DAYS3[];
+extern const char* DAYSF[];
+
 void TrimOnlyPrintable (String& Str);
 void TrimNumDot (String& Str);
 void TrimAlfaNum (String& Str);

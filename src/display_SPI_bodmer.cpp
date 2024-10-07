@@ -179,7 +179,7 @@ void DisplayShowImage_24bpp_only(const char *filename, int16_t x, int16_t y) {
   fs::File bmpFS;
 
   // Open requested file
-  bmpFS = SPIFFS.open(filename, "r");
+  bmpFS = SPIFFS.open(filename, FILE_READ);
 
   if (!bmpFS)
   {
@@ -276,7 +276,7 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
   fs::File bmpFS;
 
   // Open requested file
-  bmpFS = FILESYS.open(filename, "r");
+  bmpFS = FILESYS.open(filename, FILE_READ);
 
   if (!bmpFS)
   {

@@ -12,6 +12,7 @@
 #include "Zamzar.h"
 #include <FS.h>
 #include <SPIFFS.h>
+#include <SD.h>
 #include "ArsoXml.h"
 
 #define FileName "/jOsDom.txt"
@@ -316,7 +317,7 @@ void GetJedilnikOsDomzale(void){
       DisplayText("Conversion finished OK\n", CLGREEN);
       //Serial.println(ZamzarData);
 
-#if DEVEL_JEDILNIK_OS == 1 // save to file
+#if DEVEL_JEDILNIK_OS == 1 // save to file in SPIFFS
 
       Serial.println("Saving downloaded data into DEVEL file...");
       DisplayText("Saving into DEVEL file...");
@@ -344,6 +345,29 @@ void GetJedilnikOsDomzale(void){
       String CelJedilnik = utf8ascii(ZamzarData.c_str());
       ZamzarData.clear(); // free mem
       //Serial.println(Jedilnik);
+
+#ifdef SD_CS
+      // Save txt to file on SD Card
+      String TxtFileName = PDF_URL;
+      int pp = TxtFileName.lastIndexOf('/');
+      TxtFileName.remove(0, pp);
+      TxtFileName.remove(TxtFileName.length()-3);
+      TxtFileName.concat("txt");
+      Serial.print("Saving converted text to file: ");
+      Serial.println(TxtFileName);
+
+      File fileTxt = SD.open(TxtFileName, FILE_WRITE);
+      if (!fileTxt) {
+        Serial.println("Failed to open file for writing");
+        return;
+      }
+      if (fileTxt.print(CelJedilnik)) {
+        Serial.println("File written");
+      } else {
+        Serial.println("Write failed");
+      }
+      fileTxt.close();
+#endif
 
       JedilnikDatum.clear();
       int idxx = CelJedilnik.indexOf("202"); // 2024, 2025, ...
@@ -645,7 +669,7 @@ void GetJedilnikOsDomzale(void){
         return;
       }
 
-      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg);
+      fs::File file1 = SPIFFS.open(DEVEL_FileNameDbg, FILE_READ);
       if(!file1){
         Serial.println("- failed to open file DEVEL for reading");
         DisplayText("Fail DEVEL file open\n", CLRED);
@@ -942,9 +966,6 @@ void GetJedilnikOsDomzale(void){
 #endif // DEVEL_JEDILNIK_OS
 
 
-
-const char* DAYS1[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
-
 void DrawJedilnikOsDomzale(void) {
   Serial.println("DrawJedilnikOsDomzale()");
   DisplayClear();
@@ -960,13 +981,13 @@ void DrawJedilnikOsDomzale(void) {
   int Hr;
   // Monday .. Friday
   for (int day = 0; day < 5; day++) {
-    if (sToday.indexOf(DAYS1[day]) == 0) {
+    if (sToday.indexOf(DAYS3[day]) == 0) {
       Serial.println("Workday = true");
       // show next day
       if (GetCurrentHour(Hr)) {
         if ((Hr > 16) && (day < 4)) {
           day++;
-          sToday = DAYS1[day];
+          sToday = DAYS3[day];
           Serial.println("day++");
         }
       } else {
@@ -978,13 +999,13 @@ void DrawJedilnikOsDomzale(void) {
   } // for
 
   // Sunday
-  if (sToday.indexOf(DAYS1[6]) == 0) {
+  if (sToday.indexOf(DAYS3[6]) == 0) {
     Serial.print("Today is Sunday");
     // show next day
     if (GetCurrentHour(Hr)) {
       if (Hr > 16) {
         processSingleDay = 0; // Monday
-        sToday = DAYS1[0]; // Monday
+        sToday = DAYS3[0]; // Monday
         Serial.print(" -> show Monday");
       }
       Serial.println();

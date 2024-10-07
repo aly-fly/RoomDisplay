@@ -103,3 +103,12 @@ bool GetCurrentHour(int &Hour) {
   Hour  = timeinfo.tm_hour;
   return result;
 }
+
+// day of the week (1 = Mon, 2 = Tue,.. 7 = Sun)
+bool GetCurrentWeekday(int &WkDay) {
+  struct tm timeinfo;
+  bool result = getLocalTime(&timeinfo);
+  WkDay  = timeinfo.tm_wday; // days since Sunday	0-6
+  if (WkDay == 0) WkDay = 7;
+  return result;
+}

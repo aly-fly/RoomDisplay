@@ -1,9 +1,7 @@
 #include <Arduino.h>
 #include "display.h"
 #include "ArsoXml.h"
-
-const char* DAYS[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
-
+#include "utils.h"
 
 void ArsoPlotMeteogram(void) {
     Serial.println("ArsoPlotMeteogram()");
@@ -39,30 +37,9 @@ void ArsoPlotMeteogram(void) {
       }
     }
 
-    // images
-    String FN;
-    uint8_t idx;
-
-    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
-      X2 = (i * Xscaling);
-      Y2 = 0;
-      if ((i % 2) == 1) {Y2 = 32;}
-      FN = "/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
-      DisplayShowImage(FN.c_str(),  round(X2), Y2);
-    }
-
-/*
-    for (uint8_t i = 0; i < 3; i++) {
-      idx = MidnightIdx + i * 8 + 4;
-      if (idx >= MTG_NUMPTS) {break;}
-      X2 = ((idx-4) * Xscaling) + 5;
-      FN = "/w/" + ArsoMeteogram[idx].WeatherIcon + ".bmp";
-      DisplayShowImage(FN.c_str(),  round(X2), 1);
-    }
-*/
-
     // vertical lines
     int32_t X;
+    uint8_t idx;
     for (uint8_t i = 0; i < 4; i++) {
       idx = MidnightIdx + i * 8;
       X = round((Xscaling / 2) + ((idx) * Xscaling)) - 2;
@@ -119,13 +96,13 @@ void ArsoPlotMeteogram(void) {
     int8_t iToday = ArsoWeather[0].DayN;
     sToday.toUpperCase();
     for (uint8_t i = 0; i < 7; i++) {
-      Found = sToday.indexOf(DAYS[i]) > -1;
+      Found = sToday.indexOf(DAYS3[i]) > -1;
       if (Found) {
         CurrDay = i;
         Serial.print("Today is: ");
         Serial.print(iToday);
         Serial.print(", ");
-        Serial.println(DAYS[CurrDay]);
+        Serial.println(DAYS3[CurrDay]);
         break;
       }
     }
@@ -156,7 +133,7 @@ void ArsoPlotMeteogram(void) {
       DayIdx = CurrDay + i + DayShift;
       if (DayIdx > 6) DayIdx -=7; // overflow
       if (DayIdx < 0) DayIdx +=7; // underflow
-      DisplayText(DAYS[DayIdx], 1, X, DspH-49, CLGREY);
+      DisplayText(DAYS3[DayIdx], 1, X, DspH-49, CLGREY);
     }
 
 
@@ -200,7 +177,28 @@ void ArsoPlotMeteogram(void) {
       tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 20, Y2 - 34, 2);
       delay(60);
     }
-    tft.unloadFont();
 
+    // images
+    String FN;
+
+    for (uint8_t i = 0; i < MTG_NUMPTS; i++) {
+      X2 = (i * Xscaling);
+      Y2 = 0;
+      if ((i % 2) == 1) {Y2 = 32;}
+      FN = "/w/" + ArsoMeteogram[i].WeatherIcon + ".bmp";
+      DisplayShowImage(FN.c_str(),  round(X2), Y2);
+    }
+
+    // temperature high / red - AGAIN, write over images
+    tft.setTextColor(CLRED, CLWHITE);
+    for (uint8_t i = 0; i < 3; i++) {
+      idx = MidnightIdx + i * 8 + 5;
+      if (idx >= MTG_NUMPTS) {break;}
+      X2 = (Xscaling / 2) + ((idx) * Xscaling);
+      Y2 = (ArsoMeteogram[idx].TemperatureN - Minn) * Yscaling + Yoffset;
+      Y2 = DspH - Y2;
+      tft.drawNumber(round(ArsoMeteogram[idx].TemperatureN), X2 - 20, Y2 - 34, 2);
+    }
+    tft.unloadFont();
   }
 
