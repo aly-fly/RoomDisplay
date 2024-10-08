@@ -21,7 +21,6 @@
 #include "eAsistentUrnik.h"
 
 uint16_t ScreenNumber = 0;
-int Month, Day, Hour;
 bool NightMode = false;
 uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
@@ -102,6 +101,10 @@ void setup() {
   
 DisplaySetBrightness(50);
 for (;;) {
+
+    setClock(); 
+    GetCurrentTime();
+    
     GetEAsistent();
 
   DrawEAsistent(0);
@@ -156,11 +159,11 @@ for (;;) {
 // ===============================================================================================================================================================
 
 void loop() {
-  if(GetCurrentTime(Month, Day, Hour)) {
-    Serial.println("Month: " + String(Month));
-    Serial.println("Day: " + String(Day));
-    Serial.println("Hour: " + String(Hour));
-    NightMode = ((Hour >= NIGHT_TIME) || (Hour < DAY_TIME));
+  if(GetCurrentTime()) {
+    Serial.println("Month: " + String(CurrentMonth));
+    Serial.println("Day: " + String(CurrentDay));
+    Serial.println("Hour: " + String(CurrentHour));
+    NightMode = ((CurrentHour >= NIGHT_TIME) || (CurrentHour < DAY_TIME));
   } else {
     Serial.println("Getting current time failed!");
     NightMode = false;
@@ -235,7 +238,7 @@ void loop() {
       DisplayText(ShellyTxt,               1, 100, 160, CLRED);
 
       // bazen
-      if ((Month >= 5) && (Month <= 9)) {
+      if ((CurrentMonth >= 5) && (CurrentMonth <= 9)) {
         if (ShellyGetTemperature()) {}
         DisplayText(sShellyTemperature.c_str(), 1, 102, 202, CLBLACK); // shadow
         DisplayText(sShellyTemperature.c_str(), 1, 100, 200, CLLIGHTBLUE);
@@ -292,7 +295,7 @@ void loop() {
   // JEDILNIK OŠ DOMŽALE
   if (ScreenNumber == 5) {  // -------------------------------------------------------------------------------------------------------------------------
     if (inHomeLAN) {
-      if ((Month < 7) || (Month > 8)) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8)) {
         GetJedilnikOsDomzale();
         DrawJedilnikOsDomzale();
         delay(13000);

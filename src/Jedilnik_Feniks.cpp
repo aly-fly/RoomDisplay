@@ -285,7 +285,6 @@ void DrawFeniks(void) {
 
 
   int processSingleDay = -1;
-  int Hr;
   String DayF;
   // Monday .. Friday
   for (int day = 0; day < 5; day++) { // PON..PET
@@ -294,14 +293,10 @@ void DrawFeniks(void) {
     if (sToday.indexOf(DayF) == 0) 
     {
       // show next day
-      if (GetCurrentHour(Hr)) {
-        if ((Hr > 16) && (day < 4)) {
+        if ((CurrentHour > 16) && (day < 4)) {
           day++;
           Serial.println("day++");
         }
-      } else {
-        Serial.println("Error getting current hour!");
-      }
       processSingleDay = day;
       break; // day matched
     }
@@ -313,15 +308,11 @@ void DrawFeniks(void) {
   if (sToday.indexOf(DayF) == 0) {
     Serial.print("Today is Sunday");
     // show next day
-    if (GetCurrentHour(Hr)) {
-      if (Hr > 16) {
+      if (CurrentHour > 16) {
         processSingleDay = 0; // Monday
         Serial.print(" -> show Monday");
-      } else {
-        Serial.println("Error getting current hour!");
       }
       Serial.println();
-    }
   }
 
   // process data for that day

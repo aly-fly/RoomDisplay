@@ -978,21 +978,16 @@ void DrawJedilnikOsDomzale(void) {
   int idx1, idx2;
   String Jed[4];
   int processSingleDay = -1;
-  int Hr;
   // Monday .. Friday
   for (int day = 0; day < 5; day++) {
     if (sToday.indexOf(DAYS3[day]) == 0) {
       Serial.println("Workday = true");
       // show next day
-      if (GetCurrentHour(Hr)) {
-        if ((Hr > 16) && (day < 4)) {
+        if ((CurrentHour > 16) && (day < 4)) {
           day++;
           sToday = DAYS3[day];
           Serial.println("day++");
         }
-      } else {
-        Serial.println("Error getting current hour!");
-      }
       processSingleDay = day;
       break; // day matched
     } // day matched
@@ -1002,16 +997,12 @@ void DrawJedilnikOsDomzale(void) {
   if (sToday.indexOf(DAYS3[6]) == 0) {
     Serial.print("Today is Sunday");
     // show next day
-    if (GetCurrentHour(Hr)) {
-      if (Hr > 16) {
+      if (CurrentHour > 16) {
         processSingleDay = 0; // Monday
         sToday = DAYS3[0]; // Monday
         Serial.print(" -> show Monday");
       }
       Serial.println();
-    } else {
-      Serial.println("Error getting current hour!");
-    }
   }
 
   // process data for that day

@@ -132,11 +132,12 @@ bool ReadEAsistentWebsite(int teden, String ucenec) {
 //##################################################################################################################
 //##################################################################################################################
 
-void ProcessData (int urnikNr) {
+void ProcessData (int urnikNr, String sName) {
   int idx1, idx2, dan, ura;
   String section, txt, txt_utf, celica;
   bool subTable = false;
   int subTableNum = 0;
+  bool odpadlaUra;
 
   idx1 = 0;
   idx2 = 0;
@@ -148,6 +149,7 @@ void ProcessData (int urnikNr) {
   dan = 0;
   ura = 0;
   celica.clear();
+  odpadlaUra = false;
   while (idx1 > -1)
   {
     txt.clear();
@@ -165,11 +167,19 @@ void ProcessData (int urnikNr) {
     if (section.indexOf("table")  == 0) {
       subTable = true; 
       subTableNum++;
+      Serial.print("   Sub Table ");
+      Serial.println(subTableNum);
       if (subTableNum > 1) txt.concat (" &");
     }
-    if (section.indexOf("/table") == 0) { subTable = false; }
+    if (section.indexOf("/table") == 0) {
+      subTable = false; 
+      Serial.print("   Sub Table end");
+      }
 
-    if (section.indexOf( odpadla ura) == 0) { subTable = false; }
+    if (section.indexOf("ednevnik_seznam_ur_odpadlo") > 0) {
+      odpadlaUra = true;
+      Serial.println("ODPADLO");
+      }
 
     if (subTable == false) { 
       if (section == "/tr") { // konec vrstice
@@ -199,6 +209,7 @@ void ProcessData (int urnikNr) {
     txt.replace("Matematika", "MT");
     txt.replace("Gospodinjstvo", "GS");
     txt.replace("Tehnika in tehnologija", "TT");
+    txt.replace("Sport", "SP");
 
     txt.replace("&nbsp;", " ");
     txt.replace(TAB, SPACE);
@@ -206,8 +217,25 @@ void ProcessData (int urnikNr) {
     if (txt.length() > 0) txt.concat(' '); // just one space at the end
     Serial.println(txt);
     celica.concat(txt);
+
+    // korigiraj odpadle ure
+    if (odpadlaUra) {
+      int pp = celica.lastIndexOf('&');
+      if (pp >= 0) {  // druga sekcija iste celice
+        celica.remove(pp+1);
+        celica.concat(" ODPADLO ");
+      } else {
+        celica = "ODPADLO ";
+      }
+    }
+    odpadlaUra = false;
   }
   RxBuffer.clear();
+
+  for (dan = 0; dan < 6; dan++) {
+    Urnik[urnikNr][dan][0].concat(" " + sName);
+  }
+
   Serial.println("++++++++++++++++++++");
   
   for (ura = 0; ura < 10; ura++) {
@@ -231,11 +259,38 @@ void ProcessData (int urnikNr) {
 void GetEAsistent(void) {
   Serial.println("GetEAsistent()");
 
+  if (GetCurrentTime()) {
+  } else {
+    Serial.println("Error getting current time!");
+  }
+
+  // calculate week number
+  struct tm sStartTime;
+  time_t StartTime, CurrTime;
+  time_t TdiffSec;
+  int currentWeek;
+  // 1.9.2024 = sunday
+  sStartTime.tm_year = 2024 - 1900;
+  sStartTime.tm_mon = 9 - 1;
+  sStartTime.tm_mday = 1;
+  sStartTime.tm_hour = 0;
+  sStartTime.tm_min = 0;
+  StartTime = mktime(&sStartTime);
+  time(&CurrTime);
+  TdiffSec = time_t(difftime(CurrTime, StartTime));
+  Serial.print("Seconds elapsed from school year start: ");
+  Serial.println(TdiffSec);
+  currentWeek = TdiffSec / (7 * 24 * 60 * 60);
+  currentWeek++; // starts with 1
+  Serial.print("Current week from school year start: ");
+  Serial.println(currentWeek);
+
+
   if ((millis() < (LastTimeUrnik1Refreshed + 2*60*60*1000)) && (LastTimeUrnik1Refreshed != 0)) {  // check server every 2 hours
     Serial.println("Urnik 1: Data is valid.");
   } else {
-    if (ReadEAsistentWebsite(6, "9621355")) {
-      ProcessData(0);
+    if (ReadEAsistentWebsite(currentWeek, "9621355")) {
+      ProcessData(0, "TINKARA");
       LastTimeUrnik1Refreshed = millis();
     }
   }
@@ -243,8 +298,8 @@ void GetEAsistent(void) {
   if ((millis() < (LastTimeUrnik2Refreshed + 2*60*60*1000)) && (LastTimeUrnik2Refreshed != 0)) {  // check server every 2 hours
     Serial.println("Urnik 2: Data is valid.");
   } else {
-    if (ReadEAsistentWebsite(6, "9421462")) {
-      ProcessData(1);
+    if (ReadEAsistentWebsite(currentWeek, "9421462")) {
+      ProcessData(1, "MARCEL");
       LastTimeUrnik2Refreshed = millis();
     }
   }
@@ -260,33 +315,26 @@ void GetEAsistent(void) {
 void DrawEAsistent(int urnikNr) {
   Serial.println("DrawEAsistent()");
   DisplayClear();
-  int weekDay;
-  if (GetCurrentWeekday(weekDay)) {
+  if (GetCurrentTime()) {
     Serial.print("Today = ");
-    Serial.println(DAYSF[weekDay-1]);
-  } else {
-    Serial.println("Error getting current weekday!");
-  }
-  int Hr;
-  if (GetCurrentHour(Hr)) {
+    Serial.println(DAYSF[CurrentWeekday-1]);
     Serial.print("Hour = ");
-    Serial.println(Hr);
+    Serial.println(CurrentHour);
   } else {
-    Serial.println("Error getting current hour!");
+    Serial.println("Error getting current time!");
   }
-  int dayToShow = weekDay;
+  int dayToShow = CurrentWeekday;
 
-  if (weekDay < 6) { // work day 
-    if ((Hr > 16) && (weekDay < 4)) {
+  if (CurrentWeekday < 6) { // work day 
+    if ((CurrentHour > 16) && (CurrentWeekday < 4)) {
     // show next day
       dayToShow++;
       Serial.println("day++");
     }
   }
 
-
-  if (weekDay > 5) { // weekend
-    dayToShow = -1; // full
+  if (CurrentWeekday > 5) { // weekend
+    dayToShow = 1; // monday
   }
 
   uint16_t color;
@@ -294,19 +342,12 @@ void DrawEAsistent(int urnikNr) {
   if (dayToShow > 0) {
     for (int i = 0; i < 10; i++)
     {
-      if ((i == 0) && (urnikNr == 0)) color = CLYELLOW; else 
+      if ((i == 0) && (urnikNr == 0)) color = CLPINK; else 
       if ((i == 0) && (urnikNr == 1)) color = CLGREEN; else 
-      if (i == 1) color = CLRED; else color = CLWHITE;
+      if (Urnik[urnikNr][dayToShow][i].indexOf("ODPADLO") >= 0) color = CLRED; else
+      if (i == 1) color = CLORANGE; else color = CLWHITE;
       DisplayText(Urnik[urnikNr][dayToShow][i].c_str(), 1, 0, i * 25, color, false);
     }
-      
-
-    } else { // weekend
-      DisplayText("\n\n\n======================================\n", CLGREY);
-      for (int i = 0; i < 3; i++) {
-        //DisplayText(JedilnikF[i].c_str(), CLYELLOW);
-        DisplayText("\n======================================\n", CLGREY);
-      }
   }
     delay(1500);
 }

@@ -88,27 +88,20 @@ tm_wday	int	days since Sunday	0-6
 tm_yday	int	days since January 1	0-365
 tm_isdst	int	Daylight Saving Time flag	
 */
-bool GetCurrentTime(int &Month, int &Day, int &Hour) {
-  struct tm timeinfo;
-  bool result = getLocalTime(&timeinfo);
-  Month = timeinfo.tm_mon + 1;
-  Day   = timeinfo.tm_mday;
-  Hour  = timeinfo.tm_hour;
-  return result;
-}
 
-bool GetCurrentHour(int &Hour) {
-  struct tm timeinfo;
-  bool result = getLocalTime(&timeinfo);
-  Hour  = timeinfo.tm_hour;
-  return result;
-}
+// global vars
+int CurrentYear, CurrentMonth, CurrentWeekday, CurrentDay, CurrentHour, CurrentMinute;  
 
-// day of the week (1 = Mon, 2 = Tue,.. 7 = Sun)
-bool GetCurrentWeekday(int &WkDay) {
+// fill global variables
+bool GetCurrentTime(void) {
   struct tm timeinfo;
   bool result = getLocalTime(&timeinfo);
-  WkDay  = timeinfo.tm_wday; // days since Sunday	0-6
-  if (WkDay == 0) WkDay = 7;
-  return result;
+  CurrentYear  = timeinfo.tm_year + 1900;
+  CurrentMonth = timeinfo.tm_mon + 1;
+  CurrentDay   = timeinfo.tm_mday;
+  CurrentHour  = timeinfo.tm_hour;
+  CurrentMinute = timeinfo.tm_min;
+  CurrentWeekday  = timeinfo.tm_wday; // days since Sunday	0-6
+  if (CurrentWeekday == 0) CurrentWeekday = 7; // day of the week (1 = Mon, 2 = Tue,.. 7 = Sun)
+  return result;  
 }

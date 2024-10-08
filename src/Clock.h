@@ -3,8 +3,7 @@
 #define __CLOCK_H_
 
 void setClock(void);
-bool GetCurrentHour(int &Hour);
-bool GetCurrentTime(int &Month, int &Day, int &Hour);
-bool GetCurrentWeekday(int &WkDay);
+bool GetCurrentTime(void);
+extern int CurrentYear, CurrentMonth, CurrentWeekday, CurrentDay, CurrentHour, CurrentMinute;  
 
 #endif //__CLOCK_H_
