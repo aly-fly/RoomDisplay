@@ -59,8 +59,11 @@ void DisplayInitFonts(void) {
   Serial.println("\r\nSPIFFS available!");
   // ESP32 will crash if any of the fonts are missing; check if they are present on startup
   bool font_missing = false;
-  if (SPIFFS.exists("/24-Latin-Hiragana.vlw")    == false) font_missing = true;
-  if (SPIFFS.exists("/36-Noto-Sans-Bold.vlw")    == false) font_missing = true;
+  if (SPIFFS.exists("/" + String(FONT_SIZE_15) + ".vlw")    == false) font_missing = true;
+  if (SPIFFS.exists("/" + String(FONT_SIZE_20) + ".vlw")    == false) font_missing = true;
+  if (SPIFFS.exists("/" + String(FONT_SIZE_24) + ".vlw")    == false) font_missing = true;
+  if (SPIFFS.exists("/" + String(FONT_SIZE_28) + ".vlw")    == false) font_missing = true;
+  if (SPIFFS.exists("/" + String(FONT_SIZE_36) + ".vlw")    == false) font_missing = true;
 
   if (font_missing)
   {
@@ -112,27 +115,21 @@ void DisplayText(const char Text[], uint16_t color) {
   Font size 2 = 36 px
   */
 void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Wrap) {
-/* 
-// font size mapping
-uint8_t FontSize1;
-  switch (FontSize)  {
-  case 1:  FontSize1 = 4; // 1 -> Font 4. Medium 26 pixel high font
-    break;
-  case 2:  FontSize1 = 6; // 2 -> Font 6. Large 48 pixel font
-    break;
-  default: FontSize1 = 1; // 0 -> Font 1. Original Adafruit 8 pixel font
-    break;
-  }
-  
-  tft.setTextColor(Color, DspBgColor);
-  tft.drawString(Text, X, Y, FontSize1);
-  */
-
   tft.setTextWrap(Wrap, false);
   switch (FontSize)  {
-  case 1:  tft.loadFont(FONT_SIZE_1);
+  case 1:  tft.loadFont(FONT_SIZE_24);
     break;
-  case 2:  tft.loadFont(FONT_SIZE_2);
+  case 2:  tft.loadFont(FONT_SIZE_36);
+    break;
+  case 15:  tft.loadFont(FONT_SIZE_15);
+    break;
+  case 20:  tft.loadFont(FONT_SIZE_20);
+    break;
+  case 24:  tft.loadFont(FONT_SIZE_24);
+    break;
+  case 28:  tft.loadFont(FONT_SIZE_28);
+    break;
+  case 36:  tft.loadFont(FONT_SIZE_36);
     break;
   default: tft.unloadFont(); // Remove the font to recover memory used
     break;
@@ -432,7 +429,7 @@ void DisplayFontTest(void) {
   // Small font
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-  tft.loadFont(FONT_SIZE_1); // Must load the font first
+  tft.loadFont(FONT_SIZE_24); // Must load the font first
 
   tft.println("Small 15pt font"); // println moves cursor down for a new line
 
@@ -477,7 +474,7 @@ void DisplayFontTest(void) {
   // Large font
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-  tft.loadFont(FONT_SIZE_2); // Load another different font
+  tft.loadFont(FONT_SIZE_36); // Load another different font
 
   // Draw changing numbers - does not work unless a filled rectangle is drawn over the old text
   for (int i = 0; i <= 20; i++)

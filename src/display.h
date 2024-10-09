@@ -30,8 +30,9 @@
   #define CLDARKGREY  0x39E7      /* 64, 64, 64 */
   #define CLLIGHTPINK 0xFC9F   // 11111  100100  11111   FF 90 FF
   #define CLPINK      0xF09F   // 11110  000100  11111   F7 00 FF
+  #define CLLIGHTCYAN 0x4FFF
 
-//  The fonts used are in the data folder.
+//  The fonts used are in the data folder and loaded onto SPIFFS.
 
 //  A processing sketch to create new fonts can be found in the Tools folder of TFT_eSPI
 //  https://github.com/Bodmer/TFT_eSPI/tree/master/Tools/Create_Smooth_Font/Create_font
@@ -40,8 +41,11 @@
 //  https://www.google.com/get/noto/
 
 //0 -> Original Adafruit 8 pixel font
-#define FONT_SIZE_1 "24-Latin-Hiragana"
-#define FONT_SIZE_2 "36-Noto-Sans-Bold"
+#define FONT_SIZE_15 "15-Noto-Sans-Bold"
+#define FONT_SIZE_20 "20-Noto-Sans-Mono"
+#define FONT_SIZE_24 "24-Latin-Hiragana"
+#define FONT_SIZE_28 "28-Final-Frontier"
+#define FONT_SIZE_36 "36-Noto-Sans-Bold"
 
   extern TFT_eSPI tft; // for graphical plot
 #endif

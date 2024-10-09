@@ -236,11 +236,11 @@ bool ReadSavedFile(void){
   Serial.println("Reading from file");
   Saved_PDF_URL = file.readStringUntil(13);
   JedilnikDatum = file.readStringUntil(13);
-  TrimOnlyPrintable(JedilnikDatum);
+  TrimNonPrintable(JedilnikDatum);
   for (int i = 0; i < 5; i++)
   {
     Jedilnik[i] = file.readStringUntil(13);
-    TrimOnlyPrintable(Jedilnik[i]);
+    TrimNonPrintable(Jedilnik[i]);
   }
   file.close();
 
@@ -373,7 +373,8 @@ void GetJedilnikOsDomzale(void){
       int idxx = CelJedilnik.indexOf("202"); // 2024, 2025, ...
       if (idxx > 0) {
         JedilnikDatum = CelJedilnik.substring(idxx-15, idxx+4);
-        TrimDoubleChars(JedilnikDatum, ' ');
+        JedilnikDatum.trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(JedilnikDatum);
       }
 
       // remove footer
@@ -571,8 +572,9 @@ void GetJedilnikOsDomzale(void){
 
       for (int i = 0; i < 5; i++)
       {
-        TrimOnlyPrintable(Jedilnik[i]);
-        TrimDoubleChars(Jedilnik[i], ' ');
+        TrimNonPrintable(Jedilnik[i]);
+        Jedilnik[i].trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(Jedilnik[i]);
         // if no data is found, add a sad face, so that file load works normally
         if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
       }
@@ -691,7 +693,8 @@ void GetJedilnikOsDomzale(void){
       int idxx = CelJedilnik.indexOf("202"); // 2024, 2025, ...
       if (idxx > 0) {
         JedilnikDatum = CelJedilnik.substring(idxx-15, idxx+4);
-        TrimDoubleChars(JedilnikDatum, ' ');
+        JedilnikDatum.trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(JedilnikDatum);
       }
 
       // remove footer
@@ -889,8 +892,9 @@ void GetJedilnikOsDomzale(void){
 
       for (int i = 0; i < 5; i++)
       {
-        TrimOnlyPrintable(Jedilnik[i]);
-        TrimDoubleChars(Jedilnik[i], ' ');
+        TrimNonPrintable(Jedilnik[i]);
+        Jedilnik[i].trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(Jedilnik[i]);
         // if no data is found, add a sad face, so that file load works normally
         if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
       }

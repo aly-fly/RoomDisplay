@@ -80,17 +80,25 @@ bool ReadEAsistentWebsite(int teden, String ucenec) {
                 WiFiClient * stream = https.getStreamPtr();
                 // jump to the header
                 Serial.println("Searching for the header...");
-                DisplayText("Searching for the header\n");
+                DisplayText("Searching for the header...\n");
                 bool HeaderFound = stream->find("<table");
                 Serial.print("Header found: ");
                 Serial.println(HeaderFound);
                 if (HeaderFound) {
                   RxBuffer.clear();
                   Serial.println("Reading data from server...");
-                  DisplayText("Reading data");
+                  DisplayText("Reading data... ");
+                  //RxBuffer = stream->readStringReducedSpaces();
                   RxBuffer = stream->readString();
                   Serial.print("Data read (bytes): ");
                   Serial.println(RxBuffer.length());
+                  DisplayText(String(RxBuffer.length() / 1024).c_str());
+                  DisplayText(" kB\n");
+                  TrimDoubleSpaces(RxBuffer);
+                  TrimDoubleChars(RxBuffer, TAB);
+                  Serial.println("----------------");
+                  //Serial.println(RxBuffer);
+                  Serial.println("----------------");
                   result = true;
                 } // header found
           } // HTTP code > 0
@@ -133,14 +141,14 @@ bool ReadEAsistentWebsite(int teden, String ucenec) {
 //##################################################################################################################
 
 void ProcessData (int urnikNr, String sName) {
-  int idx1, idx2, dan, ura;
+  int txtEnd_sectionStart, sectionEnd_txtStart, dan, ura;
   String section, txt, txt_utf, celica;
   bool subTable = false;
   int subTableNum = 0;
   bool odpadlaUra;
 
-  idx1 = 0;
-  idx2 = 0;
+  txtEnd_sectionStart = 0;
+  sectionEnd_txtStart = 0;
   Serial.println();
   Serial.println("-----------------");
   Serial.println("-----------------");
@@ -150,57 +158,15 @@ void ProcessData (int urnikNr, String sName) {
   ura = 0;
   celica.clear();
   odpadlaUra = false;
-  while (idx1 > -1)
+  while (txtEnd_sectionStart > -1)
   {
     txt.clear();
     section.clear();
-    idx1 = RxBuffer.indexOf('<', idx2);
-    if (idx1 > idx2+1) {
-      txt_utf = RxBuffer.substring(idx2+1, idx1);
+    txtEnd_sectionStart = RxBuffer.indexOf('<', sectionEnd_txtStart);
+    if (sectionEnd_txtStart+1 < txtEnd_sectionStart) {
+      txt_utf = RxBuffer.substring(sectionEnd_txtStart+1, txtEnd_sectionStart);
       txt = utf8ascii(txt_utf.c_str());
     }
-    idx2 = RxBuffer.indexOf('>', idx1);
-    if (idx2 > idx1+1)
-      section = RxBuffer.substring(idx1+1, idx2);
-    //Serial.print("(((");
-    //Serial.println(section);
-    if (section.indexOf("table")  == 0) {
-      subTable = true; 
-      subTableNum++;
-      Serial.print("   Sub Table ");
-      Serial.println(subTableNum);
-      if (subTableNum > 1) txt.concat (" &");
-    }
-    if (section.indexOf("/table") == 0) {
-      subTable = false; 
-      Serial.print("   Sub Table end");
-      }
-
-    if (section.indexOf("ednevnik_seznam_ur_odpadlo") > 0) {
-      odpadlaUra = true;
-      Serial.println("ODPADLO");
-      }
-
-    if (subTable == false) { 
-      if (section == "/tr") { // konec vrstice
-        TrimDoubleChars(celica, SPACE);
-        if ((dan < 6) && (ura < 10)) Urnik[urnikNr][dan][ura] = celica;
-        celica.clear();
-        subTableNum = 0;
-        ura++;
-        dan = 0;
-        Serial.println("\n=============================");
-      }
-      if ((section.indexOf("/td") == 0) || (section.indexOf("/th") == 0)) { // konec celice
-        TrimDoubleChars(celica, SPACE);
-        if ((dan < 6) && (ura < 10)) Urnik[urnikNr][dan][ura] = celica;
-        celica.clear();
-        subTableNum = 0;
-        dan++;
-        Serial.print("||");
-      }
-    } // sub table
-
     txt.replace("Zgodovinski", "Zgo.");
     txt.replace("Geografski", "Geo.");
     txt.replace("krozek", "k.");
@@ -214,22 +180,97 @@ void ProcessData (int urnikNr, String sName) {
     txt.replace("&nbsp;", " ");
     txt.replace(TAB, SPACE);
     txt.trim(); // remove leading and trailing spaces
-    if (txt.length() > 0) txt.concat(' '); // just one space at the end
-    Serial.println(txt);
-    celica.concat(txt);
+    if (txt.length() > 0) {
+      txt.concat(' '); // just one space at the end
+      TrimDoubleSpaces(txt);
+      Serial.println(txt);
+      celica.concat(txt);
+    }
+    // text is now in the cell, do not use txt anymore from here down.
 
-    // korigiraj odpadle ure
-    if (odpadlaUra) {
-      int pp = celica.lastIndexOf('&');
-      if (pp >= 0) {  // druga sekcija iste celice
-        celica.remove(pp+1);
-        celica.concat(" ODPADLO ");
-      } else {
-        celica = "ODPADLO ";
+    sectionEnd_txtStart = RxBuffer.indexOf('>', txtEnd_sectionStart);
+    if (txtEnd_sectionStart+1 < sectionEnd_txtStart)
+      section = RxBuffer.substring(txtEnd_sectionStart+1, sectionEnd_txtStart);
+    //Serial.print("(((");
+    //Serial.println(section);
+
+    if (section.indexOf("ednevnik_seznam_ur_odpadlo") > 0) {
+      odpadlaUra = true;
+      Serial.println("ODPADLO");
+      }
+
+    if (section.indexOf("table")  == 0) {
+      subTable = true; 
+      subTableNum++;
+      Serial.print("   Sub Table ");
+      Serial.println(subTableNum);
+      if (subTableNum > 1) {
+        // korigiraj odpadle ure
+        if (odpadlaUra) {
+          int pp = celica.lastIndexOf('&');
+          if (pp >= 0) {  // naslednja sekcija iste celice
+            celica.remove(pp+1);
+            celica.concat(" ODPADLO");
+          } else {
+            celica = "ODPADLO ";
+          }
+          odpadlaUra = false;
+        }
+        celica.concat (" & ");
       }
     }
-    odpadlaUra = false;
-  }
+
+    if (section.indexOf("/table") == 0) {
+      subTable = false; 
+      Serial.println("   Sub Table end");
+      }
+
+    if (subTable == false) { 
+        if (section == "/tr") { // konec vrstice --> vpis podatkov v urnik
+          // korigiraj odpadle ure
+          if (odpadlaUra) {
+            int pp = celica.lastIndexOf('&');
+            if (pp >= 0) {  // naslednja sekcija iste celice
+              celica.remove(pp+1);
+              celica.concat(" ODPADLO");
+            } else {
+              celica = "ODPADLO ";
+            }
+            odpadlaUra = false;
+          }
+        celica.trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(celica);
+        TrimNonPrintable(celica);
+        if ((dan < 6) && (ura < 10)) Urnik[urnikNr][dan][ura] = celica;
+        celica.clear();
+        subTableNum = 0;
+        ura++;
+        dan = 0;
+        Serial.println("\n=============================");
+      }
+      if ((section.indexOf("/td") == 0) || (section.indexOf("/th") == 0)) { // konec celice --> vpis podatkov v urnik
+        // korigiraj odpadle ure
+        if (odpadlaUra) {
+          int pp = celica.lastIndexOf('&');
+          if (pp >= 0) {  // naslednja sekcija iste celice
+            celica.remove(pp+1);
+            celica.concat(" ODPADLO");
+          } else {
+            celica = "ODPADLO ";
+          }
+          odpadlaUra = false;
+        }
+        celica.trim(); // remove leading and trailing spaces
+        TrimDoubleSpaces(celica);
+        TrimNonPrintable(celica);
+        if ((dan < 6) && (ura < 10)) Urnik[urnikNr][dan][ura] = celica;
+        celica.clear();
+        subTableNum = 0;
+        dan++;
+        Serial.println("-----------");
+      }
+    } // sub table
+  } // while
   RxBuffer.clear();
 
   for (dan = 0; dan < 6; dan++) {
@@ -241,7 +282,7 @@ void ProcessData (int urnikNr, String sName) {
   for (ura = 0; ura < 10; ura++) {
     for (dan = 0; dan < 6; dan++) {
       Serial.print(Urnik[urnikNr][dan][ura]);
-      Serial.print(" | ");
+      Serial.print("  |  ");
     }
     Serial.println();
   }
@@ -253,8 +294,15 @@ void ProcessData (int urnikNr, String sName) {
 //##################################################################################################################
 //##################################################################################################################
 
-
-
+/*
+void eAsistentInit(void) {
+  int urnikNr, dan, ura;  
+  for (urnikNr = 0; urnikNr < 2; urnikNr++) 
+    for (dan = 0; dan < 6; dan++) 
+      for (ura = 0; ura < 10; ura++) 
+        Urnik[urnikNr][dan][ura].reserve(25);
+}
+*/
 
 void GetEAsistent(void) {
   Serial.println("GetEAsistent()");
@@ -345,8 +393,10 @@ void DrawEAsistent(int urnikNr) {
       if ((i == 0) && (urnikNr == 0)) color = CLPINK; else 
       if ((i == 0) && (urnikNr == 1)) color = CLGREEN; else 
       if (Urnik[urnikNr][dayToShow][i].indexOf("ODPADLO") >= 0) color = CLRED; else
-      if (i == 1) color = CLORANGE; else color = CLWHITE;
-      DisplayText(Urnik[urnikNr][dayToShow][i].c_str(), 1, 0, i * 25, color, false);
+      if (i == 1) color = CLORANGE; else
+      if (i % 2) color = CLLIGHTCYAN; else
+        color = CLWHITE;
+      DisplayText(Urnik[urnikNr][dayToShow][i].c_str(), 20, 0, i * 21, color, false);
     }
   }
     delay(1500);

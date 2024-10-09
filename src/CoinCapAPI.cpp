@@ -424,7 +424,7 @@ void PlotCoinCapData(const float *DataArray, const int DataLen, const int LineSp
   tft.drawNumber(round(Maxx), 75, 2, 1);
   tft.drawNumber(round(Minn), 75, DspH - 12, 1);
   tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-  tft.loadFont(FONT_SIZE_1);
+  tft.loadFont(FONT_SIZE_24);
   X = tft.drawNumber(round(DataArray[DataLen-1]), 170, 2);
   tft.drawString("USD", 170 + X + 11, 2);
   tft.unloadFont();

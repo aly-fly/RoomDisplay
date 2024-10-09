@@ -154,7 +154,7 @@ void ArsoPlotMeteogram(void) {
     }
 
     // temperature low / blue
-    tft.loadFont(FONT_SIZE_2);
+    tft.loadFont(FONT_SIZE_36);
     tft.setTextColor(CLBLUE, CLWHITE);
     for (uint8_t i = 0; i < 3; i++) {
       idx = MidnightIdx + i * 8 + 1;

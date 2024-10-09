@@ -205,7 +205,7 @@ void GetFeniks(void){
     JedilnikCeloten.replace("\r", " ");
     JedilnikCeloten.replace("\n", " ");
     // remove visual formatting
-    TrimOnlyPrintable(JedilnikCeloten);
+    TrimNonPrintable(JedilnikCeloten);
     // replace </p> with CRLF
     JedilnikCeloten.replace("</p>", "\r\n");
     // replace space in the beginning of the line
@@ -224,8 +224,10 @@ void GetFeniks(void){
         idx2 = idx2 - len;
         }
     }  
-    TrimDoubleChars(JedilnikCeloten, ' ');
+
     JedilnikCeloten.toLowerCase();
+    JedilnikCeloten.trim(); // remove leading and trailing spaces
+    TrimDoubleSpaces(JedilnikCeloten);
     Serial.println("==========================================");
     Serial.println(JedilnikCeloten);
     Serial.println("==========================================");

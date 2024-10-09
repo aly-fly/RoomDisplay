@@ -6,7 +6,7 @@ const char* DAYS3[] = { "PON", "TOR", "SRE", "CET", "PET", "SOB", "NED" };
 const char* DAYSF[] = { "ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja" };
 
 // remove non-printable chars
-void TrimOnlyPrintable (String& Str) {
+void TrimNonPrintable (String& Str) {
   Str.trim(); // remove leading and trailing spaces
   for (int16_t i = 0; i < Str.length(); i++)
   {
@@ -20,7 +20,7 @@ void TrimOnlyPrintable (String& Str) {
 
 void TrimNumDot (String& Str) {
   Str.trim(); // remove leading and trailing spaces
-  TrimOnlyPrintable(Str);
+  TrimNonPrintable(Str);
   for (int16_t i = 0; i < Str.length(); i++)
   {
     char c = Str.charAt(i);
@@ -34,7 +34,7 @@ void TrimNumDot (String& Str) {
 void TrimAlfaNum (String& Str) {
   bool validChar;
   Str.trim(); // remove leading and trailing spaces
-  TrimOnlyPrintable(Str);
+  TrimNonPrintable(Str);
   for (uint16_t i = 0; i < Str.length(); i++)
   {
     char c = Str.charAt(i);
@@ -66,6 +66,23 @@ void TrimDoubleChars (String& Str, char cc) {
       i--;
       len--;
       }
+  }  
+}
+
+void TrimDoubleSpaces (String& Str) {
+  if (Str.length() < 2) return;
+  char c1, c2;
+  unsigned int i = 0;
+  unsigned int len = Str.length()-1;
+  while (i < len) {
+    c1 = Str.charAt(i);
+    c2 = Str.charAt(i+1);
+    if ((c1 == c2) && (c2 == SPACE)) {
+      Str.remove(i, 1);
+      len--;
+    } else {
+      i++;
+    }
   }  
 }
 

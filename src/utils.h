@@ -7,10 +7,11 @@
 extern const char* DAYS3[];
 extern const char* DAYSF[];
 
-void TrimOnlyPrintable (String& Str);
+void TrimNonPrintable (String& Str);
 void TrimNumDot (String& Str);
 void TrimAlfaNum (String& Str);
 void TrimDoubleChars (String& Str, char cc);
+void TrimDoubleSpaces (String& Str);
 
 bool IsUppercaseChar(char chr);
 int FindUppercaseChar(String &Str, const int StartAt);
