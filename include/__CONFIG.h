@@ -10,6 +10,7 @@
 
 // ************ General config *********************
 #define DEBUG_OUTPUT
+//#define DEBUG_OUTPUT_DATA  // include received data
 
 #define DEVICE_NAME "Display_v1"
 #define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi
@@ -82,9 +83,9 @@
   #define LDR_PINx      34  
 #else
 
-  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
+  #define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
   //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
-  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+  //#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
   //#define ST7796_DRIVER   // 4 inch LCD
 
 #endif

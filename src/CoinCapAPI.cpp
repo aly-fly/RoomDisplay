@@ -115,7 +115,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                         // read up to 3000 bytes
                         BytesRead = stream->readBytes(gBuffer, ((StreamAvailable > sizeof(gBuffer)) ? sizeof(gBuffer) : StreamAvailable));
                         JsonDataSize += BytesRead;
-                        #ifdef DEBUG_OUTPUT
+                        #ifdef DEBUG_OUTPUT_DATA
                         // write it to Serial
                         if (firstBuffer) { Serial.write(gBuffer, BytesRead);  Serial.println(); }
                           else { Serial.print("/"); }
@@ -142,7 +142,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                             if (pos >= 0) {
                               //Serial.println(pos);
                               TrimNumDot(sVal);  // delete everything except numbers and "."
-                              #ifdef DEBUG_OUTPUT
+                              #ifdef DEBUG_OUTPUT_DATA
                               /*
                               if (Refresh_5M) {
                                 if(CoinCapDataLength_5M < 5) { Serial.println(sVal); }
