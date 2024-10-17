@@ -88,17 +88,17 @@ bool ReadEAsistentWebsite(int teden, String ucenec) {
                   RxBuffer.clear();
                   Serial.println("Reading data from server...");
                   DisplayText("Reading data... ");
-                  //RxBuffer = stream->readStringReducedSpaces();
-                  RxBuffer = stream->readString();
+                  RxBuffer = stream->readStringReducedSpaces();
+                  //RxBuffer = stream->readString();
                   Serial.print("Data read (bytes): ");
                   Serial.println(RxBuffer.length());
                   DisplayText(String(RxBuffer.length() / 1024).c_str());
                   DisplayText(" kB\n");
-                  TrimDoubleSpaces(RxBuffer);
-                  TrimDoubleChars(RxBuffer, TAB);
+                  /*
                   Serial.println("----------------");
-                  //Serial.println(RxBuffer);
+                  Serial.println(RxBuffer);
                   Serial.println("----------------");
+                  */
                   result = true;
                 } // header found
           } // HTTP code > 0
@@ -364,6 +364,8 @@ void DrawEAsistent(int urnikNr) {
   Serial.println("DrawEAsistent()");
   DisplayClear();
   if (GetCurrentTime()) {
+    Serial.print("Day of the week = ");
+    Serial.println(CurrentWeekday);
     Serial.print("Today = ");
     Serial.println(DAYSF[CurrentWeekday-1]);
     Serial.print("Hour = ");
@@ -373,12 +375,10 @@ void DrawEAsistent(int urnikNr) {
   }
   int dayToShow = CurrentWeekday;
 
-  if (CurrentWeekday < 6) { // work day 
-    if ((CurrentHour > 16) && (CurrentWeekday < 4)) {
-    // show next day
-      dayToShow++;
-      Serial.println("day++");
-    }
+  if ((CurrentWeekday < 5) && (CurrentHour > 16)) { // work day 
+  // show next day
+    dayToShow++;
+    Serial.println("day++");
   }
 
   if (CurrentWeekday > 5) { // weekend
@@ -386,6 +386,7 @@ void DrawEAsistent(int urnikNr) {
   }
 
   uint16_t color;
+  uint16_t font;
   // process data for that day
   if (dayToShow > 0) {
     for (int i = 0; i < 10; i++)
@@ -396,9 +397,33 @@ void DrawEAsistent(int urnikNr) {
       if (i == 1) color = CLORANGE; else
       if (i % 2) color = CLLIGHTCYAN; else
         color = CLWHITE;
-      DisplayText(Urnik[urnikNr][dayToShow][i].c_str(), 20, 0, i * 21, color, false);
+      font = 20;
+      if (urnikNr == 0) font = 201;
+      DisplayText(Urnik[urnikNr][dayToShow][i].c_str(), font, 0, i * 21, color, false);
     }
   }
     delay(1500);
 }
 
+
+/*
+Stream.cpp:
+
+String Stream::readStringReducedSpaces()
+{
+    String ret;
+    char previousChr = 0;
+    bool skip;
+    int c = timedRead();
+    while(c >= 0) {
+        skip = false;
+        if ((c == 32) || (c == 9)) // skip consecutive spaces and tabs
+          if (previousChr == c) skip = true;
+        if (!skip)
+          ret += (char) c;
+        c = timedRead();
+        previousChr = c;
+    }
+    return ret;
+}
+*/

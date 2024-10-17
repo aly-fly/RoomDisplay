@@ -79,6 +79,7 @@ void setup() {
   Serial.println("SPIFFS available!");
   DisplayText("OK\n", CLGREEN);
 
+#ifdef IMAGES_ON_SD_CARD
   Serial.println("SD Card start...");
   DisplayText("SD Card start...");
   if (!SDcardInit()) {
@@ -93,30 +94,9 @@ void setup() {
     Serial.println("SD Card TEST!");
       SD_TEST();
   }
-
+#endif
 
   WifiInit();
-
-
-  
-DisplaySetBrightness(50);
-for (;;) {
-
-    setClock(); 
-    GetCurrentTime();
-    
-    GetEAsistent();
-
-  DrawEAsistent(0);
-  delay (7000);
-  DrawEAsistent(1);
-  delay (7000);
-
-
-};
-
-
-
 
   if (!inHomeLAN) {
    bool connOk = CheckConnectivityAndHandleCaptivePortalLogin();
@@ -169,7 +149,20 @@ void loop() {
     NightMode = false;
   }
 
-#ifdef LDR_PIN
+  // debug
+  Serial.println("[IDLE] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
+
+  multi_heap_info_t info;
+  heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); // internal RAM, memory capable to store data or to create new task
+  /*
+  info.total_free_bytes;   // total currently free in all non-continues blocks
+  info.minimum_free_bytes;  // minimum free ever
+  info.largest_free_block;   // largest continues block to allocate big array
+  */
+  Serial.println("[IDLE] Largest available block: " + String(info.largest_free_block) + " bytes");
+  Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
+
+  #ifdef LDR_PIN
   LDRvalue = analogRead(LDR_PIN); //     0 is full brightness, higher values == darker; Default is 12 bits (range from 0 to 4096).
   Serial.print("LDR: ");
   Serial.println(LDRvalue);
@@ -180,14 +173,18 @@ void loop() {
   delay(500);
   return;
 
-#else
+  #else
   if (NightMode) {
     DisplaySetBrightness(12);
   } else { // lower brightness at night
     DisplaySetBrightness(); // full power
   }
-#endif
+  #endif
 
+  // TEST
+  if (!digitalRead(GPIO_NUM_0)) {
+    ScreenNumber = 7; // urnik
+  }
   
   //  HEAT PUMP DATA
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
@@ -215,8 +212,8 @@ void loop() {
         TCPresponse.concat(" C");
         TempOutdoor1 = TCPresponse;
       }
-      DisplayText(TempOutdoor1.c_str(),    2,  92,  46, CLBLACK); // shadow
-      DisplayText(TempOutdoor1.c_str(),    2,  90,  44, CLORANGE);
+      DisplayText(TempOutdoor1.c_str(),    361,  92,  46, CLBLACK); // shadow
+      DisplayText(TempOutdoor1.c_str(),    361,  90,  44, CLORANGE);
 
       TempOutdoor2 = "- - -";
       if (TCPclientRequest("Outdoor")) {
@@ -226,22 +223,22 @@ void loop() {
         TCPresponse.concat(" C");
         TempOutdoor2 = TCPresponse;
       }
-      DisplayText(TempOutdoor2.c_str(),    2,  92, 102, CLBLACK); // shadow
-      DisplayText(TempOutdoor2.c_str(),    2,  90, 100, CLCYAN);
+      DisplayText(TempOutdoor2.c_str(),    361,  92, 102, CLBLACK); // shadow
+      DisplayText(TempOutdoor2.c_str(),    361,  90, 100, CLCYAN);
 
       char ShellyTxt[10];
       sprintf(ShellyTxt, "- - - kW");
       if (ShellyGetPower()) {
         sprintf(ShellyTxt, "%.2f kW", ShellyTotalPower/1000);
       }
-      DisplayText(ShellyTxt,               1, 102, 162, CLBLACK); // shadow
-      DisplayText(ShellyTxt,               1, 100, 160, CLRED);
+      DisplayText(ShellyTxt,               202, 102, 162, CLBLACK); // shadow
+      DisplayText(ShellyTxt,               202, 100, 160, CLRED);
 
       // bazen
       if ((CurrentMonth >= 5) && (CurrentMonth <= 9)) {
         if (ShellyGetTemperature()) {}
-        DisplayText(sShellyTemperature.c_str(), 1, 102, 202, CLBLACK); // shadow
-        DisplayText(sShellyTemperature.c_str(), 1, 100, 200, CLLIGHTBLUE);
+        DisplayText(sShellyTemperature.c_str(), 202, 102, 202, CLBLACK); // shadow
+        DisplayText(sShellyTemperature.c_str(), 202, 100, 200, CLLIGHTBLUE);
 
         uint32_t clr = CLDARKGREY;
         if (ShellyGetSwitch1()) {
@@ -259,7 +256,7 @@ void loop() {
     }
   }
 
-// WEATHER FORECAST  
+  // WEATHER FORECAST  
   if (ScreenNumber == 1) {  // -------------------------------------------------------------------------------------------------------------------------    
     ok = GetARSOdata();
     if (ok) ArsoPlotForecast();
@@ -283,17 +280,24 @@ void loop() {
   // COIN CAP DATA PLOT
   if (ScreenNumber == 4) {  // -------------------------------------------------------------------------------------------------------------------------
     ScreenNumber++;
-/*    
+   /*    
       if (!NightMode) {
       ok = GetCoinCapData_5M();
       PlotCoinCapData_5M();
       if (ok) delay(4000);
       } else ScreenNumber++;
-*/      
+   */      
+  }
+
+  // JEDILNIK FENIKS
+  if (ScreenNumber == 5) {  // -------------------------------------------------------------------------------------------------------------------------
+    GetFeniks();
+    DrawFeniks();
+    delay(13000);  
   }
 
   // JEDILNIK OŠ DOMŽALE
-  if (ScreenNumber == 5) {  // -------------------------------------------------------------------------------------------------------------------------
+  if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
     if (inHomeLAN) {
       if ((CurrentMonth < 7) || (CurrentMonth > 8)) {
         GetJedilnikOsDomzale();
@@ -303,16 +307,22 @@ void loop() {
     } else ScreenNumber++;
   }
 
-  // JEDILNIK FENIKS
-  if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
-    GetFeniks();
-    DrawFeniks();
-    delay(13000);  
+  // URNIK OŠ DOMŽALE
+  if (ScreenNumber == 7) {  // -------------------------------------------------------------------------------------------------------------------------
+    if (inHomeLAN) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8)) {
+        GetEAsistent();
+        DrawEAsistent(0);
+        delay (7000);
+        DrawEAsistent(1);
+        delay (7000);
+      }
+    } else ScreenNumber++;
   }
 
 
   ScreenNumber++;
-  if (ScreenNumber >= 7) { // housekeeping at the end of display cycles
+  if (ScreenNumber >= 8) { // housekeeping at the end of display cycles
     if (inHomeLAN)
       ScreenNumber = 0; else
       ScreenNumber = 1;   // skip heat pump
@@ -342,23 +352,8 @@ void loop() {
         }
       }
     }
-
-    // debug
-    Serial.println("[IDLE] Free memory: " + String(esp_get_free_heap_size()) + " bytes");
-
-    multi_heap_info_t info;
-    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); // internal RAM, memory capable to store data or to create new task
-    /*
-    info.total_free_bytes;   // total currently free in all non-continues blocks
-    info.minimum_free_bytes;  // minimum free ever
-    info.largest_free_block;   // largest continues block to allocate big array
-    */
-    Serial.println("[IDLE] Largest available block: " + String(info.largest_free_block) + " bytes");
-    Serial.println("[IDLE] Minimum free ever: " + String(info.minimum_free_bytes) + " bytes");
   }
-
   delay(1000);
-
 } // loop
 
 

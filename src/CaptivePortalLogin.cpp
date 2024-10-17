@@ -109,7 +109,7 @@ bool HTTPSconnect(String URL) {
           // file found at server
           if ((httpCode == HTTP_CODE_OK) || (httpCode == HTTP_CODE_MOVED_PERMANENTLY)) {
             ResponseFromServer = https.getString();
-            result = true;
+            result = ResponseFromServer.length() > 100;
             
             Serial.println("--- data begin ---");
             Serial.println(ResponseFromServer);
@@ -162,7 +162,7 @@ int HTTPconnect(String URL) {
         Serial.println("--- data begin ---");
         Serial.println(ResponseFromServer);
         Serial.println("--- data data end ---");
-        result = 11; // Connectivity ok            
+        if (ResponseFromServer.length() == 0) result = -4; else result = 11; // Connectivity ok            
       } else {
         Serial.printf("[HTTP] Unknown code returned: %s\n", http.errorToString(httpCode).c_str());
         result = -3;
@@ -195,7 +195,7 @@ int HTTPconnectPOST(String URL, String PostData) {
       Serial.println("--- data begin ---");
       Serial.println(ResponseFromServer);
       Serial.println("--- data data end ---");
-      result = 11; // Connectivity ok            
+      if (ResponseFromServer.length() == 0) result = -4; else result = 11; // Connectivity ok            
     }
     result = 11;
     Serial.printf("[HTTP] POST... code: %d\n", httpCode);
@@ -300,6 +300,7 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
       TrimAlfaNum (POSTkey);
       Serial.print("Key = ");
       Serial.println(POSTkey);
+      ResponseFromServer.clear(); // free mem
 
       if ((PosKeyValueEnd < 40) || (POSTkey.length() < 50) || (POSTkey.length() > 60)){
         Serial.println("Error in data!");
@@ -333,6 +334,7 @@ bool CheckConnectivityAndHandleCaptivePortalLogin(void) {
       DisplayText("Result code: ");
       DisplayText(String(ResCode).c_str());
       DisplayText("\n");
+      ResponseFromServer.clear(); // free mem
 
       if ((StatusDNSvalid) && (ResCode == 11)) { // connectivity ok
         StatusConnectivityOk = true;

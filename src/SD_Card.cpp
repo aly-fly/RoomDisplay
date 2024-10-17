@@ -217,6 +217,7 @@ void SD_TEST_testFileIO(fs::FS &fs, const char *path) {
 // ===========================================================================================================================
 
 bool SDcardInit(void) {
+#ifdef IMAGES_ON_SD_CARD  
   // Default = VSPI
   SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
 
@@ -247,6 +248,9 @@ bool SDcardInit(void) {
   Serial.printf("Total space: %llu MB\n", SD.totalBytes() / (1024 * 1024));
   Serial.printf("Used space: %llu MB\n", SD.usedBytes() / (1024 * 1024));
   return true;
+#else
+  return false;
+#endif
 }
 
 void SD_TEST() {

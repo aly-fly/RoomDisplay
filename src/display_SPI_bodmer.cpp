@@ -114,7 +114,7 @@ void DisplayText(const char Text[], uint16_t color) {
   Font size 1 = 24 px
   Font size 2 = 36 px
   */
-void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Wrap) {
+void DisplayText(const char Text[], uint16_t FontSize, int16_t X, int16_t Y, uint16_t Color, bool Wrap) {
   tft.setTextWrap(Wrap, false);
   switch (FontSize)  {
   case 1:  tft.loadFont(FONT_SIZE_24);
@@ -125,13 +125,19 @@ void DisplayText(const char Text[], uint8_t FontSize, int16_t X, int16_t Y, uint
     break;
   case 20:  tft.loadFont(FONT_SIZE_20);
     break;
+  case 201:  tft.loadFont(FONT_SIZE_201);
+    break;
+  case 202:  tft.loadFont(FONT_SIZE_202);
+    break;
   case 24:  tft.loadFont(FONT_SIZE_24);
     break;
   case 28:  tft.loadFont(FONT_SIZE_28);
     break;
   case 36:  tft.loadFont(FONT_SIZE_36);
     break;
-  default: tft.unloadFont(); // Remove the font to recover memory used
+  case 361:  tft.loadFont(FONT_SIZE_361);
+    break;
+  default: tft.unloadFont(); // Default small font
     break;
   }
   tft.setTextColor(Color, DspBgColor);
@@ -249,21 +255,25 @@ void DisplayShowImage(const char *filename, int16_t x, int16_t y, int16_t imgSca
   if ((x >= tft.width()) || (y >= tft.height())) return;
 
 /*
+#ifdef IMAGES_ON_SD_CARD
   if (imgScaling == 2) {
     String FN = filename;
     FN.remove(FN.indexOf("."));
     FN.concat("2.bmp");
     Serial.print("Searching for: ");
     Serial.print(FN);
-    if (SPIFFS.exists(FN)) {
+    if (FILESYS.exists(FN)) {
       Serial.println("...Found");
       filename = FN.c_str();
     } else {
       Serial.println("...NOT found");
     }
   }
+#endif
 */
+
 /*
+  // searching for a file on a SD card takes ages!
   if (!FILESYS.exists(filename)) {
     Serial.print("File not found: ");
     Serial.println(filename);

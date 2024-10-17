@@ -55,7 +55,7 @@ bool GetXmlDataFromServer(const char *URL) {
           // file found at server
           if ((httpCode == HTTP_CODE_OK) || (httpCode == HTTP_CODE_MOVED_PERMANENTLY)) {
             XMLdata = https.getString();
-            result = true;
+            result = XMLdata.length() > 1000;
             /*
             Serial.println("--- XML data begin ---");
             Serial.println(XMLdata);

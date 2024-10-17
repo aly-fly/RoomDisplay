@@ -78,7 +78,7 @@ bool HTTPSconnect(const String URL, const bool PostRequest, const String PostDat
           // file found at server
           if ((httpCode == HTTP_CODE_OK) || (httpCode == HTTP_CODE_CREATED) || (httpCode == HTTP_CODE_ACCEPTED) || (httpCode == HTTP_CODE_MOVED_PERMANENTLY)) {
             ZamzarData = https.getString();
-            result = true;
+            result = ZamzarData.length() > 50;
             if (PrintZamzarData) {
               Serial.println("--- data begin ---");
               Serial.println(ZamzarData);
@@ -154,6 +154,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
       Serial.println("Fail Zamzar step 1: POST");
       DisplayText("Fail Zamzar step 1: POST\n", CLRED);
       DisplayText(ZamzarData.c_str(), CLYELLOW);
+      ZamzarData.clear();  // free mem
       delay(8000);
       return false;    
     }
@@ -175,6 +176,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
       Serial.println("Fail Zamzar step 1b: Finding Job ID");
       DisplayText("Fail Zamzar step 1b: Finding Job ID\n", CLRED);
       DisplayText(ZamzarData.c_str(), CLYELLOW);
+      ZamzarData.clear();  // free mem
       delay(8000);
       return false;    
     }
@@ -200,6 +202,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
         Serial.println("Fail Zamzar step 2: GET job status");
         DisplayText("\nFail Zamzar step 2: GET job status\n", CLRED);
         DisplayText(ZamzarData.c_str(), CLYELLOW);
+        ZamzarData.clear();  // free mem
         delay(8000);
         return false;    
       }
@@ -212,6 +215,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
         Serial.println("Fail Zamzar step 2b: job not successful");
         DisplayText("\nFail Zamzar step 2b: job not successful\n", CLRED);
         DisplayText(ZamzarData.c_str(), CLYELLOW);
+        ZamzarData.clear();  // free mem
         delay(8000);
         return false;    
       }
@@ -234,6 +238,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
         if (!ok) {
           Serial.println("Fail Zamzar step 2c: Finding File ID");
           DisplayText("\nFail Zamzar step 2c: Finding File ID\n", CLRED);
+          ZamzarData.clear();  // free mem
           delay(8000);
           return false;    
         }
@@ -242,6 +247,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
         Serial.println("Fail Zamzar step 2d: Too many retries");
         DisplayText("\nFail Zamzar step 2d: Too many retries\n", CLRED);
         DisplayText(ZamzarData.c_str(), CLYELLOW);
+        ZamzarData.clear();  // free mem
         delay(8000);
         return false;    
       }
@@ -251,7 +257,7 @@ bool ConvertPdfToTxt(const String PdfUrl) {
     // =========================================================
     Serial.println("Downloading the file");
     DisplayText("Downloading the file\n");
-    ZamzarData.clear();
+    ZamzarData.clear();  // free mem
     URL = "https://" + ZamzarApiKey1 + ":@" + FileEndpoint + "/" + FileID + "/" + "content";
     Serial.print("URL: ");
     Serial.println(URL);    

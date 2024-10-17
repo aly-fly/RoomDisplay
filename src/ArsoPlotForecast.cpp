@@ -20,19 +20,24 @@ void ArsoPlotForecast(void) {
     Line = ArsoWeather[2].DayName;
     DisplayText(Line.c_str(), 1, DspW - 10, 10, CLDARKBLUE);
 
+#ifdef IMAGES_ON_SD_CARD
+  #define FOLDER  "/x2/"  // resized in advance in higher quality
+#else
+  #define FOLDER  "/w/"
+#endif
 
     // na sredini so slikce (original 32x32, povečane x2)
     String FN;
-    FN = "/x2/" + ArsoWeather[0].WeatherIcon + ".bmp";
+    FN = FOLDER + ArsoWeather[0].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),   6, 44, 2);
 
-    FN = "/x2/" + ArsoWeather[1].WeatherIcon + ".bmp";
+    FN = FOLDER + ArsoWeather[1].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  82, 44, 2);
 
-    FN = "/x2/" + ArsoWeather[2].WeatherIcon + ".bmp";
+    FN = FOLDER + ArsoWeather[2].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  174, 44, 2);
 
-    FN = "/x2/" + ArsoWeather[3].WeatherIcon + ".bmp";
+    FN = FOLDER + ArsoWeather[3].WeatherIcon + ".bmp";
     DisplayShowImage(FN.c_str(),  249, 44, 2);
 
     // wind data

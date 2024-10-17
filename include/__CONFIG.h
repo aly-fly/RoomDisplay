@@ -67,11 +67,29 @@
 //#define OLED_SDA  4
 //#define OLED_SCL  15
 
-#define BOARD_CYD
+//#define BOARD_CYD
 
 #ifdef BOARD_CYD
-
   #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+
+  #define SD_MOSI       23
+  #define SD_MISO       19
+  #define SD_SCK        18
+  #define SD_CS          5
+
+  #define IMAGES_ON_SD_CARD
+
+  #define LDR_PINx      34  
+#else
+
+  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
+  //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
+  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+  //#define ST7796_DRIVER   // 4 inch LCD
+
+#endif
+
+  // common TFT pins
 
   #define USE_HSPI_PORT  // for TFT display;  VSPI is used for SD card
 
@@ -82,32 +100,6 @@
   #define TFT_MISO      12
   #define TFT_MOSI      13
   #define TFT_BL        21
-
-  #define LDR_PINx      34  
-
-  #define SD_MOSI       23
-  #define SD_MISO       19
-  #define SD_SCK        18
-  #define SD_CS          5
-
-  #define IMAGES_ON_SD_CARD
-
-#else
-
-  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
-  //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
-  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
-  //#define ST7796_DRIVER   // 4 inch LCD
-
-  #define TFT_RST       -1 // Or set to -1 and connect to RESET pin / ESP32 EN pin
-  #define TFT_DC         4 // GPIO04 
-  #define TFT_CS         5 // VSPI CS0 (GPIO05)
-  #define TFT_SCLK      18 // VSPI SCK (GPIO18)
-  #define TFT_MISO      19 // VSPI Q   (GPIO19)
-  #define TFT_MOSI      23 // VSPI D   (GPIO23)
-  #define TFT_BL        25 // GPIO25  Backlight EN
-
-#endif
 
 // ************ BODMER LIBRARY CONFIG *********************
 
