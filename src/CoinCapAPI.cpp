@@ -16,18 +16,18 @@
 #include "GlobalVariables.h"
 
 #define MAX_DATA_POINTS_1H (31*24 + 10)
-#define MAX_DATA_POINTS_5M ( 1440 + 10)
+//#define MAX_DATA_POINTS_5M ( 1440 + 10)
 
 #define REQ_DATA_POINTS_1H (31*24 - 70)
-#define REQ_DATA_POINTS_5M ( 1440 - 70)
+//#define REQ_DATA_POINTS_5M ( 1440 - 70)
 
 float_t CoinCapData_1H[MAX_DATA_POINTS_1H];  // data for 1 month = 3 kB (4B / point)
-float_t CoinCapData_5M[MAX_DATA_POINTS_5M];  // data = 5,8 kB
+//float_t CoinCapData_5M[MAX_DATA_POINTS_5M];  // data = 5,8 kB
 unsigned int CoinCapDataLength_1H = 0;
-unsigned int CoinCapDataLength_5M = 0;
+//unsigned int CoinCapDataLength_5M = 0;
 
 unsigned long LastTimeCoinCapRefreshed_1H = 0; // data is not valid
-unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
+//unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
 
 // reference: "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\BasicHttpsClient\BasicHttpsClient.ino"
 //            "C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\HTTPClient\examples\StreamHttpClient\StreamHttpClient.ino"
@@ -37,7 +37,7 @@ unsigned long LastTimeCoinCapRefreshed_5M = 0; // data is not valid
 // average every day: https://api.coincap.io/v2/assets/bitcoin/history?interval=d1
 
 #define COINCAP_1H_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=h1"
-#define COINCAP_5M_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=m5"
+//#define COINCAP_5M_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=m5"
 
 
 bool GetDataFromCoinCapServer(bool Refresh_5M) {
@@ -49,6 +49,8 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   unsigned int JsonDataSize = 0;
   String COINCAP_URL;
 
+  COINCAP_URL = COINCAP_1H_URL;
+  /*
   if (Refresh_5M) {
     CoinCapDataLength_5M = 0;
     COINCAP_URL = COINCAP_5M_URL;
@@ -56,6 +58,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
     CoinCapDataLength_1H = 0;
     COINCAP_URL = COINCAP_1H_URL;
   }
+  */
   
   if (!WiFi.isConnected()) {
       return false;
@@ -140,13 +143,16 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                               //Serial.println(pos);
                               TrimNumDot(sVal);  // delete everything except numbers and "."
                               #ifdef DEBUG_OUTPUT
+                              /*
                               if (Refresh_5M) {
                                 if(CoinCapDataLength_5M < 5) { Serial.println(sVal); }
                               } else {
+                              */
                                 if(CoinCapDataLength_1H < 5) { Serial.println(sVal); }
-                              }
+                              //}
                               #endif
                               if (Refresh_5M) {
+                                /*
                                 CoinCapData_5M[CoinCapDataLength_5M] = sVal.toFloat();
                                 CoinCapDataLength_5M++;
                                 if (CoinCapDataLength_5M > MAX_DATA_POINTS_5M) {
@@ -156,6 +162,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
                                   Finished = true;
                                   break;
                                 }
+                                */
                               } else {
                                 CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
                                 CoinCapDataLength_1H++;
@@ -225,7 +232,7 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
 
   if (!result) {
     if (Refresh_5M) {
-      CoinCapDataLength_5M = 0;
+//      CoinCapDataLength_5M = 0;
     } else {
       CoinCapDataLength_1H = 0;
       }
@@ -285,6 +292,7 @@ bool GetCoinCapData_1H(void) {
 bool GetCoinCapData_5M(void) {
     Serial.println("GetCoinCapData_5M()");
     bool result = false;
+    /*
 
     if ((millis() < (LastTimeCoinCapRefreshed_5M + 5*60*1000)) && (LastTimeCoinCapRefreshed_5M != 0)) {  // check server every 1/2 hour
       Serial.println("CoinCap data 5M is valid.");
@@ -313,7 +321,7 @@ bool GetCoinCapData_5M(void) {
       delay (500);
       return false;
     }
-
+*/
 /*
     Serial.println("------------");
     for (uint16_t i = 0; i < CoinCapDataLength; i++)
@@ -432,7 +440,7 @@ void PlotCoinCapData(const float *DataArray, const int DataLen, const int LineSp
 
 
 void PlotCoinCapData_5M(void) {
-  PlotCoinCapData(CoinCapData_5M, CoinCapDataLength_5M, 288, 'd'); // 1 px = 5 min. 288 px = 24 h.
+//  PlotCoinCapData(CoinCapData_5M, CoinCapDataLength_5M, 288, 'd'); // 1 px = 5 min. 288 px = 24 h.
 }
 
 void PlotCoinCapData_1H(void) {
