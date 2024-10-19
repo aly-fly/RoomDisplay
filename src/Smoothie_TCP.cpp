@@ -4,14 +4,15 @@
 #include "__CONFIG.h"
 #include "myWiFi.h"
 #include "display.h"
+#include "utils.h"
 
 // reference: C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\WiFi\examples\WiFiClientBasic\WiFiClientBasic.ino
 
 // Use WiFiClient class to create TCP connections
-WiFiClient client;
-String TCPresponse;
+WiFiClient clientSMO;
+String Smoothie_TCPresponse;
 
-bool TCPclientConnect(void) {
+bool Smoothie_TCPclientConnect(void) {
     Serial.println("TCPclientConnect()");
     bool result = false;
     if (!WiFi.isConnected()) {
@@ -19,16 +20,16 @@ bool TCPclientConnect(void) {
     }
     
     DisplayText("TCP socket: ");
-    DisplayText(CLIENT1_HOST);
+    DisplayText(SMOOTHIE_HOST);
     DisplayText("\n");
 
     Serial.print("Connecting to ");
-    Serial.println(CLIENT1_HOST);
+    Serial.println(SMOOTHIE_HOST);
 
-    if (client.connect(CLIENT1_HOST, CLIENT1_PORT)) {
+    if (clientSMO.connect(SMOOTHIE_HOST, SMOOTHIE_PORT)) {
         Serial.println("Connected.");
         delay(300);
-        if (!client.connected()) {
+        if (!clientSMO.connected()) {
             DisplayText("CONN. DROPPED!\n", CLRED);
             Serial.println("... and connection dropped.");
             delay (1500);
@@ -37,7 +38,7 @@ bool TCPclientConnect(void) {
         DisplayText("OK\n", CLGREEN);
         // check if server sent any welcome messages
         delay(300);
-        String line = client.readString();
+        String line = clientSMO.readString();
         Serial.print("TCP server connect message: ");
         Serial.println(line);
         result = true;
@@ -51,11 +52,11 @@ bool TCPclientConnect(void) {
     return result;
 }
 
-bool TCPclientRequest(const char Text[]) {
+bool Smoothie_TCPclientRequest(const char Text[]) {
     Serial.println("TCPclientRequest()");
-    if (!client.connected()) {
+    if (!clientSMO.connected()) {
         //DisplayClear();
-        if (!TCPclientConnect()) {
+        if (!Smoothie_TCPclientConnect()) {
             return false;
         }
     }
@@ -63,26 +64,25 @@ bool TCPclientRequest(const char Text[]) {
     Serial.println(Text);
 
     // This will send a request to the server
-    client.println(Text);  // \n is required at the end
+    clientSMO.println(Text);  // \n is required at the end
 
   int maxloops = 0;
 
   //wait for the server's reply to become available
-  while (!client.available() && maxloops < 1000)
+  while (!clientSMO.available() && maxloops < 1000)
   {
     maxloops++;
     delay(1); //delay 1 msec
   }
-  if (client.available() > 0)
+  if (clientSMO.available() > 0)
   {
     //read back one line from the server
-    TCPresponse = client.readStringUntil('\n');
+    Smoothie_TCPresponse = clientSMO.readStringUntil('\n');
     // clean the received data
-    // TCPresponse.trim();    
-    TCPresponse.remove(TCPresponse.indexOf(" "));
+    TrimNonPrintable(Smoothie_TCPresponse); 
 
     Serial.print("TCP reply: ");
-    Serial.println(TCPresponse);
+    Serial.println(Smoothie_TCPresponse);
     return true;
   }
   else
@@ -92,7 +92,7 @@ bool TCPclientRequest(const char Text[]) {
   }
 }
 
-void TCPclientDisconnect(void) {
+void Smoothie_TCPclientDisconnect(void) {
     Serial.println("Closing connection.");
-    client.stop();
+    clientSMO.stop();
 }

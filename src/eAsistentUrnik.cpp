@@ -369,7 +369,7 @@ void GetEAsistent(void) {
   struct tm sStartTime;
   time_t StartTime, CurrTime;
   time_t TdiffSec;
-  int currentWeek;
+  int currentSchoolWeek;
   // 1.9.2024 = sunday
   sStartTime.tm_year = 2024 - 1900;
   sStartTime.tm_mon = 9 - 1;
@@ -381,16 +381,20 @@ void GetEAsistent(void) {
   TdiffSec = time_t(difftime(CurrTime, StartTime));
   Serial.print("Seconds elapsed from school year start: ");
   Serial.println(TdiffSec);
-  currentWeek = TdiffSec / (7 * 24 * 60 * 60);
-  currentWeek++; // starts with 1
+  currentSchoolWeek = TdiffSec / (7 * 24 * 60 * 60);
+  currentSchoolWeek++; // starts with 1
   Serial.print("Current week from school year start: ");
-  Serial.println(currentWeek);
+  Serial.println(currentSchoolWeek);
 
+  if (CurrentWeekday > 5) { // weekend
+    currentSchoolWeek++; // show monday in the next week
+    Serial.print("Weekend: week++");
+  }
 
   if ((millis() < (LastTimeUrnik1Refreshed + 2*60*60*1000)) && (LastTimeUrnik1Refreshed != 0)) {  // check server every 2 hours
     Serial.println("Urnik 1: Data is valid.");
   } else {
-    if (ReadEAsistentWebsite(currentWeek, 0)) {
+    if (ReadEAsistentWebsite(currentSchoolWeek, 0)) {
       FinalizeData(0, "TINKARA");
       LastTimeUrnik1Refreshed = millis();
     }
@@ -399,7 +403,7 @@ void GetEAsistent(void) {
   if ((millis() < (LastTimeUrnik2Refreshed + 2*60*60*1000)) && (LastTimeUrnik2Refreshed != 0)) {  // check server every 2 hours
     Serial.println("Urnik 2: Data is valid.");
   } else {
-    if (ReadEAsistentWebsite(currentWeek, 1)) {
+    if (ReadEAsistentWebsite(currentSchoolWeek, 1)) {
       FinalizeData(1, "MARCEL");
       LastTimeUrnik2Refreshed = millis();
     }

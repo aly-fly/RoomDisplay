@@ -8,7 +8,7 @@
 #include "myWiFi.h"
 #include "Clock.h"
 #include "SD_Card.h"
-#include "TCPclient.h"
+#include "Heatpump_TCP.h"
 #include "ArsoXml.h"
 #include "ArsoPlotMeteogram.h"
 #include "ArsoPlotForecast.h"
@@ -19,8 +19,9 @@
 #include "Jedilnik_OS_Domzale.h"
 #include "Jedilnik_Feniks.h"
 #include "eAsistentUrnik.h"
+#include "Smoothie_TCP.h"
 
-uint16_t ScreenNumber = 0;
+int ScreenNumber = 0;
 bool NightMode = false;
 uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
@@ -117,12 +118,6 @@ void setup() {
 
   setClock(); 
 
-  if (inHomeLAN) {
-    TCPclientConnect();
-  } else {
-    ScreenNumber = 1;   // skip heat pump display
-  }
-
 #if DEVEL_JEDILNIK_OS != 0 // DEVEL mode
   ScreenNumber = 5;
 #endif
@@ -185,9 +180,22 @@ void loop() {
   if (!digitalRead(GPIO_NUM_0)) {
     ScreenNumber = 7; // urnik
   }
-  
-  //  HEAT PUMP DATA
+
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
+    if (Smoothie_TCPclientRequest("progress\n")) {
+      if (Smoothie_TCPresponse.length() > 2)
+      {
+        DisplayClear(CLBLACK);
+        DisplayText("3D printer", 1, 50, 5, CLCYAN, false);
+        DisplayText(Smoothie_TCPresponse.c_str(), 1, 0, 45, CLYELLOW, true);
+      }
+    }
+    ScreenNumber--;
+    delay(30000);
+  }
+
+  //  HEAT PUMP DATA
+  if (ScreenNumber == 90) {  // -------------------------------------------------------------------------------------------------------------------------
     if (!inHomeLAN) {
       ScreenNumber++;
     } else {
@@ -205,23 +213,23 @@ void loop() {
       DisplayShowImage("/sunset.bmp",   320-53, 240-45);
 
       TempOutdoor1 = "- - -";
-      if (TCPclientRequest("Outdoor HP")) {
-        TCPresponse.replace(",", ".");
+      if (HP_TCPclientRequest("Outdoor HP")) {
+        HP_TCPresponse.replace(",", ".");
         // remove trailing "0"
-        TCPresponse.remove(TCPresponse.indexOf(".")+2);
-        TCPresponse.concat(" C");
-        TempOutdoor1 = TCPresponse;
+        HP_TCPresponse.remove(HP_TCPresponse.indexOf(".")+2);
+        HP_TCPresponse.concat(" C");
+        TempOutdoor1 = HP_TCPresponse;
       }
       DisplayText(TempOutdoor1.c_str(),    361,  92,  46, CLBLACK); // shadow
       DisplayText(TempOutdoor1.c_str(),    361,  90,  44, CLORANGE);
 
       TempOutdoor2 = "- - -";
-      if (TCPclientRequest("Outdoor")) {
-        TCPresponse.replace(",", ".");
+      if (HP_TCPclientRequest("Outdoor")) {
+        HP_TCPresponse.replace(",", ".");
         // remove trailing "0"
-        TCPresponse.remove(TCPresponse.indexOf(".")+2);
-        TCPresponse.concat(" C");
-        TempOutdoor2 = TCPresponse;
+        HP_TCPresponse.remove(HP_TCPresponse.indexOf(".")+2);
+        HP_TCPresponse.concat(" C");
+        TempOutdoor2 = HP_TCPresponse;
       }
       DisplayText(TempOutdoor2.c_str(),    361,  92, 102, CLBLACK); // shadow
       DisplayText(TempOutdoor2.c_str(),    361,  90, 100, CLCYAN);

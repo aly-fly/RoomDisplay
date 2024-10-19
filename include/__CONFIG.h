@@ -35,8 +35,11 @@
 
 
 // Client 
-#define CLIENT1_HOST "10.38.44.221" // toplotna
-#define CLIENT1_PORT  21212
+#define HEATPUMP_HOST "10.38.44.221" // toplotna
+#define HEATPUMP_PORT  21212
+
+#define SMOOTHIE_HOST "10.38.11.101" // 3D printer
+#define SMOOTHIE_PORT  23
 
 // Shelly
 // DOC: https://shelly-api-docs.shelly.cloud/gen1/#shelly-3em-settings-emeter-index
@@ -68,7 +71,7 @@
 //#define OLED_SDA  4
 //#define OLED_SCL  15
 
-//#define BOARD_CYD
+#define BOARD_CYD
 
 #ifdef BOARD_CYD
   #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
@@ -83,8 +86,8 @@
   #define LDR_PINx      34  
 #else
 
-  #define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
-  //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
+  //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
+  #define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
   //#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
   //#define ST7796_DRIVER   // 4 inch LCD
 
