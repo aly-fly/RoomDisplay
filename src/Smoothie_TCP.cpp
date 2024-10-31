@@ -5,6 +5,7 @@
 #include "myWiFi.h"
 #include "display.h"
 #include "utils.h"
+#include "Smoothie_TCP.h"
 
 // reference: C:\Users\yyyyy\.platformio\packages\framework-arduinoespressif32\libraries\WiFi\examples\WiFiClientBasic\WiFiClientBasic.ino
 
@@ -28,7 +29,7 @@ bool Smoothie_TCPclientConnect(void) {
 
     if (clientSMO.connect(SMOOTHIE_HOST, SMOOTHIE_PORT)) {
         Serial.println("Connected.");
-        delay(300);
+        delay(100);
         if (!clientSMO.connected()) {
             DisplayText("CONN. DROPPED!\n", CLRED);
             Serial.println("... and connection dropped.");
@@ -48,7 +49,7 @@ bool Smoothie_TCPclientConnect(void) {
         Serial.println("Connection failed.");
         result = false;
     }
-    delay (1000);
+    delay (100);
     return result;
 }
 
@@ -83,16 +84,18 @@ bool Smoothie_TCPclientRequest(const char Text[]) {
 
     Serial.print("TCP reply: ");
     Serial.println(Smoothie_TCPresponse);
+    //Smoothie_TCPclientDisconnect();
     return true;
   }
   else
   {
     Serial.println("TCP client timeout ");
+    //Smoothie_TCPclientDisconnect();
     return false;
   }
 }
 
 void Smoothie_TCPclientDisconnect(void) {
-    Serial.println("Closing connection.");
+    Serial.println("Smoothie_TCPclientDisconnect()");
     clientSMO.stop();
 }

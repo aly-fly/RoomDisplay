@@ -21,12 +21,10 @@
 
 #define TIME_SERVER  "si.pool.ntp.org"  // "pool.ntp.org"
 #define GMT_OFFSET  1
-#define DST_OFFSET  1
+#define DST_OFFSET  0
 
 #define DAY_TIME     7
 #define NIGHT_TIME  22
-
-#define DST_OFFSET  1
 
 // ************ WiFi config *********************
 //#define WIFI_SSID  "..." -> enter into the file __CONFIG_SECRETS.h
@@ -71,7 +69,7 @@
 //#define OLED_SDA  4
 //#define OLED_SCL  15
 
-#define BOARD_CYD
+//#define BOARD_CYD
 
 #ifdef BOARD_CYD
   #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (*CYD*) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172

@@ -240,8 +240,8 @@ void GetFeniks(void){
       JedilnikF[i].clear();
       idx1 = JedilnikCeloten.indexOf(DAYSF[i]);
       idx2 = JedilnikCeloten.indexOf(DAYSF[i+1]);
-      if (idx2 < 0) idx2 = JedilnikCeloten.length()-2;
-      JedilnikF[i] = JedilnikCeloten.substring(idx1, idx2-2);
+      if (idx2 < 0) idx2 = JedilnikCeloten.length();
+      JedilnikF[i] = JedilnikCeloten.substring(idx1, idx2);
     }
     JedilnikCeloten.clear(); // free mem
     // remove price for all lines

@@ -1,6 +1,7 @@
 
 #include <Arduino.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <SPIFFS.h>
 #include "Version.h"
 #include "__CONFIG.h"
@@ -181,21 +182,9 @@ void loop() {
     ScreenNumber = 7; // urnik
   }
 
-  if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
-    if (Smoothie_TCPclientRequest("progress\n")) {
-      if (Smoothie_TCPresponse.length() > 2)
-      {
-        DisplayClear(CLBLACK);
-        DisplayText("3D printer", 1, 50, 5, CLCYAN, false);
-        DisplayText(Smoothie_TCPresponse.c_str(), 1, 0, 45, CLYELLOW, true);
-      }
-    }
-    ScreenNumber--;
-    delay(30000);
-  }
 
   //  HEAT PUMP DATA
-  if (ScreenNumber == 90) {  // -------------------------------------------------------------------------------------------------------------------------
+  if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
     if (!inHomeLAN) {
       ScreenNumber++;
     } else {
@@ -328,9 +317,51 @@ void loop() {
     } else ScreenNumber++;
   }
 
+  if (ScreenNumber == 8) {  // -------------------------------------------------------------------------------------------------------------------------
+    if (!inHomeLAN) {
+      ScreenNumber++;
+    } else {
+      if (Smoothie_TCPclientRequest("progress\r")) {  // CR line ending
+        // Not currently playing
+        // 88 % complete, elapsed time: 5273 s, est time: 687 s
+        DisplayClear(CLBLACK);
+        DisplayText("3D printer", 1, 50, 5, CLCYAN, false);
+        DisplayText(Smoothie_TCPresponse.c_str(), 1, 0, 45, CLYELLOW, true);
+        String sStr;
+        int Procent = 0;
+        int Elapsed = 0;
+        if (Smoothie_TCPresponse.indexOf('%') > 1) {
+          sStr = Smoothie_TCPresponse.substring(0, Smoothie_TCPresponse.indexOf('%')-1);
+          Procent = atoi(sStr.c_str());
+          int xpix = (Procent * (tft.width()-10-8)) / 100;
+          tft.drawRect(4  , tft.height()-46  , tft.width()-8 , 42  , CLWHITE);
+          tft.drawRect(5  , tft.height()-45  , tft.width()-10, 40  , CLGREY);
+          //tft.fillRect(5+4, tft.height()-45+4, xpix          , 40-8, CLGREEN);
+          tft.fillRectHGradient(5+4, tft.height()-45+4, xpix          , 40-8, CLBLUE, CLGREEN);
+        }
+        if (Smoothie_TCPresponse.indexOf("elapsed") > 1) {
+          sStr = Smoothie_TCPresponse.substring(Smoothie_TCPresponse.indexOf("elapsed")+14,
+                                                Smoothie_TCPresponse.indexOf("s, est")-1);
+          Elapsed = atoi(sStr.c_str());
+          if (Procent > 5) {
+            int Remaining = 0;
+            Remaining = (Elapsed * (100 - Procent)) / Procent;
+            Serial.print("Remaining (s): ");
+            Serial.println(Remaining);
+            int Hh = Remaining / 3600;
+            int Mm = (Remaining - (Hh * 3600))/60;
+            sStr = "Rem.: " + String(Hh) + "h " + String(Mm) + "m";
+            DisplayText(sStr.c_str(), 2, 10, 120, CLDARKBLUE);
+          }
+        }
+        delay(10000);
+      } // connect & request
+    } // home lan
+  }
+
 
   ScreenNumber++;
-  if (ScreenNumber >= 8) { // housekeeping at the end of display cycles
+  if (ScreenNumber >= 9) { // housekeeping at the end of display cycles
     if (inHomeLAN)
       ScreenNumber = 0; else
       ScreenNumber = 1;   // skip heat pump
