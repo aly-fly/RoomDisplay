@@ -95,13 +95,21 @@
 
   #define USE_HSPI_PORT  // for TFT display;  VSPI is used for SD card
 
+  #define TFT_BL        21
   #define TFT_RST       -1 // connect to RESET pin / ESP32 EN pin
   #define TFT_DC         2
-  #define TFT_CS        15
-  #define TFT_SCLK      14
-  #define TFT_MISO      12
-  #define TFT_MOSI      13
-  #define TFT_BL        21
+
+#ifdef FREE_JTAG_PINS
+  #define TFT_CS        0
+  #define TFT_SCLK      0
+  #define TFT_MISO      0
+  #define TFT_MOSI      0
+#else
+  #define TFT_CS        15  // JTAG !!
+  #define TFT_SCLK      14  // JTAG !!
+  #define TFT_MISO      12  // JTAG !!
+  #define TFT_MOSI      13  // JTAG !!
+#endif
 
 // ************ BODMER LIBRARY CONFIG *********************
 

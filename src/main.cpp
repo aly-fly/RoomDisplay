@@ -46,7 +46,10 @@ void setup() {
   Serial.print("Build: ");
   Serial.println(BUILD_TIMESTAMP);
 
+//while(1){}
+#ifndef FREE_JTAG_PINS
   DisplayInit();
+#endif  
   /*
   // TEST
   if (!digitalRead(GPIO_NUM_0)) {
