@@ -85,8 +85,8 @@
 #else
 
   //#define ST7789_DRIVER   // 2.8 inch LCD  320 x 240 (firma)
-  #define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
-  //#define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
+  //#define ILI9341_DRIVER  // 2.8 inch LCD  320 x 240 (doma)
+  #define ILI9341_2_DRIVER  // 2.8 inch LCD 320 x 240 (doma & CYD) - Alternative ILI9341 driver, see https://github.com/Bodmer/TFT_eSPI/issues/1172
   //#define ST7796_DRIVER   // 4 inch LCD
 
 #endif
@@ -98,7 +98,7 @@
   #define TFT_BL        21
   #define TFT_RST       -1 // connect to RESET pin / ESP32 EN pin
   #define TFT_DC         2
-
+  
 #ifdef FREE_JTAG_PINS
   #define TFT_CS        0
   #define TFT_SCLK      0

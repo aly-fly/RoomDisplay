@@ -4,6 +4,8 @@
 bool GetARSOdata(void);
 bool GetARSOmeteogram(void);
 
+void InvalidateArsoData(void);
+
 struct ArsoWeather_t
 {
     int8_t DayN;

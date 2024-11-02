@@ -449,3 +449,7 @@ void PlotCoinCapData_1H(void) {
 
 
 #endif  // tft bodmer
+
+void InvalidateCoinCapData(void) {
+  LastTimeCoinCapRefreshed_1H = 0; // data is not valid
+}

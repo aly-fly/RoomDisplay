@@ -409,3 +409,8 @@ bool GetARSOmeteogram(void) {
     delay (500);
     return result;
 }
+
+void InvalidateArsoData(void) {
+  LastTimeArsoRefreshed = 0;
+  LastTimeArsoMeteogramRefreshed = 0;
+}

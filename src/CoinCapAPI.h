@@ -9,4 +9,6 @@ bool GetCoinCapData_1H(void);
 void PlotCoinCapData_5M(void);
 void PlotCoinCapData_1H(void);
 
+void InvalidateCoinCapData(void);
+
 #endif //__CCOINCAPAPI_H_
