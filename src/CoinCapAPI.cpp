@@ -13,7 +13,6 @@
 #include "Clock.h"
 #include "CoinCap_https_certificate.h"
 #include "display.h"
-#include "GlobalVariables.h"
 
 #define MAX_DATA_POINTS_1H (31*24 + 10)
 //#define MAX_DATA_POINTS_5M ( 1440 + 10)
@@ -40,26 +39,17 @@ unsigned long LastTimeCoinCapRefreshed_1H = 0; // data is not valid
 //#define COINCAP_5M_URL  "https://api.coincap.io/v2/assets/bitcoin/history?interval=m5"
 
 
-bool GetDataFromCoinCapServer(bool Refresh_5M) {
+bool GetDataFromCoinCapServer(void) {
   bool result = false;
   unsigned long StartTime = millis();
   bool Timeout = false;
   bool Finished = false;
-  unsigned int NoMoreData = 0;
-  unsigned int JsonDataSize = 0;
   String COINCAP_URL;
+  String sBufff;
 
   COINCAP_URL = COINCAP_1H_URL;
-  
-  /*
-  if (Refresh_5M) {
-    CoinCapDataLength_5M = 0;
-    COINCAP_URL = COINCAP_5M_URL;
-  } else {
-  */
-    CoinCapDataLength_1H = 0;
-    COINCAP_URL = COINCAP_1H_URL;
-//  }
+  CoinCapDataLength_1H = 0;
+  COINCAP_URL = COINCAP_1H_URL;
     
   if (!WiFi.isConnected()) {
       return false;
@@ -94,111 +84,57 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   
           // file found at server
           if (httpCode == HTTP_CODE_OK) {
-                Serial.println("[HTTPS] Streaming data from server in 3k byte chunks.");
-                DisplayText("Reading data");
-
-// stream data in chunks
-                // get length of document (is -1 when Server sends no Content-Length header)
-                int DocumentLength = https.getSize();
-                Serial.printf("[COINCAP] Document size: %d \r\n", DocumentLength);
-                bool firstBuffer = true;
+                Serial.println("[HTTPS] Streaming data from server.");
+                DisplayText("Reading data", CLYELLOW);
                 // get tcp stream
                 WiFiClient * stream = https.getStreamPtr();
-
                 // read all data from server
-                while (https.connected() && (DocumentLength > 0 || DocumentLength == -1)) {
-                    yield(); // watchdog reset
-                    // get available data size
-                    size_t StreamAvailable = stream->available();
-                    size_t BytesRead;
-
-                    if (StreamAvailable) {
-                        // read up to 3000 bytes
-                        BytesRead = stream->readBytes(gBuffer, ((StreamAvailable > sizeof(gBuffer)) ? sizeof(gBuffer) : StreamAvailable));
-                        JsonDataSize += BytesRead;
-                        #ifdef DEBUG_OUTPUT_DATA
-                        // write it to Serial
-                        if (firstBuffer) { Serial.write(gBuffer, BytesRead);  Serial.println(); }
-                          else { Serial.print("/"); }
-                        #endif
-                        firstBuffer = false;
-                        DisplayText(".");
-
-                        if(DocumentLength > 0) {
-                            DocumentLength -= BytesRead;
+                bool firstBuffer = true;
+                int pos;
+                String sVal; 
+                while ((!Finished) && https.connected()) {
+                  sBufff = stream->readStringUntil('}');
+                  #ifdef DEBUG_OUTPUT_DATA
+                    // write it to Serial
+                    if (firstBuffer) { Serial.println(sBufff); }
+                    firstBuffer = false;
+                  #endif
+                  Serial.print(".");
+                  DisplayText(".");
+                  // process received data
+                  if (sBufff.length() > 10) {
+                    pos = 0;
+                    sVal = FindJsonParam(sBufff, "priceUsd", pos);
+                    //Serial.println(pos);
+                    if (pos >= 0) {
+                      TrimNumDot(sVal);  // delete everything except numbers and "."
+                      #ifdef DEBUG_OUTPUT_DATA
+                        if(CoinCapDataLength_1H < 5) { 
+                          Serial.println(sVal); 
                         }
-                        // process received data chunk
-                        if (BytesRead > 0) {
-                          // covert data to String
-                          String sBuf;
-                          sBuf = String(gBuffer, BytesRead);
-                          // glue last section of the previous buffer
-                          // TO-DO wwwwwwwwwww
-
-                          int pos = 0;
-                          String sVal;
-
-                          while (pos >= 0) {
-                            sVal = FindJsonParam(sBuf, "priceUsd", pos);
-                            if (pos >= 0) {
-                              //Serial.println(pos);
-                              TrimNumDot(sVal);  // delete everything except numbers and "."
-                              #ifdef DEBUG_OUTPUT_DATA
-                              /*
-                              if (Refresh_5M) {
-                                if(CoinCapDataLength_5M < 5) { Serial.println(sVal); }
-                              } else {
-                              */
-                                if(CoinCapDataLength_1H < 5) { Serial.println(sVal); }
-                              //}
-                              #endif
-                              if (Refresh_5M) {
-                                /*
-                                CoinCapData_5M[CoinCapDataLength_5M] = sVal.toFloat();
-                                CoinCapDataLength_5M++;
-                                if (CoinCapDataLength_5M > MAX_DATA_POINTS_5M) {
-                                  Serial.println();
-                                  Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                                  DisplayText("\nMax number of data points reached!\n");
-                                  Finished = true;
-                                  break;
-                                }
-                                */
-                              } else {
-                                CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
-                                CoinCapDataLength_1H++;
-                                if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
-                                  Serial.println();
-                                  Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                                  DisplayText("\nMax number of data points reached!\n");
-                                  Finished = true;
-                                  break;
-                                }
-                              }
-                            } // if data found
-                          } // while data found
-                          // last section was received; it finishes off with "timestamp"
-                          if (sBuf.indexOf("timestamp") >= 0) {
-                            Serial.println();
-                            Serial.println("End identifier found.");
-                            DisplayText("\nEnd identifier found.\n", CLGREEN);
-                            Finished = true;
-                            }
-                        } // process data (BytesRead > 0)
-                    } // data available in stream
-                    delay(10);
-                    // No more data being received? 10 retries..
-                    if (StreamAvailable == 0) {
-                      NoMoreData++;
-                      delay(150);
-                    }
-                    else {
-                      NoMoreData = 0;
-                    }
-                    // timeout
-                    Timeout = (millis() > (StartTime + 20 * 1000));  // 20 seconds
-                    if (Timeout || Finished || (NoMoreData > 10)) { break; }
-                } // connected or document still has data
+                      #endif
+                      CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
+                      CoinCapDataLength_1H++;
+                      if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
+                        Serial.println();
+                        Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
+                        DisplayText("\nMax number of data points reached!\n");
+                        Finished = true;
+                        break;
+                      } // max data points
+                    } // if data found
+                    // last section was received; it finishes off with "timestamp"
+                    if (sBufff.indexOf("timestamp") >= 0) {
+                      Serial.println();
+                      Serial.println("End identifier found.");
+                      DisplayText("\nEnd identifier found.\n", CLGREEN);
+                      Finished = true;
+                    }  // end found
+                  } // if data available
+                  // timeout
+                  Timeout = (millis() > (StartTime + 20 * 1000));  // 20 seconds
+                  if (Timeout || Finished) { break; }
+                } // connected or not finished
                 Serial.println();
                 if (Timeout) {
                   Serial.println("[HTTPS] Timeout.");
@@ -232,16 +168,10 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   }
 
   if (!result) {
-    if (Refresh_5M) {
-//      CoinCapDataLength_5M = 0;
-    } else {
-      CoinCapDataLength_1H = 0;
-      }
+    CoinCapDataLength_1H = 0;
   }
     Serial.print("Time needed (ms): ");
     Serial.println(millis() - StartTime);
-    Serial.print("Json data size (bytes): ");
-    Serial.println(JsonDataSize);
     return result;
 }
 
@@ -262,7 +192,7 @@ bool GetCoinCapData_1H(void) {
     Serial.println("Requesting data 1H from CoinCap server...");
     DisplayClear();
     DisplayText("Contacting COINCAP server (1H)\n", CLYELLOW);
-    if (!GetDataFromCoinCapServer(false)) {
+    if (!GetDataFromCoinCapServer()) {
         DisplayText("FAILED!\n", CLRED);
         delay (2000);
         return false;
