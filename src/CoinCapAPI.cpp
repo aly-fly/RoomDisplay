@@ -50,16 +50,17 @@ bool GetDataFromCoinCapServer(bool Refresh_5M) {
   String COINCAP_URL;
 
   COINCAP_URL = COINCAP_1H_URL;
+  
   /*
   if (Refresh_5M) {
     CoinCapDataLength_5M = 0;
     COINCAP_URL = COINCAP_5M_URL;
   } else {
+  */
     CoinCapDataLength_1H = 0;
     COINCAP_URL = COINCAP_1H_URL;
-  }
-  */
-  
+//  }
+    
   if (!WiFi.isConnected()) {
       return false;
   }
