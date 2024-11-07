@@ -44,12 +44,9 @@ bool GetDataFromCoinCapServer(void) {
   unsigned long StartTime = millis();
   bool Timeout = false;
   bool Finished = false;
-  String COINCAP_URL;
   String sBufff;
 
-  COINCAP_URL = COINCAP_1H_URL;
   CoinCapDataLength_1H = 0;
-  COINCAP_URL = COINCAP_1H_URL;
     
   if (!WiFi.isConnected()) {
       return false;
@@ -67,7 +64,7 @@ bool GetDataFromCoinCapServer(void) {
   
       Serial.print("[HTTPS] begin...\r\n");
       DisplayText("HTTPS begin\n");
-      if (https.begin(*client, COINCAP_URL)) {  // HTTPS
+      if (https.begin(*client, COINCAP_1H_URL)) {  // HTTPS
         yield(); // watchdog reset
         Serial.print("[HTTPS] GET...\r\n");
         DisplayText("HTTPS get request: ");
@@ -91,7 +88,8 @@ bool GetDataFromCoinCapServer(void) {
                 // read all data from server
                 bool firstBuffer = true;
                 int pos;
-                String sVal; 
+                String sVal;
+                float_t Val; 
                 while ((!Finished) && https.connected()) {
                   sBufff = stream->readStringUntil('}');
                   #ifdef DEBUG_OUTPUT_DATA
@@ -113,15 +111,27 @@ bool GetDataFromCoinCapServer(void) {
                           Serial.println(sVal); 
                         }
                       #endif
-                      CoinCapData_1H[CoinCapDataLength_1H] = sVal.toFloat();
-                      CoinCapDataLength_1H++;
-                      if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
+                      Val = sVal.toFloat();
+                      if ((Val > 10000) && (Val < 123000)) {
+                        CoinCapData_1H[CoinCapDataLength_1H] = Val;
+                        CoinCapDataLength_1H++;
+                        if (CoinCapDataLength_1H > MAX_DATA_POINTS_1H) {
+                          Serial.println();
+                          Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
+                          DisplayText("\nMax number of data points reached!\n");
+                          Finished = true;
+                          break;
+                        } // max data points
+                      } // value is sensible
+                      else {
                         Serial.println();
-                        Serial.println("MAX NUMBER OF DATA POINTS REACHED!");
-                        DisplayText("\nMax number of data points reached!\n");
-                        Finished = true;
-                        break;
-                      } // max data points
+                        Serial.print("Weird data: ");
+                        Serial.print(sBufff);
+                        Serial.print(" -> ");
+                        Serial.print(sVal);
+                        Serial.print(" -> ");
+                        Serial.println(Val);
+                      } // weird data
                     } // if data found
                     // last section was received; it finishes off with "timestamp"
                     if (sBufff.indexOf("timestamp") >= 0) {
@@ -142,7 +152,7 @@ bool GetDataFromCoinCapServer(void) {
                 } else {
                   Serial.println("[HTTPS] Connection closed or file end.");
                 }
-// streaming end
+            // streaming end
             DisplayText("\n");
             result = Finished;
           } // HTTP code > 0
@@ -170,9 +180,10 @@ bool GetDataFromCoinCapServer(void) {
   if (!result) {
     CoinCapDataLength_1H = 0;
   }
-    Serial.print("Time needed (ms): ");
-    Serial.println(millis() - StartTime);
-    return result;
+  sBufff.clear();
+  Serial.print("Time needed (ms): ");
+  Serial.println(millis() - StartTime);
+  return result;
 }
 
 

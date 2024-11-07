@@ -10,7 +10,7 @@
 
 // ************ General config *********************
 #define DEBUG_OUTPUT
-//#define DEBUG_OUTPUT_DATA  // include received data
+#define DEBUG_OUTPUT_DATA  // include received data
 
 #define DEVICE_NAME "Display_v1"
 #define WIFI_CONNECT_TIMEOUT_SEC 240  // How long to wait for WiFi

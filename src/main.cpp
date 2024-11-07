@@ -28,6 +28,7 @@ uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
 bool ok;
 String sCmd;
+bool readAdditional = false;
 
 void setup() {
   Serial.begin(115200);
@@ -138,6 +139,46 @@ void setup() {
 // ===============================================================================================================================================================
 
 void loop() {
+  // RX commands
+  if (Serial.available() > 0) {
+    sCmd.concat(Serial.readString()); // add new data to the existing queue
+    int pp = sCmd.indexOf('\r');  // find first command
+    if (pp > 0) {
+      char Cmd = sCmd.charAt(pp-1);
+      Serial.println("=====================================================");
+      Serial.print("Command received: ");
+      Serial.println(Cmd);
+      switch (Cmd)
+      {
+      case 'A':
+        Serial.println("-> Invalidate ARSO data");
+        InvalidateArsoData();
+        break;
+
+      case 'B':
+        Serial.println("-> Invalidate Bitcoin data");
+        InvalidateCoinCapData();
+        break;
+      
+      case 'N':  // "3N\r"
+        ScreenNumber = sCmd.charAt(pp-2) - '0';
+        Serial.print("-> Next screen = ");
+        Serial.println(ScreenNumber);
+        break;
+
+      case 'D':
+        Serial.println("-> Read additional data");
+        readAdditional = true;
+        break;
+      
+      default:
+        Serial.println("-> Unknown");
+        break;
+      }
+      sCmd.clear(); // one at a time
+    }
+  } // serial available
+
   if(GetCurrentTime()) {
     Serial.println("Month: " + String(CurrentMonth));
     Serial.println("Day: " + String(CurrentDay));
@@ -298,8 +339,8 @@ void loop() {
 
   // JEDILNIK OŠ DOMŽALE
   if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
-    if (inHomeLAN) {
-      if ((CurrentMonth < 7) || (CurrentMonth > 8)) {
+    if (inHomeLAN || readAdditional) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAdditional) {
         GetJedilnikOsDomzale();
         DrawJedilnikOsDomzale();
         delay(13000);
@@ -309,8 +350,8 @@ void loop() {
 
   // URNIK OŠ DOMŽALE
   if (ScreenNumber == 7) {  // -------------------------------------------------------------------------------------------------------------------------
-    if (inHomeLAN) {
-      if ((CurrentMonth < 7) || (CurrentMonth > 8)) {
+    if (inHomeLAN || readAdditional) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAdditional) {
         GetEAsistent();
         DrawEAsistent(0);
         delay (7000);
@@ -397,42 +438,6 @@ void loop() {
   }
 
   delay(1000);
-
-  // RX commands
-
-  if (Serial.available() > 0) {
-    sCmd.concat(Serial.readString()); // add new data to the existing queue
-    int pp = sCmd.indexOf('\r');  // find first command
-    if (pp > 0) {
-      char Cmd = sCmd.charAt(pp-1);
-      Serial.println("=====================================================");
-      Serial.print("Command received: ");
-      Serial.println(Cmd);
-      switch (Cmd)
-      {
-      case 'A':
-        Serial.println("-> Invalidate ARSO data");
-        InvalidateArsoData();
-        break;
-
-      case 'B':
-        Serial.println("-> Invalidate Bitcoin data");
-        InvalidateCoinCapData();
-        break;
-      
-      case 'N':  // "3N\r"
-        ScreenNumber = sCmd.charAt(pp-2) - '0';
-        Serial.print("-> Next screen = ");
-        Serial.println(ScreenNumber);
-        break;
-      
-      default:
-        Serial.println("-> Unknown");
-        break;
-      }
-      sCmd.clear(); // one at a time
-    }
-  }
 } // loop
 
 

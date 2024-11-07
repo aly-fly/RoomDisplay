@@ -8,7 +8,6 @@
 #include "Clock.h"
 #include "OsDomzale_https_certificate.h"
 #include "display.h"
-#include "GlobalVariables.h"
 #include "Zamzar.h"
 #include <FS.h>
 #include <SPIFFS.h>
@@ -40,9 +39,8 @@ String PDF_URL, Saved_PDF_URL;
 
 bool GetPdfLinkFromMainWebsite(void) {
   Serial.println("GetPdfLinkFromMainWebsite()");
-  bool result = false;
-  bool Finished = false;
-  unsigned int NoMoreData = 0;
+  bool LinkFound = false;
+  int safetyCounter = 0;
   PDF_URL = "";
 
   if (!WiFi.isConnected()) {
@@ -54,14 +52,12 @@ bool GetPdfLinkFromMainWebsite(void) {
   DisplayText("Contacting: ");
   DisplayText(OSD_URL.c_str());
   DisplayText("\n");
-  String sBufOld;
 
   WiFiClientSecure *client = new WiFiClientSecure;
   if (client) {
     client -> setCACert(rootCACertificate_OsDomzale);
 
-    {
-      // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
+    { // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
       HTTPClient https;
   
       Serial.print("[HTTPS] begin...\r\n");
@@ -83,131 +79,84 @@ bool GetPdfLinkFromMainWebsite(void) {
   
           // file found at server
           if (httpCode == HTTP_CODE_OK) {
-                Serial.println("[HTTPS] Streaming data from server in 3k byte chunks.");
-                DisplayText("Reading data");
-
-// stream data in chunks
-                // get length of document (is -1 when Server sends no Content-Length header)
-                int DocumentLength = https.getSize();
-                Serial.printf("[OSD] Document size: %d \r\n", DocumentLength);
-                // get tcp stream
-                WiFiClient * stream = https.getStreamPtr();
-
-                // read all data from server
-                while (https.connected() && (DocumentLength > 0 || DocumentLength == -1) && (!Finished)) {
-                    yield(); // watchdog reset
-                    // get available data size
-                    size_t StreamAvailable = stream->available();
-                    size_t BytesRead;
-
-                    if (StreamAvailable) {
-                        // read up to 3000 bytes
-                        BytesRead = stream->readBytes(gBuffer, ((StreamAvailable > sizeof(gBuffer)) ? sizeof(gBuffer) : StreamAvailable));
-                        Serial.print("/");
-                        DisplayText(".");
-
-                        if(DocumentLength > 0) {
-                            DocumentLength -= BytesRead;
-                        }
-                        // process received data chunk
-                        if (BytesRead > 0) {
-                          // covert data to String
-                          String sBuf;
-                          sBuf = sBufOld;
-                          sBuf.concat(String(gBuffer, BytesRead));
-                          // glue last section of the previous buffer
-
-                          int idx = sBuf.indexOf("Pomembne povezave");
-                          if (idx >= 0) {
-                            Serial.println();
-                            Serial.print("Header found at ");
-                            Serial.println(idx);
-                            DisplayText("\nHeader found.\n", CLGREEN);
-
-                            // scan all "<a href=...</a>" strings for the one containing "Jedilnik"
-                            int idx1, idx2;
-                            String aHref;
-                            idx1 = sBuf.indexOf("<a href=", idx);
-                            idx2 = sBuf.indexOf("</a>", idx1);
-                            while ((idx1 > 0) && (idx2 > idx1) && (!Finished)) {
-                              aHref = sBuf.substring(idx1, idx2+4);
-                              Serial.println(idx1);
-                              Serial.println(idx2);
-                              Serial.println(aHref);
-                              if (aHref.indexOf("Jedilnik") > 0) {
-                                Serial.println("Link found");
-                                DisplayText("Link found.\n", CLGREEN);
-
-                                idx1 = aHref.indexOf("\"");
-                                idx2 = aHref.indexOf("\"", idx1+1);
-                                if ((idx1 > 0) && (idx2 > idx1)) {
-                                  PDF_URL = aHref.substring(idx1+1, idx2);
-                                  Serial.println("URL found");
-                                  DisplayText("URL found.\n", CLGREEN);
-                                  Finished = true;
-                                } else { // fail
-                                  NoMoreData = 999;
-                                }
-                              } // Jedilnik
-                              if (Finished) {break;}
-                              // look for next one
-                              idx1 = sBuf.indexOf("<a href=", idx2+4);
-                              idx2 = sBuf.indexOf("</a>", idx1);
-                            } // while href scan
-                          } // header found
-                          sBufOld = String(gBuffer, BytesRead);
-                        } // process data (BytesRead > 0)
-                    } // data available in stream
-                    delay(20);
-                    // No more data being received? 10 retries..
-                    if (StreamAvailable == 0) {
-                      NoMoreData++;
-                      delay(150);
-                      Serial.print("+");
-                      //DisplayText("+");
-                    }
-                    else {
-                      NoMoreData = 0;
-                    }
-                    if (Finished || (NoMoreData > 100)) { break; }
-                } // connected or document still has data
-                Serial.println();
-                if (NoMoreData > 100) {
-                  Serial.println("[HTTPS] Timeout.");
-                  DisplayText("\nTimeout.\n", CLRED);
+            Serial.println("[HTTPS] Streaming data from server.");
+            DisplayText("Reading data..\n");
+            // get tcp stream
+            WiFiClient * stream = https.getStreamPtr();
+            bool HeaderFound = stream->find("Pomembne povezave");
+            if (HeaderFound) {
+              Serial.println("Header found.");
+              DisplayText("Header found.\n", CLGREEN);
+              String sBufff;
+              sBufff = stream->readStringUntil('<'); // move cursor forward
+              sBufff = "x"; // length > 0
+              // scan all "<a href=...</a>" strings for the one containing "Jedilnik"
+              // <li><a href="https://www.os-domzale.si/files/2024/04/jedilnik-2024-5-1.pdf">Jedilnik</a></li>
+              Serial.println("Searching for the link");
+              DisplayText("Searching for the link", CLYELLOW);
+              while ((sBufff.length() > 0) && (!LinkFound)) {
+                Serial.print('.');
+                DisplayText(".");
+                sBufff = stream->readStringUntil('<');
+                if (sBufff.length() > 20) {
+                  #ifdef DEBUG_OUTPUT_DATA
+                    Serial.println(sBufff);
+                  #endif
+                  int idx1, idx2;
+                  String aHref;
+                  idx1 = sBufff.indexOf("a href=\"");
+                  idx2 = sBufff.indexOf("\"", idx1+8);
+                  #ifdef DEBUG_OUTPUT_DATA
+                    Serial.println(idx1);
+                    Serial.println(idx2);
+                  #endif
+                  if ((idx1 >= 0) && (idx2 > idx1) && (sBufff.indexOf("Jedilnik") > 0)) {
+                    aHref = sBufff.substring(idx1+8, idx2);
+                    Serial.println(aHref);
+                    Serial.println("Link found");
+                    DisplayText("\nLink found.", CLGREEN);
+                    PDF_URL = aHref;
+                    aHref.clear();
+                    LinkFound = true;
+                  } // Jedilnik
+                } // buffer data available
+                safetyCounter++;
+                if (safetyCounter > 50) {
+                  Serial.print("\nData not found in the first part!");
+                  DisplayText("\nData not found in the first part!", CLRED);
                   delay(2000);
-                } else {
-                  Serial.println("[HTTPS] Connection closed or file end.");
                 }
-// streaming end
-            //DisplayText("\n");
-            result = Finished;
-          } // HTTP code > 0
-        } else {
+              } // while data available and not found
+              sBufff.clear(); // free mem
+              Serial.println();
+              DisplayText("\n");
+            } // header found
+          } // HTTP code OK
+        } // HTTP code > 0
+        else {
           Serial.printf("[HTTPS] GET... failed, error: %s\r\n", https.errorToString(httpCode).c_str());
-          DisplayText("Error: ");
-          DisplayText(https.errorToString(httpCode).c_str());
+          DisplayText("Error: ", CLRED);
+          DisplayText(https.errorToString(httpCode).c_str(), CLRED);
           DisplayText("\n");
+          delay(2000);
         }
-  
         https.end();
-      } else {
+      } // https begin
+       else {
         Serial.println("[HTTPS] Unable to connect");
         DisplayText("Unable to connect.\n");
+        delay(2000);
       }
-
-      // End extra scoping block
-    }
+    }  // End extra scoping block
   
     delete client;
   } else {
     Serial.println("Unable to create HTTPS client");
+    delay(2000);
   }
-  sBufOld.clear(); // free mem
-  if (result){
+  if (LinkFound){
     Serial.println(PDF_URL);
     DisplayText(PDF_URL.c_str(), CLCYAN);
-    DisplayText("\n");
     Serial.println("Website read OK");
     DisplayText("Website read OK\n", CLGREEN);
   } else {
@@ -215,7 +164,7 @@ bool GetPdfLinkFromMainWebsite(void) {
     DisplayText("Website read & PDF search FAILED\n", CLRED);
     delay(2000);
   }
-  return result;
+  return LinkFound;
 }
 
 
