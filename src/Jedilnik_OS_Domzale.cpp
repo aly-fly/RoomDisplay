@@ -112,9 +112,10 @@ bool GetPdfLinkFromMainWebsite(void) {
                   #endif
                   if ((idx1 >= 0) && (idx2 > idx1) && (sBufff.indexOf("Jedilnik") > 0)) {
                     aHref = sBufff.substring(idx1+8, idx2);
-                    Serial.println(aHref);
-                    Serial.println("Link found");
-                    DisplayText("\nLink found.", CLGREEN);
+                    Serial.print("\nLink found: ");
+                    DisplayText("\nLink found: ", CLGREEN);
+                    Serial.print(aHref);
+                    DisplayText(aHref.c_str(), CLCYAN);
                     PDF_URL = aHref;
                     aHref.clear();
                     LinkFound = true;

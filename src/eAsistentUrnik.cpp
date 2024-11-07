@@ -366,12 +366,18 @@ void GetEAsistent(void) {
   }
 
   // calculate week number
+  int StartYear;
   struct tm sStartTime;
   time_t StartTime, CurrTime;
   time_t TdiffSec;
   int currentSchoolWeek;
+
+  StartYear = CurrentYear;
+  if (CurrentMonth < 8) { // after 1. Jan.
+    StartYear--;
+  }
   // 1.9.2024 = sunday
-  sStartTime.tm_year = 2024 - 1900;
+  sStartTime.tm_year = StartYear - 1900;
   sStartTime.tm_mon = 9 - 1;
   sStartTime.tm_mday = 1;
   sStartTime.tm_hour = 0;
