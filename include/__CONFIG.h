@@ -41,13 +41,13 @@
 
 // Shelly
 // DOC: https://shelly-api-docs.shelly.cloud/gen1/#shelly-3em-settings-emeter-index
-#define SHELLY_3EM_URL "http://10.38.22.111/status"  // Poraba TC
+#define SHELLY_3EM_URL "http://10.38.22.63/status"  // Poraba TC
 // DOC: https://shelly-api-docs.shelly.cloud/gen2/Addons/ShellySensorAddon#sensoraddongetperipherals-example
 // DOC: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Temperature#temperaturegetstatus-example
-#define SHELLY_1PM_ADDON_URL "http://10.38.22.112/rpc/Temperature.GetStatus?id=101" // Bazen temperatura
+#define SHELLY_1PM_ADDON_URL "http://10.38.22.221/rpc/Temperature.GetStatus?id=101" // Bazen temperatura
 // DOC: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchgetstatus-example
-#define SHELLY_1PM_SW1_URL "http://10.38.22.112/rpc/Switch.GetStatus?id=0" // Bazen pumpa
-#define SHELLY_1PM_SW2_URL "http://10.38.22.113/rpc/Switch.GetStatus?id=0" // Bazen ogrevanje
+#define SHELLY_1PM_SW1_URL "http://10.38.22.221/rpc/Switch.GetStatus?id=0" // Bazen pumpa
+#define SHELLY_1PM_SW2_URL "http://10.38.22.222/rpc/Switch.GetStatus?id=0" // Bazen toplotna
 
 // ARSO:
 #define ARSO_SERVER_CURRENT_XML_URL   "https://meteo.arso.gov.si/uploads/probase/www/observ/surface/text/sl/observation_LJUBL-ANA_BRNIK_latest.xml"
