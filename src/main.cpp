@@ -28,7 +28,7 @@ uint16_t LDRvalue;
 String TempOutdoor1, TempOutdoor2;
 bool ok;
 String sCmd;
-bool readAdditional = false;
+bool readAllData = false;
 
 void setup() {
   Serial.begin(115200);
@@ -160,6 +160,11 @@ void loop() {
         InvalidateCoinCapData();
         break;
       
+      case 'J':
+        Serial.println("-> Invalidate Jedilnik");
+        InvalidateJedilnikOS();
+        break;
+      
       case 'N':  // "3N\r"
         ScreenNumber = sCmd.charAt(pp-2) - '0';
         Serial.print("-> Next screen = ");
@@ -168,7 +173,7 @@ void loop() {
 
       case 'D':
         Serial.println("-> Read additional data");
-        readAdditional = true;
+        readAllData = true;
         break;
       
       default:
@@ -339,8 +344,8 @@ void loop() {
 
   // JEDILNIK OŠ DOMŽALE
   if (ScreenNumber == 6) {  // -------------------------------------------------------------------------------------------------------------------------
-    if (inHomeLAN || readAdditional) {
-      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAdditional) {
+    if (inHomeLAN || readAllData) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAllData) {
         GetJedilnikOsDomzale();
         DrawJedilnikOsDomzale();
         delay(13000);
@@ -350,8 +355,8 @@ void loop() {
 
   // URNIK OŠ DOMŽALE
   if (ScreenNumber == 7) {  // -------------------------------------------------------------------------------------------------------------------------
-    if (inHomeLAN || readAdditional) {
-      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAdditional) {
+    if (inHomeLAN || readAllData) {
+      if ((CurrentMonth < 7) || (CurrentMonth > 8) || readAllData) {
         GetEAsistent();
         DrawEAsistent(0);
         delay (7000);

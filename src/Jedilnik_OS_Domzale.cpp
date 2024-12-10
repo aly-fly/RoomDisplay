@@ -20,6 +20,7 @@ String Jedilnik[5];
 String JedilnikDatum;
 
 unsigned long LastTimeJedilnikRefreshed = 0; // data is not valid
+bool ReloadRequired = false;
 
 /*
  1. Load https://www.os-domzale.si/ (128 kB)
@@ -259,7 +260,8 @@ void GetJedilnikOsDomzale(void){
     }
   }
 
-  NeedFreshData = NeedFreshData || !FileOk;
+  NeedFreshData = NeedFreshData || !FileOk || ReloadRequired;
+  ReloadRequired = false;
 
   if (NeedFreshData && PdfOk) {
     if (ConvertPdfToTxt(PDF_URL)) {
@@ -532,6 +534,7 @@ void GetJedilnikOsDomzale(void){
       for (int i = 0; i < 5; i++)
       {
         Jedilnik[i].replace("Dodatno iz EU Solske sheme:", ",");
+        Jedilnik[i].replace("Dodatno iz EU solske sheme:", ",");
       }
       // list extracted data
       Serial.println("-------------------");
@@ -999,4 +1002,9 @@ void DrawJedilnikOsDomzale(void) {
     }
     delay(1500);
   }
+}
+
+void InvalidateJedilnikOS (void) {
+  LastTimeJedilnikRefreshed = 0; // data is not valid
+  ReloadRequired = true;
 }

@@ -325,7 +325,7 @@ void DrawFeniks(void) {
   // process data for that day
   if (processSingleDay > -1) {
       DisplayText("Feniks", 1, 230, 2, CLCYAN, true);
-      DisplayText(JedilnikF[processSingleDay].c_str(), 1, 0, 18, CLWHITE, true);
+      DisplayText(JedilnikF[processSingleDay].c_str(), 1, 0, 14, CLWHITE, true);
     } else { // weekend
       DisplayText("\n\n\n======================================\n", CLGREY);
       for (int i = 0; i < 3; i++) {
