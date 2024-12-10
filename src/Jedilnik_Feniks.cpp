@@ -98,7 +98,7 @@ bool ReadFeniksWebsite(void) {
                           sBuf.concat(String(gBuffer, BytesRead));
                           // glue last section of the previous buffer
 
-                          int idxHeader = sBuf.indexOf("PONEDELJEK:");
+                          int idxHeader = sBuf.indexOf("PONEDELJEK");
                           if (idxHeader >= 0) {
                             Serial.println();
                             Serial.print("Header found at ");
@@ -257,6 +257,11 @@ void GetFeniks(void){
         JedilnikF[i].remove(idx1 - 3, 6);
         idx1 = JedilnikF[i].indexOf("0e");
       }
+      // remove year
+      idx1 = JedilnikF[i].indexOf("202");
+      if (idx1 > 0) {
+        JedilnikF[i].remove(idx1, 4);
+      }
     }
 
     // list extracted data
@@ -319,8 +324,8 @@ void DrawFeniks(void) {
 
   // process data for that day
   if (processSingleDay > -1) {
-      DisplayText("Feniks", 1, 150, 2, CLCYAN, true);
-      DisplayText(JedilnikF[processSingleDay].c_str(), 1, 0, 12, CLWHITE, true);
+      DisplayText("Feniks", 1, 230, 2, CLCYAN, true);
+      DisplayText(JedilnikF[processSingleDay].c_str(), 1, 0, 18, CLWHITE, true);
     } else { // weekend
       DisplayText("\n\n\n======================================\n", CLGREY);
       for (int i = 0; i < 3; i++) {

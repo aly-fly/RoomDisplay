@@ -9,6 +9,8 @@ void ArsoPlotMeteogram(void) {
     float_t Xscaling = (float_t) DspW / (float_t)MTG_NUMPTS;
     Serial.printf("Scaling X: %f\r\n", Xscaling);
 
+    float Yoffset = -14; // vertical shift data plot and numbers
+
     float_t Minn, Maxx;
     Minn =  999999999;
     Maxx = -999999999;
@@ -24,6 +26,10 @@ void ArsoPlotMeteogram(void) {
     
     float_t X1, X2, Y1, Y2, Yscaling;
     Yscaling = (float(DspH) / (Maxx - Minn));
+    if (Yscaling > 4) {
+      Yscaling = 4; // limit Y zoom
+      Yoffset =+ 45;
+    }
     Serial.printf("Scaling Y: %f\r\n", Yscaling);
 
     int8_t MidnightIdx = 0;
@@ -83,9 +89,6 @@ void ArsoPlotMeteogram(void) {
       if (Y1 > 0) tft.fillRect(X1+9, DspH-Y1, 2, Y1, TFT_GREEN);
       delay(5);
     }
-
-
-    float Yoffset = -14; // vertical shift data plot and numbers
 
 
     // day names:
