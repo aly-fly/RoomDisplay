@@ -15,6 +15,8 @@
 const String eAsistent_URL1 = "https://www.easistent.com/urniki/izpis/12296fadef0fe622b9f04637b58002abc872259c/";
 const String eAsistent_URL2 = "/0/0/0/";
 
+const int FirstMondayInSeptember = 2;
+
 unsigned long LastTimeUrnik1Refreshed = 0;
 unsigned long LastTimeUrnik2Refreshed = 0;
 
@@ -376,10 +378,10 @@ void GetEAsistent(void) {
   if (CurrentMonth < 8) { // after 1. Jan.
     StartYear--;
   }
-  // 1.9.2024 = sunday
+  // 2.9.2024 = monday at 0:00
   sStartTime.tm_year = StartYear - 1900;
   sStartTime.tm_mon = 9 - 1;
-  sStartTime.tm_mday = 1;
+  sStartTime.tm_mday = FirstMondayInSeptember;
   sStartTime.tm_hour = 0;
   sStartTime.tm_min = 0;
   StartTime = mktime(&sStartTime);
