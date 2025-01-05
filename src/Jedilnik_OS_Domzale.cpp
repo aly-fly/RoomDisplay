@@ -348,6 +348,12 @@ void GetJedilnikOsDomzale(void){
 
 // NEW ALGORYTHM START
 
+      // fix extra capital words
+      CelJedilnik.replace("SSSZ", "sssz");
+      CelJedilnik.replace("Dodatno", "dodatno");
+      CelJedilnik.replace(" EU ", " eu ");
+      CelJedilnik.replace("Solske", "solske");
+
       // remove CR
       int p = CelJedilnik.indexOf(13);
       while (p >= 0)
@@ -478,8 +484,10 @@ void GetJedilnikOsDomzale(void){
       }
       DisplayText("\n");
       Serial.println();
+      Serial.print("colNumChars: ");
       Serial.println(dbgTxt1);
       dbgTxt1.clear();
+      Serial.print("colNumCapitals: ");
       Serial.println(dbgTxt2);
       dbgTxt2.clear();
       
@@ -514,7 +522,7 @@ void GetJedilnikOsDomzale(void){
       // clean un-wanted words and chars
       for (int i = 0; i < 5; i++)
       {
-        int idx = Jedilnik[i].indexOf("SSSZ:");
+        int idx = Jedilnik[i].indexOf("sssz:");
         if (idx > 0) Jedilnik[i].remove(idx, 5);
         idx = Jedilnik[i].indexOf("*");
         if (idx > 0) Jedilnik[i].remove(idx, 1);
@@ -531,10 +539,16 @@ void GetJedilnikOsDomzale(void){
         if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
       }
       // clean un-wanted words #2
+      int p11, p22;
       for (int i = 0; i < 5; i++)
       {
-        Jedilnik[i].replace("Dodatno iz EU Solske sheme:", ",");
-        Jedilnik[i].replace("Dodatno iz EU solske sheme:", ",");
+        p11 = Jedilnik[i].indexOf("dodatno"); // Dodatno iz EU Solske sheme: / Dodatno iz EU sheme:
+        if (p11 >=0) {
+          p22 = Jedilnik[i].indexOf(':', p11);
+          if (p22 > p11) {
+            Jedilnik[i].remove(p11, p22-p11+2);
+          }
+        }
       }
       // list extracted data
       Serial.println("-------------------");
@@ -669,6 +683,12 @@ void GetJedilnikOsDomzale(void){
 
 // NEW ALGORYTHM START
 
+      // fix extra capital words
+      CelJedilnik.replace("SSSZ", "sssz");
+      CelJedilnik.replace("Dodatno", "dodatno");
+      CelJedilnik.replace(" EU ", " eu ");
+      CelJedilnik.replace("Solske", "solske");
+
       // remove CR
       int p = CelJedilnik.indexOf(13);
       while (p >= 0)
@@ -799,8 +819,10 @@ void GetJedilnikOsDomzale(void){
       }
       DisplayText("\n");
       Serial.println();
+      Serial.print("colNumChars: ");
       Serial.println(dbgTxt1);
       dbgTxt1.clear();
+      Serial.print("colNumCapitals: ");
       Serial.println(dbgTxt2);
       dbgTxt2.clear();
       
@@ -835,7 +857,7 @@ void GetJedilnikOsDomzale(void){
       // clean un-wanted words and chars
       for (int i = 0; i < 5; i++)
       {
-        int idx = Jedilnik[i].indexOf("SSSZ:");
+        int idx = Jedilnik[i].indexOf("sssz:");
         if (idx > 0) Jedilnik[i].remove(idx, 5);
         idx = Jedilnik[i].indexOf("*");
         if (idx > 0) Jedilnik[i].remove(idx, 1);
@@ -852,9 +874,16 @@ void GetJedilnikOsDomzale(void){
         if (Jedilnik[i].length() == 0) {Jedilnik[i] = "(O_o)";}
       }
       // clean un-wanted words #2
+      int p11, p22;
       for (int i = 0; i < 5; i++)
       {
-        Jedilnik[i].replace("Dodatno iz EU Solske sheme:", ",");
+        p11 = Jedilnik[i].indexOf("dodatno"); // Dodatno iz EU Solske sheme: / Dodatno iz EU sheme:
+        if (p11 >=0) {
+          p22 = Jedilnik[i].indexOf(':', p11);
+          if (p22 > p11) {
+            Jedilnik[i].remove(p11, p22-p11+2);
+          }
+        }
       }
       // list extracted data
       Serial.println("-------------------");

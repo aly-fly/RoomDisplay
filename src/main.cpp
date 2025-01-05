@@ -226,12 +226,6 @@ void loop() {
   }
   #endif
 
-  // TEST
-  if (!digitalRead(GPIO_NUM_0)) {
-    ScreenNumber = 7; // urnik
-  }
-
-
   //  HEAT PUMP DATA
   if (ScreenNumber == 0) {  // -------------------------------------------------------------------------------------------------------------------------
     if (!inHomeLAN) {
