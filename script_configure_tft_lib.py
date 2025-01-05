@@ -14,9 +14,12 @@ print("===== copying TFT config files ===== ")
 # copy using Python libraries
 # "copy" changes file timestamp -> lib is always recompiled.
 # "copy2" keeps file timestamp -> lib is compiled once
-shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/JLINK_debug/TFT_eSPI/User_Setup.h')
-shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/RELEASE/TFT_eSPI/User_Setup.h')
-shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/DSP_ST7789/TFT_eSPI/User_Setup.h')
+#shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/JLINK_debug/TFT_eSPI/User_Setup.h')
+#shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/RELEASE/TFT_eSPI/User_Setup.h')
+#shutil.copy2('./include/__CONFIG.h', './.pio/libdeps/DSP_ST7789/TFT_eSPI/User_Setup.h')
+shutil.copy2('./include/__CONFIG.h', 'C:/PIO_LIBDEPS/display_JLINK_debug/TFT_eSPI/User_Setup.h')
+shutil.copy2('./include/__CONFIG.h', 'C:/PIO_LIBDEPS/display_RELEASE/TFT_eSPI/User_Setup.h')
+shutil.copy2('./include/__CONFIG.h', 'C:/PIO_LIBDEPS/display_DSP_ST7789/TFT_eSPI/User_Setup.h')
 
 # copy using Windows command line
 # native "copy" command keeps file timestamp -> lib is compiled once
