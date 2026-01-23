@@ -312,9 +312,13 @@ void loop() {
 
   // COIN CAP DATA PLOT
   if (ScreenNumber == 3) {  // -------------------------------------------------------------------------------------------------------------------------
+    if (!inHomeLAN) {
+      ScreenNumber++;
+    } else {  
     ok = GetCoinCapData_1H();
     PlotCoinCapData_1H();
     if (ok) delay(4000);
+    }
   }
 
   // COIN CAP DATA PLOT
